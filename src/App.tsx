@@ -719,10 +719,13 @@ function App() {
     setElements((current) => current.map((element) => {
       // Only the node where the right-drag started is changed.
       if (element.id !== sourceId || element.kind !== 'node') return element
-      if (!targetId || targetId === sourceId) return { ...element, pointer_ids: [] }
-      // includes(...) prevents duplicate arrows to the same node.
+      
+      if (!targetId || targetId === sourceId) {
+        return { ...element, pointer_ids: [] }
+      } 
+
       return element.pointer_ids.includes(targetId)
-        ? element
+        ? { ...element, pointer_ids: element.pointer_ids.filter((pointerId) => pointerId !== targetId) }
         : { ...element, pointer_ids: [...element.pointer_ids, targetId] }
     }))
     // Clear the temporary pointer preview after release.
