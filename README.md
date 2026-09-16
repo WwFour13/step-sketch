@@ -26,4 +26,4 @@ An interactive, Excalidraw-style canvas application for sketching, visualizing, 
 1. Clone the repository:
    ```bash
    git clone [https://github.com/WwFour13/step-sketch](https://github.com/WwFour13/step-sketch.git)
-   cd your-repo-name
+   cd step-sketch
