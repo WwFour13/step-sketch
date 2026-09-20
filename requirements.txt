@@ -1,0 +1,23 @@
+# Step-Sketch Project Requirements
+# --------------------------------------------------
+# Note: This is a TypeScript / React application.
+# Dependencies are managed via npm / package.json.
+# Run `npm install` to install all dependencies.
+# --------------------------------------------------
+
+# System & Runtime Prerequisites
+Node.js >= 18.0.0
+npm >= 9.0.0
+
+# Production Dependencies
+react==19.2.8
+react-dom==19.2.8
+
+# Development & Build Tooling
+vite==8.3.0
+typescript==6.0.2
+oxlint==1.81.0
+@vitejs/plugin-react==6.1.1
+@types/react==19.2.18
+@types/react-dom==19.2.7
+@types/node==24.13.3
