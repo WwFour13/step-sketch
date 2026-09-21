@@ -44,24 +44,37 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                   data-host-cell-id={isHorizontalOrDef ? cellId : undefined}
                   value={value}
                   readOnly
+                  draggable={false}
                   className={`array-cell-input ${
                     isSelected && (selectedCell === null || selectedCell === index)
                       ? 'cell-active'
                       : ''
                   }`}
-                  onPointerDown={() => {
+                  onPointerDown={(event) => {
+                    event.preventDefault()
                     onResetCellTyping()
                     onSelectCell(element.id, index)
                   }}
                   onMouseDown={(event) => {
+                    event.preventDefault()
                     onResetCellTyping()
                     if (isHorizontalOrDef && event.detail === 2) {
                       event.stopPropagation()
                       onAddIterator(cellId)
                     }
+                    window.getSelection()?.removeAllRanges()
+                  }}
+                  onDoubleClick={(event) => {
+                    event.preventDefault()
+                    window.getSelection()?.removeAllRanges()
+                  }}
+                  onDragStart={(event) => {
                     event.preventDefault()
                   }}
-                  onSelect={(event) => event.currentTarget.setSelectionRange(0, 0)}
+                  onSelect={(event) => {
+                    event.currentTarget.setSelectionRange(0, 0)
+                    window.getSelection()?.removeAllRanges()
+                  }}
                 />
               )
             })}
@@ -78,3 +91,4 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     </div>
   )
 }
+

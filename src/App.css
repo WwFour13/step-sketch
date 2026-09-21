@@ -459,6 +459,22 @@
   background-color: #f8f9fc;
   background-image: radial-gradient(#d9dfe9 1px, transparent 1px);
   background-size: 22px 22px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.canvas,
+.canvas * {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.canvas *::selection,
+.canvas input::selection {
+  background: transparent !important;
+  color: inherit !important;
 }
 .selection-box {
   position: absolute;
@@ -650,6 +666,10 @@
   -moz-user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+}
+.array-cells input::selection {
+  background: transparent !important;
+  color: inherit !important;
 }
 .array-cells input:last-child {
   border-right: 1px solid #cbd4e0;

@@ -192,6 +192,7 @@ function App() {
   }
 
   const handleHostDoubleClick = (event: React.MouseEvent) => {
+    window.getSelection()?.removeAllRanges()
     const target = event.target as HTMLElement
     const hostId =
       target.dataset.hostCellId ||
@@ -422,6 +423,7 @@ function App() {
   }
 
   const startDrag = (event: React.PointerEvent, id: number) => {
+    window.getSelection()?.removeAllRanges()
     const element = elements.find((item) => item.id === id)
     const bounds = canvasRef.current?.getBoundingClientRect()
     if (!element || !bounds) return
