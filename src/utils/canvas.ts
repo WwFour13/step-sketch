@@ -1,5 +1,7 @@
-import { NODE_RADIUS } from '../constants/sketch'
+import { CELL_SIZE, MAP_CELL_WIDTH, NODE_RADIUS, NODE_SIZE } from '../constants/sketch'
 import type { Position, SketchArray, SketchElement, SketchIterator } from '../types/sketch'
+
+export { CELL_SIZE, MAP_CELL_WIDTH, NODE_SIZE }
 
 export const elementBounds = (element: SketchElement) => ({
   x: element.kind === 'iterator' ? 0 : element.position.x,
@@ -9,26 +11,26 @@ export const elementBounds = (element: SketchElement) => ({
     element.kind === 'node' ||
     element.kind === 'variable' ||
     element.layout === 'vertical'
-      ? 54
+      ? NODE_SIZE
       : element.layout === 'map'
-        ? 84
-        : element.values.length * 42,
+        ? MAP_CELL_WIDTH
+        : element.values.length * CELL_SIZE,
   height:
     element.kind === 'iterator' ||
     element.kind === 'node' ||
     element.kind === 'variable' ||
     element.layout === 'horizontal' ||
     !element.layout
-      ? 54
+      ? NODE_SIZE
       : element.layout === 'map'
-        ? Math.ceil(element.values.length / 2) * 42
-        : element.values.length * 42,
+        ? Math.ceil(element.values.length / 2) * CELL_SIZE
+        : element.values.length * CELL_SIZE,
 })
 
 export const hostBounds = (elements: SketchElement[], hostId: number) => {
   const host = elements.find((element) => element.id === hostId)
   if (host?.kind === 'node')
-    return { x: host.position.x, y: host.position.y, width: 54, height: 54 }
+    return { x: host.position.x, y: host.position.y, width: NODE_SIZE, height: NODE_SIZE }
   const array = elements.find(
     (element): element is SketchArray =>
       element.kind === 'array' &&
@@ -41,10 +43,10 @@ export const hostBounds = (elements: SketchElement[], hostId: number) => {
   const row =
     array.layout === 'map' ? Math.floor(index / 2) : array.layout === 'vertical' ? index : 0
   return {
-    x: array.position.x + column * 42,
-    y: array.position.y + row * 42,
-    width: 42,
-    height: 42,
+    x: array.position.x + column * CELL_SIZE,
+    y: array.position.y + row * CELL_SIZE,
+    width: CELL_SIZE,
+    height: CELL_SIZE,
   }
 }
 

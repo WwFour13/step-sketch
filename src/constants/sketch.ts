@@ -1,6 +1,9 @@
 import type { IteratorColor, SketchElement } from '../types/sketch'
 
 export const NODE_RADIUS = 27
+export const NODE_SIZE = 54
+export const CELL_SIZE = 42
+export const MAP_CELL_WIDTH = CELL_SIZE * 2
 
 export const iteratorColors: IteratorColor[] = ['red', 'green', 'blue', 'yellow']
 
