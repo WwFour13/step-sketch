@@ -8,11 +8,10 @@
   --accent-bg: rgba(170, 59, 255, 0.1);
   --accent-border: rgba(170, 59, 255, 0.5);
   --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
 
-  --sans: system-ui, "Segoe UI", Roboto, sans-serif;
-  --heading: system-ui, "Segoe UI", Roboto, sans-serif;
+  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
   font: 18px/145% var(--sans);
@@ -520,13 +519,21 @@
   filter: drop-shadow(0 0 2px currentColor);
 }
 .iterator-triangle.color-red,
-.color-radio.color-red { color: #e85d5d; }
+.color-radio.color-red {
+  color: #e85d5d;
+}
 .iterator-triangle.color-green,
-.color-radio.color-green { color: #4caf7d; }
+.color-radio.color-green {
+  color: #4caf7d;
+}
 .iterator-triangle.color-blue,
-.color-radio.color-blue { color: #5784d8; }
+.color-radio.color-blue {
+  color: #5784d8;
+}
 .iterator-triangle.color-yellow,
-.color-radio.color-yellow { color: #d6a62f; }
+.color-radio.color-yellow {
+  color: #d6a62f;
+}
 .canvas-element:active {
   cursor: grabbing;
 }
@@ -857,8 +864,7 @@
     z-index: 1;
     top: 34px;
     height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
+    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg) scale(1.4);
   }
 
   .vite {
@@ -866,8 +872,7 @@
     top: 107px;
     height: 26px;
     width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
+    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg) scale(0.8);
   }
 }
 
@@ -1134,7 +1139,7 @@
 
   &::before,
   &::after {
-    content: "";
+    content: '';
     position: absolute;
     top: -4.5px;
     border: 5px solid transparent;
