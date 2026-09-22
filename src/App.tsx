@@ -438,8 +438,18 @@ function App() {
       pointer_ids: index < 2 ? [firstId + index + 1] : [],
       position: { x: 140 + index * 120, y: 170 },
     }))
-    setElements((current) => [...current, ...nodes])
-    setNextId((current) => current + nodes.length)
+    const count = elements.filter((element) => element.kind === 'iterator').length
+    const iteratorId = firstId + nodes.length
+    const iterator: SketchIterator = {
+      id: iteratorId,
+      kind: 'iterator',
+      hostId: firstId,
+      color: iteratorColors[count % iteratorColors.length],
+      mode: 'bottom',
+      label: 'head',
+    }
+    setElements((current) => [...current, ...nodes, iterator])
+    setNextId((current) => current + nodes.length + 1)
     selectOne(firstId)
   }
 

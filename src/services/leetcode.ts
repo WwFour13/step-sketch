@@ -1,9 +1,10 @@
-import { knownProblemSlugs, leetCodeQuery } from '../constants/sketch'
+import { iteratorColors, knownProblemSlugs, leetCodeQuery } from '../constants/sketch'
 import type {
   LeetCodeProblemIndex,
   LeetCodeQuestion,
   SketchArray,
   SketchElement,
+  SketchIterator,
   SketchNode,
 } from '../types/sketch'
 
@@ -119,74 +120,85 @@ export const fetchLeetCodeTestCase = async (
     }
 
     let nextImportedId = firstId
-    const imported: (SketchElement | SketchNode[] | SketchArray[])[] = parsedValues.map(
-      (value, index) => {
-        if (typeof value === 'string') {
-          const id = nextImportedId
-          const characters = Array.from(value)
-          nextImportedId += characters.length + 1
-          return {
-            id,
-            kind: 'array' as const,
-            label: inputNames[index] || `arg${index + 1}`,
-            element_ids: characters.map((_, characterIndex) => id + characterIndex + 1),
-            values: characters,
-            position: { x: 130, y: 100 + index * 90 },
-          }
-        }
-        if (Array.isArray(value)) {
-          const id = nextImportedId
-          if (value.length > 0 && value.every((item) => typeof item === 'string')) {
-            const label = inputNames[index] || `arg${index + 1}`
-            const stringArrays: SketchArray[] = value.map((item, stringIndex) => {
-              const stringId = nextImportedId
-              const characters = Array.from(item as string)
-              nextImportedId += characters.length + 1
-              return {
-                id: stringId,
-                kind: 'array',
-                label: `${label}[${stringIndex}]`,
-                element_ids: characters.map((_, characterIndex) => stringId + characterIndex + 1),
-                values: characters,
-                position: { x: 130, y: 100 + (index + stringIndex) * 90 },
-              }
-            })
-            return stringArrays
-          }
-          const label = inputNames[index] || `arg${index + 1}`
-          if (hasLinkedListInput) {
-            const nodes: SketchNode[] = value.map((item, nodeIndex) => ({
-              id: id + nodeIndex,
-              kind: 'node' as const,
-              label,
-              value: String(item),
-              pointer_ids: nodeIndex < value.length - 1 ? [id + nodeIndex + 1] : [],
-              position: { x: 130 + nodeIndex * 90, y: 100 + index * 110 },
-            }))
-            nextImportedId += nodes.length
-            return nodes
-          }
-          nextImportedId += value.length + 1
-          return {
-            id,
-            kind: 'array' as const,
-            label,
-            element_ids: value.map((_, valueIndex) => id + valueIndex + 1),
-            values: value.map(String),
-            position: { x: 130, y: 100 + index * 90 },
-          }
-        }
+    const imported: (SketchElement | SketchElement[])[] = parsedValues.map((value, index) => {
+      if (typeof value === 'string') {
         const id = nextImportedId
-        nextImportedId += 1
+        const characters = Array.from(value)
+        nextImportedId += characters.length + 1
         return {
           id,
-          kind: 'variable' as const,
+          kind: 'array' as const,
           label: inputNames[index] || `arg${index + 1}`,
-          value: String(value),
+          element_ids: characters.map((_, characterIndex) => id + characterIndex + 1),
+          values: characters,
           position: { x: 130, y: 100 + index * 90 },
         }
-      },
-    )
+      }
+      if (Array.isArray(value)) {
+        const id = nextImportedId
+        if (value.length > 0 && value.every((item) => typeof item === 'string')) {
+          const label = inputNames[index] || `arg${index + 1}`
+          const stringArrays: SketchArray[] = value.map((item, stringIndex) => {
+            const stringId = nextImportedId
+            const characters = Array.from(item as string)
+            nextImportedId += characters.length + 1
+            return {
+              id: stringId,
+              kind: 'array',
+              label: `${label}[${stringIndex}]`,
+              element_ids: characters.map((_, characterIndex) => stringId + characterIndex + 1),
+              values: characters,
+              position: { x: 130, y: 100 + (index + stringIndex) * 90 },
+            }
+          })
+          return stringArrays
+        }
+        const label = inputNames[index] || `arg${index + 1}`
+        if (hasLinkedListInput) {
+          const nodes: SketchNode[] = value.map((item, nodeIndex) => ({
+            id: id + nodeIndex,
+            kind: 'node' as const,
+            label: '',
+            value: String(item),
+            pointer_ids: nodeIndex < value.length - 1 ? [id + nodeIndex + 1] : [],
+            position: { x: 130 + nodeIndex * 90, y: 100 + index * 110 },
+          }))
+          if (nodes.length > 0) {
+            const iteratorId = id + nodes.length
+            const iterator: SketchIterator = {
+              id: iteratorId,
+              kind: 'iterator',
+              hostId: id,
+              color: iteratorColors[index % iteratorColors.length],
+              mode: 'bottom',
+              label,
+            }
+            nextImportedId += nodes.length + 1
+            return [...nodes, iterator]
+          }
+          nextImportedId += nodes.length
+          return nodes
+        }
+        nextImportedId += value.length + 1
+        return {
+          id,
+          kind: 'array' as const,
+          label,
+          element_ids: value.map((_, valueIndex) => id + valueIndex + 1),
+          values: value.map(String),
+          position: { x: 130, y: 100 + index * 90 },
+        }
+      }
+      const id = nextImportedId
+      nextImportedId += 1
+      return {
+        id,
+        kind: 'variable' as const,
+        label: inputNames[index] || `arg${index + 1}`,
+        value: String(value),
+        position: { x: 130, y: 100 + index * 90 },
+      }
+    })
 
     const flatImported: SketchElement[] = imported.flat()
     return {

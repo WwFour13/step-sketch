@@ -24,7 +24,11 @@ export const IteratorElement: React.FC<IteratorElementProps> = ({
         top: position.y,
         pointerEvents: isDragging ? 'none' : 'auto',
       }}
-      title={`Iterator on Cell ID: ${iterator.hostId}`}
+      title={
+        iterator.label
+          ? `${iterator.label} (Iterator on Cell ID: ${iterator.hostId})`
+          : `Iterator on Cell ID: ${iterator.hostId}`
+      }
       onPointerDown={(event) => onPointerDown(event, iterator)}
     />
   )

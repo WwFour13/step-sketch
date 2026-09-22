@@ -21,12 +21,12 @@ export const Inspector: React.FC<InspectorProps> = ({
   return (
     <div className="inspector">
       <div className="section-label">SELECTED ELEMENT</div>
-      {selected.kind !== 'node' && selected.kind !== 'iterator' && (
+      {selected.kind !== 'node' && (
         <div className="field-row">
           <label htmlFor="label">Label</label>
           <input
             id="label"
-            value={selected.label}
+            value={selected.label || ''}
             onChange={(event) => onUpdateSelected({ label: event.target.value })}
           />
         </div>

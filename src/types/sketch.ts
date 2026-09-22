@@ -35,6 +35,7 @@ export type SketchIterator = {
   hostId: number
   color: IteratorColor
   mode?: IteratorMode
+  label?: string
 }
 
 export type SketchElement = SketchVariable | SketchArray | SketchNode | SketchIterator
