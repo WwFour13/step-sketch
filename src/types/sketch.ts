@@ -27,12 +27,14 @@ export type SketchNode = Omit<SketchVariable, 'kind'> & {
 }
 
 export type IteratorColor = 'red' | 'green' | 'blue' | 'yellow'
+export type IteratorMode = 'top' | 'bottom' | 'left' | 'right'
 
 export type SketchIterator = {
   id: number
   kind: 'iterator'
   hostId: number
   color: IteratorColor
+  mode?: IteratorMode
 }
 
 export type SketchElement = SketchVariable | SketchArray | SketchNode | SketchIterator

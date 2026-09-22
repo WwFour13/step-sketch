@@ -27,21 +27,30 @@ export const elementBounds = (element: SketchElement) => ({
         : element.values.length * CELL_SIZE,
 })
 
-export const hostBounds = (elements: SketchElement[], hostId: number) => {
+export const hostBounds = (
+  elements: SketchElement[],
+  hostId: number,
+): { x: number; y: number; width: number; height: number } | null => {
   const host = elements.find((element) => element.id === hostId)
-  if (host?.kind === 'node')
+  if (host?.kind === 'node' || host?.kind === 'variable')
     return { x: host.position.x, y: host.position.y, width: NODE_SIZE, height: NODE_SIZE }
+  if (host?.kind === 'array' && host.element_ids.length > 0) {
+    return hostBounds(elements, host.element_ids[0])
+  }
   const array = elements.find(
     (element): element is SketchArray =>
-      element.kind === 'array' &&
-      (!element.layout || element.layout === 'horizontal') &&
-      element.element_ids.includes(hostId),
+      element.kind === 'array' && element.element_ids.includes(hostId),
   )
   if (!array) return null
   const index = array.element_ids.indexOf(hostId)
-  const column = array.layout === 'map' ? index % 2 : array.layout === 'vertical' ? 0 : index
+  const effectiveIndex = array.layout === 'map' && index % 2 !== 0 ? index - 1 : index
+  const column = array.layout === 'map' ? 0 : array.layout === 'vertical' ? 0 : effectiveIndex
   const row =
-    array.layout === 'map' ? Math.floor(index / 2) : array.layout === 'vertical' ? index : 0
+    array.layout === 'map'
+      ? Math.floor(effectiveIndex / 2)
+      : array.layout === 'vertical'
+        ? effectiveIndex
+        : 0
   return {
     x: array.position.x + column * CELL_SIZE,
     y: array.position.y + row * CELL_SIZE,
@@ -53,25 +62,81 @@ export const hostBounds = (elements: SketchElement[], hostId: number) => {
 export const iteratorPosition = (elements: SketchElement[], iterator: SketchIterator) => {
   const bounds = hostBounds(elements, iterator.hostId)
   if (!bounds) return { x: 0, y: 0 }
+  const mode = iterator.mode || 'bottom'
   const siblings = elements.filter(
     (element): element is SketchIterator =>
-      element.kind === 'iterator' && element.hostId === iterator.hostId,
+      element.kind === 'iterator' &&
+      element.hostId === iterator.hostId &&
+      (element.mode || 'bottom') === mode,
   )
   const siblingIndex = siblings.findIndex((item) => item.id === iterator.id)
-  const horizontalOffset = (siblingIndex - (siblings.length - 1) / 2) * 14
-  return { x: bounds.x + bounds.width / 2 - 6 + horizontalOffset, y: bounds.y + bounds.height + 5 }
+  const offset = (siblingIndex - (siblings.length - 1) / 2) * 14
+
+  switch (mode) {
+    case 'top':
+      return {
+        x: bounds.x + bounds.width / 2 - 6 + offset,
+        y: bounds.y - 14,
+      }
+    case 'left':
+      return {
+        x: bounds.x - 15,
+        y: bounds.y + bounds.height / 2 - 4.5 + offset,
+      }
+    case 'right':
+      return {
+        x: bounds.x + bounds.width + 4,
+        y: bounds.y + bounds.height / 2 - 4.5 + offset,
+      }
+    case 'bottom':
+    default:
+      return {
+        x: bounds.x + bounds.width / 2 - 6 + offset,
+        y: bounds.y + bounds.height + 5,
+      }
+  }
 }
 
 export const hostIdFromPoint = (elements: SketchElement[], clientX: number, clientY: number) => {
-  for (const offset of [0, 8, 16, 24, 32]) {
+  const offsets = [
+    [0, 0],
+    [0, -12],
+    [0, 12],
+    [-12, 0],
+    [12, 0],
+    [0, -24],
+    [0, 24],
+    [-24, 0],
+    [24, 0],
+  ]
+  for (const [ox, oy] of offsets) {
     const target = document
-      .elementFromPoint(clientX, clientY - offset)
-      ?.closest<HTMLElement>('[data-host-id], [data-host-cell-id]')
+      .elementFromPoint(clientX + ox, clientY + oy)
+      ?.closest<HTMLElement>('[data-host-cell-id], [data-host-id]')
     if (!target) continue
     const cellId = target.dataset.hostCellId
-    if (cellId && hostBounds(elements, Number(cellId))) return Number(cellId)
+    if (cellId && hostBounds(elements, Number(cellId))) {
+      const numCellId = Number(cellId)
+      const hostArr = elements.find(
+        (el): el is SketchArray => el.kind === 'array' && el.element_ids.includes(numCellId),
+      )
+      if (hostArr?.layout === 'map') {
+        const idx = hostArr.element_ids.indexOf(numCellId)
+        if (idx % 2 !== 0) {
+          return hostArr.element_ids[idx - 1]
+        }
+      }
+      return numCellId
+    }
     const nodeId = target.dataset.hostId
-    if (nodeId && hostBounds(elements, Number(nodeId))) return Number(nodeId)
+    if (nodeId && hostBounds(elements, Number(nodeId))) {
+      const numNodeId = Number(nodeId)
+      const hostArr = elements.find((el) => el.id === numNodeId)
+      if (hostArr?.kind === 'array' && hostArr.element_ids.length > 0) {
+        return hostArr.element_ids[0]
+      }
+      return numNodeId
+    }
   }
   return null
 }

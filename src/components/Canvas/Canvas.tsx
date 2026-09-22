@@ -27,7 +27,6 @@ export type CanvasProps = {
   onHostDoubleClick: (event: React.MouseEvent) => void
   onSelectCell: (arrayId: number, index: number) => void
   onResetCellTyping: () => void
-  onAddIterator: (hostId: number) => void
   onStartIteratorDrag: (event: React.PointerEvent<HTMLDivElement>, iterator: SketchIterator) => void
   onRelationshipStart: (
     event: React.PointerEvent<SVGLineElement>,
@@ -52,7 +51,6 @@ export const Canvas: React.FC<CanvasProps> = ({
   onHostDoubleClick,
   onSelectCell,
   onResetCellTyping,
-  onAddIterator,
   onStartIteratorDrag,
   onRelationshipStart,
   onRelationshipFinish,
@@ -92,7 +90,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             onHostDoubleClick={onHostDoubleClick}
             onSelectCell={onSelectCell}
             onResetCellTyping={onResetCellTyping}
-            onAddIterator={onAddIterator}
           />
         ))}
 

@@ -525,8 +525,19 @@
   border-right: 6px solid transparent;
   border-top: 9px solid currentColor;
   cursor: pointer;
-  transform: rotate(180deg);
   filter: drop-shadow(0 1px 1px rgba(20, 30, 45, 0.2));
+}
+.iterator-triangle.mode-bottom {
+  transform: rotate(180deg);
+}
+.iterator-triangle.mode-top {
+  transform: rotate(0deg);
+}
+.iterator-triangle.mode-left {
+  transform: rotate(-90deg);
+}
+.iterator-triangle.mode-right {
+  transform: rotate(90deg);
 }
 .iterator-triangle:active {
   cursor: pointer;

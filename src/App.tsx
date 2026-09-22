@@ -13,6 +13,7 @@ import type {
   PointerDraft,
   RelationshipDrag,
   SelectionBox,
+  SketchArray,
   SketchElement,
   SketchIterator,
   SketchNode,
@@ -176,15 +177,37 @@ function App() {
     )
   }
 
-  const addIterator = (hostId: number) => {
-    if (!hostBounds(elements, hostId)) return
+  const addIterator = (hostId: number, preferredMode?: 'top' | 'bottom' | 'left' | 'right') => {
+    let targetHostId = hostId
+    const hostElement = elements.find((element) => element.id === hostId)
+    if (hostElement?.kind === 'array') {
+      if (selectedCell !== null && hostElement.element_ids[selectedCell] !== undefined) {
+        const cellIndex =
+          hostElement.layout === 'map' && selectedCell % 2 !== 0 ? selectedCell - 1 : selectedCell
+        targetHostId = hostElement.element_ids[cellIndex]
+      } else if (hostElement.element_ids.length > 0) {
+        targetHostId = hostElement.element_ids[0]
+      }
+    }
+    if (!hostBounds(elements, targetHostId)) return
     const id = nextId
     const count = elements.filter((element) => element.kind === 'iterator').length
+    const hostArray = elements.find(
+      (element): element is SketchArray =>
+        element.kind === 'array' && element.element_ids.includes(targetHostId),
+    )
+    let mode: 'top' | 'bottom' | 'left' | 'right' = 'bottom'
+    if (hostArray?.layout === 'vertical' || hostArray?.layout === 'map') {
+      mode = 'left'
+    } else if (preferredMode === 'top' || preferredMode === 'bottom') {
+      mode = preferredMode
+    }
     const iterator: SketchIterator = {
       id,
       kind: 'iterator',
-      hostId,
+      hostId: targetHostId,
       color: iteratorColors[count % iteratorColors.length],
+      mode,
     }
     setElements((current) => [...current, iterator])
     setNextId((current) => current + 1)
@@ -192,32 +215,75 @@ function App() {
   }
 
   const handleHostDoubleClick = (event: React.MouseEvent) => {
+    event.preventDefault()
     window.getSelection()?.removeAllRanges()
-    const target = event.target as HTMLElement
-    const hostId =
-      target.dataset.hostCellId ||
-      target.closest<HTMLElement>('[data-host-cell-id]')?.dataset.hostCellId ||
-      target.dataset.hostId
-    if (!hostId) return
+    const pointTarget = document.elementFromPoint(
+      event.clientX,
+      event.clientY,
+    ) as HTMLElement | null
+    const currentTarget = event.currentTarget as HTMLElement | null
+    const eventTarget = event.target as HTMLElement | null
+
+    const cellTarget =
+      currentTarget?.closest<HTMLElement>('[data-host-cell-id]') ||
+      eventTarget?.closest<HTMLElement>('[data-host-cell-id]') ||
+      pointTarget?.closest<HTMLElement>('[data-host-cell-id]')
+
+    const hostTarget =
+      cellTarget ||
+      currentTarget?.closest<HTMLElement>('[data-host-id]') ||
+      eventTarget?.closest<HTMLElement>('[data-host-id]') ||
+      pointTarget?.closest<HTMLElement>('[data-host-id]')
+
+    const hostIdStr = cellTarget?.dataset.hostCellId || hostTarget?.dataset.hostId
+    if (!hostIdStr) return
+
+    let hostId = Number(hostIdStr)
+    const hostElement = elements.find((el) => el.id === hostId)
+    if (hostElement?.kind === 'array') {
+      if (selectedCell !== null && hostElement.element_ids[selectedCell] !== undefined) {
+        const cellIndex =
+          hostElement.layout === 'map' && selectedCell % 2 !== 0 ? selectedCell - 1 : selectedCell
+        hostId = hostElement.element_ids[cellIndex]
+      } else if (hostElement.element_ids.length > 0) {
+        hostId = hostElement.element_ids[0]
+      }
+    }
+
+    let preferredMode: 'top' | 'bottom' | 'left' | 'right' | undefined
+    if (
+      hostElement?.kind === 'array' &&
+      (hostElement.layout === 'vertical' || hostElement.layout === 'map')
+    ) {
+      preferredMode = 'left'
+    } else {
+      const bounds = hostBounds(elements, hostId)
+      const canvasRect = canvasRef.current?.getBoundingClientRect()
+      if (bounds && canvasRect) {
+        const hostScreenY = canvasRect.top + bounds.y
+        const centerY = hostScreenY + bounds.height / 2
+        preferredMode = event.clientY < centerY ? 'top' : 'bottom'
+      }
+    }
+
     event.stopPropagation()
-    addIterator(Number(hostId))
+    addIterator(hostId, preferredMode)
   }
 
   const advanceIterator = (iterator: SketchIterator) => {
     const host =
       elements.find((element) => element.id === iterator.hostId && element.kind === 'node') ||
       elements.find(
-        (element) =>
-          element.kind === 'array' &&
-          (!element.layout || element.layout === 'horizontal') &&
-          element.element_ids.includes(iterator.hostId),
+        (element) => element.kind === 'array' && element.element_ids.includes(iterator.hostId),
       )
     let nextHostId: number | null = null
     if (host?.kind === 'node' && host.pointer_ids.length === 1) nextHostId = host.pointer_ids[0]
     if (host?.kind === 'array') {
       const index = host.element_ids.indexOf(iterator.hostId)
-      if (index >= 0 && index < host.element_ids.length - 1)
-        nextHostId = host.element_ids[index + 1]
+      const step = host.layout === 'map' ? 2 : 1
+      if (index >= 0 && index + step < host.element_ids.length) {
+        nextHostId = host.element_ids[index + step]
+      }
     }
     if (nextHostId === null) return
     setElements((current) =>
@@ -552,10 +618,29 @@ function App() {
       if (moved) {
         const hostId = hostIdFromPoint(elements, event.clientX, event.clientY)
         if (hostId !== null) {
+          const hostArray = elements.find(
+            (el): el is SketchArray => el.kind === 'array' && el.element_ids.includes(hostId),
+          )
+          let nextMode: 'top' | 'bottom' | 'left' | 'right' = 'bottom'
+          if (hostArray?.layout === 'vertical' || hostArray?.layout === 'map') {
+            nextMode = 'left'
+          } else {
+            const bounds = hostBounds(elements, hostId)
+            const canvasRect = canvasRef.current?.getBoundingClientRect()
+            if (bounds && canvasRect) {
+              const hostScreenY = canvasRect.top + bounds.y
+              const centerY = hostScreenY + bounds.height / 2
+              nextMode = event.clientY < centerY ? 'top' : 'bottom'
+            }
+          }
           setElements((current) =>
             current.map((element) =>
               element.kind === 'iterator' && element.id === draggedIterator.id
-                ? { ...element, hostId }
+                ? {
+                    ...element,
+                    hostId,
+                    mode: nextMode,
+                  }
                 : element,
             ),
           )
@@ -690,7 +775,6 @@ function App() {
           onHostDoubleClick={handleHostDoubleClick}
           onSelectCell={selectCell}
           onResetCellTyping={resetCellTyping}
-          onAddIterator={addIterator}
           onStartIteratorDrag={startIteratorDrag}
           onRelationshipStart={handleRelationshipStart}
           onRelationshipFinish={finishPointer}

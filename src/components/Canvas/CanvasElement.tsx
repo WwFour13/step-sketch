@@ -9,7 +9,6 @@ export type CanvasElementProps = {
   onHostDoubleClick: (event: React.MouseEvent) => void
   onSelectCell: (arrayId: number, index: number) => void
   onResetCellTyping: () => void
-  onAddIterator: (hostId: number) => void
 }
 
 export const CanvasElement: React.FC<CanvasElementProps> = ({
@@ -20,12 +19,11 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   onHostDoubleClick,
   onSelectCell,
   onResetCellTyping,
-  onAddIterator,
 }) => {
   return (
     <div
       data-node-id={element.kind === 'node' ? element.id : undefined}
-      data-host-id={element.kind === 'node' ? element.id : undefined}
+      data-host-id={element.id}
       className={`canvas-element ${isSelected ? 'selected' : ''} kind-${element.kind}`}
       style={{ left: element.position.x, top: element.position.y }}
       onPointerDown={(event) => onStartDrag(event, element.id)}
@@ -37,11 +35,14 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
           <div className={`array-cells layout-${element.layout || 'horizontal'}`}>
             {element.values.map((value, index) => {
               const cellId = element.element_ids[index]
-              const isHorizontalOrDef = !element.layout || element.layout === 'horizontal'
+              const targetCellId =
+                element.layout === 'map' && index % 2 !== 0
+                  ? element.element_ids[index - 1]
+                  : cellId
               return (
                 <input
                   key={cellId}
-                  data-host-cell-id={isHorizontalOrDef ? cellId : undefined}
+                  data-host-cell-id={targetCellId}
                   value={value}
                   readOnly
                   draggable={false}
@@ -50,27 +51,18 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                       ? 'cell-active'
                       : ''
                   }`}
-                  onPointerDown={(event) => {
-                    event.preventDefault()
+                  onPointerDown={() => {
                     onResetCellTyping()
                     onSelectCell(element.id, index)
                   }}
-                  onMouseDown={(event) => {
-                    event.preventDefault()
+                  onMouseDown={() => {
                     onResetCellTyping()
-                    if (isHorizontalOrDef && event.detail === 2) {
-                      event.stopPropagation()
-                      onAddIterator(cellId)
-                    }
-                    window.getSelection()?.removeAllRanges()
-                  }}
-                  onDoubleClick={(event) => {
-                    event.preventDefault()
                     window.getSelection()?.removeAllRanges()
                   }}
                   onDragStart={(event) => {
                     event.preventDefault()
                   }}
+                  onDoubleClick={onHostDoubleClick}
                   onSelect={(event) => {
                     event.currentTarget.setSelectionRange(0, 0)
                     window.getSelection()?.removeAllRanges()
@@ -83,7 +75,11 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       ) : (
         <>
           {element.label && <div className="element-label">{element.label}</div>}
-          <div className="variable-square">
+          <div
+            className="variable-square"
+            data-node-id={element.kind === 'node' ? element.id : undefined}
+            data-host-id={element.id}
+          >
             <span className="variable-value">{element.value}</span>
           </div>
         </>
@@ -91,4 +87,3 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     </div>
   )
 }
-
