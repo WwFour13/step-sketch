@@ -7,10 +7,8 @@ export type ToolSectionProps = {
   onAddSet: () => void
   onAddMap: () => void
   onAddBinaryTree: () => void
-  problemNumber: string
-  onProblemNumberChange: (value: string) => void
-  onAddLeetCodeTestCase: () => void
-  isLoadingProblem: boolean
+  onAddMatrix: () => void
+  onOpenLeetCodeModal: () => void
   problemStatus: string
 }
 
@@ -21,16 +19,15 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
   onAddSet,
   onAddMap,
   onAddBinaryTree,
-  problemNumber,
-  onProblemNumberChange,
-  onAddLeetCodeTestCase,
-  isLoadingProblem,
+  onAddMatrix,
+  onOpenLeetCodeModal,
   problemStatus,
 }) => {
   return (
     <div className="tool-section">
       <div className="section-label">ADD TO CANVAS</div>
       <div className="template-list">
+        {/* Column 1 items (rows 1-5) */}
         <button
           className="template-button"
           title="single square"
@@ -63,6 +60,14 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
             <strong>Set</strong>
           </span>
         </button>
+        <button className="template-button" title="2D array / matrix" onClick={onAddMatrix}>
+          <span className="template-icon">▦</span>
+          <span className="template-copy">
+            <strong>Matrix</strong>
+          </span>
+        </button>
+
+        {/* Column 2 items (rows 1-5) */}
         <button
           className="template-button"
           title="pointer target"
@@ -95,21 +100,16 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
             <strong>Map</strong>
           </span>
         </button>
-        <div className="template-button leetcode-import">
+        <button
+          className="template-button"
+          title="Import LeetCode problem test cases"
+          onClick={onOpenLeetCodeModal}
+        >
           <span className="template-icon">#</span>
-          <strong className="leetcode-label">LeetCode</strong>
-          <input
-            id="problem-number"
-            type="number"
-            min="1"
-            value={problemNumber}
-            onChange={(event) => onProblemNumberChange(event.target.value)}
-            aria-label="LeetCode problem number"
-          />
-          <button type="button" onClick={onAddLeetCodeTestCase} disabled={isLoadingProblem}>
-            {isLoadingProblem ? '...' : 'Load'}
-          </button>
-        </div>
+          <span className="template-copy">
+            <strong>LeetCode</strong>
+          </span>
+        </button>
       </div>
       {problemStatus && <div className="problem-status">{problemStatus}</div>}
     </div>

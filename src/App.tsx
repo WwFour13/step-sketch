@@ -2,9 +2,10 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import './App.css'
 import { Canvas } from './components/Canvas/Canvas'
 import { Header } from './components/Header/Header'
+import { LeetCodeModal } from './components/LeetCodeModal/LeetCodeModal'
 import { Sidebar } from './components/Sidebar/Sidebar'
 import { initialElements, iteratorColors } from './constants/sketch'
-import { fetchLeetCodeTestCase } from './services/leetcode'
+import { buildCanvasElementsFromTestCases, type ParsedTestCase } from './services/leetcode'
 import type {
   CellEditState,
   DragState,
@@ -26,8 +27,7 @@ function App() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set([1]))
   const [selectedCell, setSelectedCell] = useState<number | null>(null)
   const [nextId, setNextId] = useState(15)
-  const [problemNumber, setProblemNumber] = useState('2')
-  const [isLoadingProblem, setIsLoadingProblem] = useState(false)
+  const [isLeetCodeModalOpen, setIsLeetCodeModalOpen] = useState(false)
   const [problemStatus, setProblemStatus] = useState('')
 
   const canvasRef = useRef<HTMLDivElement>(null)
@@ -98,13 +98,22 @@ function App() {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      const activeElement = document.activeElement as HTMLInputElement | HTMLTextAreaElement | null
+      const activeElement = document.activeElement as HTMLElement | null
       const isEditing =
+        activeElement?.tagName === 'INPUT' ||
+        activeElement?.tagName === 'TEXTAREA' ||
+        Boolean(activeElement?.isContentEditable) ||
         activeElement?.id === 'label' ||
         activeElement?.id === 'value' ||
-        activeElement?.id === 'problem-number'
+        activeElement?.id === 'problem-number' ||
+        activeElement?.closest('.leetcode-modal-container') !== null
+
+      if (isEditing || isLeetCodeModalOpen) {
+        return
+      }
+
       const cellEdit = cellEditRef.current
-      if (cellEdit && !isEditing && (event.key.length === 1 || event.key === 'Backspace')) {
+      if (cellEdit && (event.key.length === 1 || event.key === 'Backspace')) {
         event.preventDefault()
         setElements((current) =>
           current.map((element) => {
@@ -130,7 +139,7 @@ function App() {
         )
         return
       }
-      if (event.key === 'Delete' && selectedId && !isEditing) {
+      if (event.key === 'Delete' && selectedId) {
         deleteElement(selectedId)
       }
     }
@@ -145,7 +154,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('mousedown', handleMouseDown)
     }
-  }, [deleteElement, selectedId])
+  }, [deleteElement, isLeetCodeModalOpen, selectedId])
 
   const updateSelected = (patch: Partial<SketchElement>) => {
     if (selected?.kind === 'array' && 'values' in patch && Array.isArray(patch.values)) {
@@ -482,20 +491,40 @@ function App() {
     selectOne(firstId)
   }
 
-  const handleAddLeetCodeTestCase = async () => {
-    setIsLoadingProblem(true)
-    setProblemStatus('')
-    try {
-      const result = await fetchLeetCodeTestCase(problemNumber, nextId)
-      setElements((current) => [...current, ...result.elements])
-      setNextId(result.nextId)
-      selectOne(result.firstId)
-      setProblemStatus(result.status)
-    } catch (err) {
-      setProblemStatus(err instanceof Error ? err.message : 'Error loading problem')
-    } finally {
-      setIsLoadingProblem(false)
+  const addMatrix = () => {
+    // Placeholder for future matrix functionality
+  }
+
+  const openLeetCodeModal = () => {
+    cellEditRef.current = null
+    setSelectedCell(null)
+    setIsLeetCodeModalOpen(true)
+  }
+
+  const closeLeetCodeModal = () => {
+    setIsLeetCodeModalOpen(false)
+  }
+
+  const handleImportTestCases = (selectedCases: ParsedTestCase[], problemTitle: string) => {
+    const maxY = elements.reduce((acc, el) => {
+      if (el.kind === 'iterator') return acc
+      return Math.max(acc, el.position.y + 110)
+    }, 60)
+    const startY = Math.max(100, maxY + 30)
+
+    const result = buildCanvasElementsFromTestCases(selectedCases, nextId, startY)
+    setElements((current) => [...current, ...result.elements])
+    setNextId(result.nextId)
+
+    const firstElement = result.elements[0]
+    if (firstElement) {
+      setSelectedIds(new Set(result.elements.map((e) => e.id)))
+      setSelectedId(firstElement.id)
     }
+
+    setProblemStatus(
+      `${problemTitle} (${selectedCases.length} ${selectedCases.length === 1 ? 'case' : 'cases'} imported)`,
+    )
   }
 
   const startDrag = (event: React.PointerEvent, id: number) => {
@@ -764,10 +793,8 @@ function App() {
           onAddSet={addSet}
           onAddMap={addMap}
           onAddBinaryTree={addBinaryTree}
-          problemNumber={problemNumber}
-          onProblemNumberChange={setProblemNumber}
-          onAddLeetCodeTestCase={handleAddLeetCodeTestCase}
-          isLoadingProblem={isLoadingProblem}
+          onAddMatrix={addMatrix}
+          onOpenLeetCodeModal={openLeetCodeModal}
           problemStatus={problemStatus}
         />
         <Canvas
@@ -790,6 +817,12 @@ function App() {
           onRelationshipFinish={finishPointer}
         />
       </div>
+      <LeetCodeModal
+        isOpen={isLeetCodeModalOpen}
+        onClose={closeLeetCodeModal}
+        onImport={handleImportTestCases}
+        initialProblemNumber="1"
+      />
     </main>
   )
 }

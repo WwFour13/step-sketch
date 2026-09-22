@@ -191,7 +191,7 @@
   margin-top: 10px;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-rows: repeat(4, auto) auto;
+  grid-template-rows: repeat(5, auto);
   grid-auto-flow: column;
   gap: 5px;
 }
@@ -207,66 +207,11 @@
   padding: 9px 8px;
   cursor: pointer;
   color: #43506a;
-}
-.template-button:not(.leetcode-import) {
   justify-content: flex-start;
-}
-.leetcode-import {
-  grid-column: 1 / -1;
-  grid-row: 5;
 }
 .template-button:hover {
   border-color: #f2c2b6;
   background: #fff8f5;
-}
-.leetcode-import {
-  padding: 4px 8px;
-  cursor: default;
-}
-.leetcode-import:hover {
-  cursor: default;
-}
-.leetcode-import input {
-  flex: 0 0 48px;
-  width: 48px;
-  min-width: 0;
-  box-sizing: border-box;
-  border: 1px solid #e2e6ed;
-  border-radius: 4px;
-  background: #202e3e;
-  color: #354058;
-  font: 11px var(--mono);
-  padding: 6px 7px;
-  outline: none;
-  appearance: textfield;
-}
-.leetcode-label {
-  flex: 0 0 auto;
-  color: #43506a;
-  font: 11px var(--mono);
-  white-space: nowrap;
-}
-.leetcode-import input::-webkit-outer-spin-button,
-.leetcode-import input::-webkit-inner-spin-button {
-  margin: 0;
-  appearance: none;
-}
-.leetcode-import input:focus {
-  border-color: #f19a87;
-  box-shadow: 0 0 0 2px #fff1ed;
-}
-.leetcode-import button {
-  border: 1px solid #f06a4e;
-  border-radius: 4px;
-  background: #f06a4e;
-  color: white;
-  font: 10px var(--mono);
-  padding: 7px 9px;
-  cursor: pointer;
-}
-.leetcode-import button:disabled {
-  opacity: 0.6;
-  cursor: wait;
 }
 .problem-status {
   margin-top: 5px;

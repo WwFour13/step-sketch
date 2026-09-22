@@ -31,6 +31,7 @@ export const leetCodeQuery = `
   query questionData($titleSlug: String!) {
     question(titleSlug: $titleSlug) {
       title
+      content
       exampleTestcases
       codeSnippets {
         lang
@@ -40,4 +41,14 @@ export const leetCodeQuery = `
   }
 `
 
-export const knownProblemSlugs: Record<string, string> = { '2': 'add-two-numbers' }
+export const knownProblemSlugs: Record<string, string> = {
+  '1': 'two-sum',
+  '2': 'add-two-numbers',
+  '3': 'longest-substring-without-repeating-characters',
+  '14': 'longest-common-prefix',
+  '48': 'rotate-image',
+  '70': 'climbing-stairs',
+  '94': 'binary-tree-inorder-traversal',
+  '133': 'clone-graph',
+  '206': 'reverse-linked-list',
+}

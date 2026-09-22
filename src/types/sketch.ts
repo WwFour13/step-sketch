@@ -42,6 +42,7 @@ export type SketchElement = SketchVariable | SketchArray | SketchNode | SketchIt
 
 export type LeetCodeQuestion = {
   title: string
+  content?: string
   exampleTestcases: string
   codeSnippets: {
     lang: string
