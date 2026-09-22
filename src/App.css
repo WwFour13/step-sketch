@@ -184,8 +184,7 @@
   color: #abb3c1;
 }
 .tool-section {
-  border-top: 1px solid #edf0f4;
-  padding-top: 20px;
+  padding-top: 0;
 }
 .template-list {
   margin-top: 10px;
@@ -293,7 +292,9 @@
   margin-left: 7px;
 }
 .empty-inspector {
-  margin-top: 28px;
+  margin-top: 27px;
+  border-top: 1px solid #edf0f4;
+  padding-top: 20px;
   color: #a7afbd;
   font: 11px var(--mono);
 }
@@ -782,6 +783,7 @@
     border-bottom: 1px solid #e5e8ef;
   }
   .inspector,
+  .empty-inspector,
   .sidebar-footer {
     display: none;
   }
@@ -906,6 +908,7 @@
 .tool-separator,
 .tool-section,
 .inspector,
+.empty-inspector,
 .sidebar-footer {
   border-color: #2b3a4d;
 }
