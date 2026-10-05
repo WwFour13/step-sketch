@@ -189,6 +189,19 @@ function App() {
     )
   }
 
+  const createIterator = (
+    id: number,
+    hostId: number,
+    mode: 'top' | 'bottom' | 'left' | 'right',
+    colorIndex: number,
+  ): SketchIterator => ({
+    id,
+    kind: 'iterator',
+    hostId,
+    color: iteratorColors[colorIndex % iteratorColors.length],
+    mode,
+  })
+
   const addIterator = (hostId: number, preferredMode?: 'top' | 'bottom' | 'left' | 'right') => {
     let targetHostId = hostId
     const hostElement = elements.find((element) => element.id === hostId)
@@ -208,19 +221,13 @@ function App() {
       (element): element is SketchArray =>
         element.kind === 'array' && element.element_ids.includes(targetHostId),
     )
-    let mode: 'top' | 'bottom' | 'left' | 'right' = 'bottom'
+    let mode: 'top' | 'bottom' | 'left' | 'right' = hostArray ? 'top' : 'bottom'
     if (hostArray?.layout === 'vertical' || hostArray?.layout === 'map') {
       mode = 'left'
-    } else if (preferredMode === 'top' || preferredMode === 'bottom') {
+    } else if (!hostArray && (preferredMode === 'top' || preferredMode === 'bottom')) {
       mode = preferredMode
     }
-    const iterator: SketchIterator = {
-      id,
-      kind: 'iterator',
-      hostId: targetHostId,
-      color: iteratorColors[count % iteratorColors.length],
-      mode,
-    }
+    const iterator = createIterator(id, targetHostId, mode, count)
     setElements((current) => [...current, iterator])
     setNextId((current) => current + 1)
     selectOne(id)
@@ -251,6 +258,35 @@ function App() {
     if (!hostIdStr) return
 
     let hostId = Number(hostIdStr)
+    const matrix = cellTarget
+      ? elements.find(
+          (element): element is SketchArray =>
+            element.kind === 'array' &&
+            element.layout === 'matrix' &&
+            element.element_ids.includes(hostId),
+        )
+      : undefined
+    if (matrix) {
+      const index = matrix.element_ids.indexOf(hostId)
+      const columns = Math.max(1, matrix.columns ?? 1)
+      const row = Math.floor(index / columns)
+      const column = index % columns
+      const iteratorCount = elements.filter((element) => element.kind === 'iterator').length
+      const topIterator = createIterator(nextId, matrix.element_ids[column], 'top', iteratorCount)
+      const leftIterator = createIterator(
+        nextId + 1,
+        matrix.element_ids[row * columns],
+        'left',
+        iteratorCount + 1,
+      )
+      event.preventDefault()
+      event.stopPropagation()
+      setElements((current) => [...current, topIterator, leftIterator])
+      setNextId((current) => current + 2)
+      selectOne(topIterator.id)
+      return
+    }
+
     const hostElement = elements.find((el) => el.id === hostId)
     if (hostElement?.kind === 'array') {
       if (selectedCell !== null && hostElement.element_ids[selectedCell] !== undefined) {
@@ -292,9 +328,21 @@ function App() {
     if (host?.kind === 'node' && host.pointer_ids.length === 1) nextHostId = host.pointer_ids[0]
     if (host?.kind === 'array') {
       const index = host.element_ids.indexOf(iterator.hostId)
-      const step = host.layout === 'map' ? 2 : 1
-      if (index >= 0 && index + step < host.element_ids.length) {
-        nextHostId = host.element_ids[index + step]
+      if (host.layout === 'matrix') {
+        const columns = Math.max(1, host.columns ?? 1)
+        const column = index % columns
+        const step = iterator.mode === 'left' ? columns : 1
+        if (
+          index >= 0 &&
+          (iterator.mode === 'left' ? index + step < host.element_ids.length : column + 1 < columns)
+        ) {
+          nextHostId = host.element_ids[index + step]
+        }
+      } else {
+        const step = host.layout === 'map' ? 2 : 1
+        if (index >= 0 && index + step < host.element_ids.length) {
+          nextHostId = host.element_ids[index + step]
+        }
       }
     }
     if (nextHostId === null) return
@@ -495,7 +543,23 @@ function App() {
   }
 
   const addMatrix = () => {
-    // Placeholder for future matrix functionality
+    const id = nextId
+    const values = Array.from({ length: 9 }, (_, index) => String(index + 1))
+    setElements((current) => [
+      ...current,
+      {
+        id,
+        kind: 'array',
+        label: 'matrix',
+        element_ids: values.map((_, index) => id + index + 1),
+        values,
+        position: { x: 180, y: 120 },
+        layout: 'matrix',
+        columns: 3,
+      },
+    ])
+    setNextId((current) => current + values.length + 1)
+    selectOne(id)
   }
 
   const openLeetCodeModal = () => {
@@ -665,8 +729,23 @@ function App() {
             (el): el is SketchArray => el.kind === 'array' && el.element_ids.includes(hostId),
           )
           let nextMode: 'top' | 'bottom' | 'left' | 'right' = 'bottom'
+          let nextHostId = hostId
           if (hostArray?.layout === 'vertical' || hostArray?.layout === 'map') {
             nextMode = 'left'
+          } else if (hostArray?.layout === 'matrix') {
+            const currentIterator = elements.find(
+              (element): element is SketchIterator =>
+                element.kind === 'iterator' && element.id === draggedIterator.id,
+            )
+            nextMode = currentIterator?.mode === 'left' ? 'left' : 'top'
+            const index = hostArray.element_ids.indexOf(hostId)
+            const columns = Math.max(1, hostArray.columns ?? 1)
+            const row = Math.floor(index / columns)
+            const column = index % columns
+            nextHostId =
+              nextMode === 'left'
+                ? hostArray.element_ids[row * columns]
+                : hostArray.element_ids[column]
           } else {
             const bounds = hostBounds(elements, hostId)
             const canvasRect = canvasRef.current?.getBoundingClientRect()
@@ -681,7 +760,7 @@ function App() {
               element.kind === 'iterator' && element.id === draggedIterator.id
                 ? {
                     ...element,
-                    hostId,
+                    hostId: nextHostId,
                     mode: nextMode,
                   }
                 : element,

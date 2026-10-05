@@ -1,4 +1,4 @@
-import { iteratorColors, knownProblemSlugs, leetCodeQuery } from '../constants/sketch'
+import { CELL_SIZE, iteratorColors, knownProblemSlugs, leetCodeQuery } from '../constants/sketch'
 import type {
   LeetCodeProblemIndex,
   LeetCodeQuestion,
@@ -122,6 +122,29 @@ export const buildTestCaseElements = (
         return
       }
 
+      if (value.length > 0 && value.every(Array.isArray)) {
+        const rows = value as unknown[][]
+        const columns = Math.max(1, ...rows.map((row) => row.length))
+        const matrixValues = rows.flatMap((row) => [
+          ...row.map(String),
+          ...Array<string>(columns - row.length).fill(''),
+        ])
+        const matrixId = nextId
+        nextId += matrixValues.length + 1
+        elements.push({
+          id: matrixId,
+          kind: 'array',
+          label,
+          element_ids: matrixValues.map((_, cellIndex) => matrixId + cellIndex + 1),
+          values: matrixValues,
+          position: { x: basePosition.x, y: currentY },
+          layout: 'matrix',
+          columns,
+        })
+        currentY += Math.max(90, rows.length * CELL_SIZE + 35)
+        return
+      }
+
       // Linked list
       if (testCase.hasLinkedListInput) {
         const nodes: SketchNode[] = value.map((item, nodeIndex) => ({
@@ -150,25 +173,6 @@ export const buildTestCaseElements = (
           elements.push(...nodes)
         }
         currentY += 110
-        return
-      }
-
-      // 2D array of primitives
-      if (value.length > 0 && value.every((item) => Array.isArray(item))) {
-        value.forEach((row, rowIndex) => {
-          const rowId = nextId
-          const rowValues = (row as unknown[]).map(String)
-          nextId += rowValues.length + 1
-          elements.push({
-            id: rowId,
-            kind: 'array',
-            label: `${label}[${rowIndex}]`,
-            element_ids: rowValues.map((_, characterIndex) => rowId + characterIndex + 1),
-            values: rowValues,
-            position: { x: basePosition.x, y: currentY },
-          })
-          currentY += 90
-        })
         return
       }
 

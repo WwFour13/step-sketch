@@ -1,4 +1,5 @@
 import React from 'react'
+import { CELL_SIZE } from '../../constants/sketch'
 import type { SketchElement, SketchIterator } from '../../types/sketch'
 
 export type CanvasElementProps = {
@@ -32,13 +33,35 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       {element.kind === 'array' ? (
         <>
           <div className="element-label">{element.label}</div>
-          <div className={`array-cells layout-${element.layout || 'horizontal'}`}>
+          <div
+            className={`array-cells layout-${element.layout || 'horizontal'}`}
+            style={
+              element.layout === 'matrix'
+                ? { gridTemplateColumns: `repeat(${element.columns ?? 1}, ${CELL_SIZE}px)` }
+                : undefined
+            }
+          >
             {element.values.map((value, index) => {
               const cellId = element.element_ids[index]
               const targetCellId =
                 element.layout === 'map' && index % 2 !== 0
                   ? element.element_ids[index - 1]
                   : cellId
+              const columns = Math.max(1, element.columns ?? 1)
+              const row = Math.floor(index / columns)
+              const column = index % columns
+              const rowCount = Math.ceil(element.values.length / columns)
+              const matrixCorners =
+                element.layout === 'matrix'
+                  ? [
+                      row === 0 && column === 0 && 'corner-top-left',
+                      row === 0 && column === columns - 1 && 'corner-top-right',
+                      row === rowCount - 1 && column === 0 && 'corner-bottom-left',
+                      row === rowCount - 1 && column === columns - 1 && 'corner-bottom-right',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')
+                  : ''
               return (
                 <input
                   key={cellId}
@@ -46,7 +69,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                   value={value}
                   readOnly
                   draggable={false}
-                  className={`array-cell-input ${
+                  className={`array-cell-input ${matrixCorners} ${
                     isSelected && (selectedCell === null || selectedCell === index)
                       ? 'cell-active'
                       : ''

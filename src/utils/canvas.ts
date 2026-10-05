@@ -14,7 +14,9 @@ export const elementBounds = (element: SketchElement) => ({
       ? NODE_SIZE
       : element.layout === 'map'
         ? MAP_CELL_WIDTH
-        : element.values.length * CELL_SIZE,
+        : element.layout === 'matrix'
+          ? (element.columns ?? 1) * CELL_SIZE
+          : element.values.length * CELL_SIZE,
   height:
     element.kind === 'iterator' ||
     element.kind === 'node' ||
@@ -24,7 +26,9 @@ export const elementBounds = (element: SketchElement) => ({
       ? NODE_SIZE
       : element.layout === 'map'
         ? Math.ceil(element.values.length / 2) * CELL_SIZE
-        : element.values.length * CELL_SIZE,
+        : element.layout === 'matrix'
+          ? Math.ceil(element.values.length / Math.max(1, element.columns ?? 1)) * CELL_SIZE
+          : element.values.length * CELL_SIZE,
 })
 
 export const hostBounds = (
@@ -44,13 +48,21 @@ export const hostBounds = (
   if (!array) return null
   const index = array.element_ids.indexOf(hostId)
   const effectiveIndex = array.layout === 'map' && index % 2 !== 0 ? index - 1 : index
-  const column = array.layout === 'map' ? 0 : array.layout === 'vertical' ? 0 : effectiveIndex
+  const columns = Math.max(1, array.columns ?? 1)
+  const column =
+    array.layout === 'map' || array.layout === 'vertical'
+      ? 0
+      : array.layout === 'matrix'
+        ? index % columns
+        : effectiveIndex
   const row =
     array.layout === 'map'
       ? Math.floor(effectiveIndex / 2)
       : array.layout === 'vertical'
         ? effectiveIndex
-        : 0
+        : array.layout === 'matrix'
+          ? Math.floor(index / columns)
+          : 0
   return {
     x: array.position.x + column * CELL_SIZE,
     y: array.position.y + row * CELL_SIZE,
@@ -163,6 +175,12 @@ export const getArrayEditorValue = (array: SketchArray) => {
     }
     return pairs.join('\n')
   }
+  if (array.layout === 'matrix') {
+    const columns = Math.max(1, array.columns ?? 1)
+    return Array.from({ length: Math.ceil(array.values.length / columns) }, (_, row) =>
+      array.values.slice(row * columns, (row + 1) * columns).join(', '),
+    ).join('\n')
+  }
   if (array.layout === 'vertical') return array.values.join('\n')
   return array.values.join(', ')
 }
@@ -178,4 +196,13 @@ export const parseArrayEditorValue = (value: string, layout: SketchArray['layout
   }
   if (layout === 'vertical') return value.split('\n').map((line) => line.trim())
   return value.split(',').map((item) => item.trim())
+}
+
+export const parseMatrixEditorValue = (value: string) => {
+  const rows = value.split('\n').map((line) => line.split(',').map((item) => item.trim()))
+  const columns = Math.max(1, ...rows.map((row) => row.length))
+  return {
+    columns,
+    values: rows.flatMap((row) => [...row, ...Array<string>(columns - row.length).fill('')]),
+  }
 }

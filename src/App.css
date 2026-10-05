@@ -537,7 +537,7 @@
 }
 .element-label {
   position: absolute;
-  bottom: calc(100% + 6px);
+  top: calc(100% + 6px);
   left: 0;
   color: #8c95a7;
   font: 10px var(--mono);
@@ -645,12 +645,46 @@
 .array-cells input:last-child {
   border-radius: 0 4px 4px 0;
 }
+.array-cells.layout-matrix input {
+  border-radius: 0;
+}
+.array-cells.layout-matrix input:last-child {
+  border-right: 0;
+}
 .array-cells input.cell-active {
   position: relative;
   z-index: 1;
   border-color: #e88a75;
   border-right: 1px solid #e88a75;
   background: inherit;
+}
+.array-cells.layout-matrix {
+  display: grid;
+  gap: 1px;
+  padding: 1px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #cbd4e0;
+}
+.array-cells.layout-matrix input {
+  border: 0;
+  border-radius: 0;
+}
+.array-cells.layout-matrix input.corner-top-left {
+  border-top-left-radius: 3px;
+}
+.array-cells.layout-matrix input.corner-top-right {
+  border-top-right-radius: 3px;
+}
+.array-cells.layout-matrix input.corner-bottom-left {
+  border-bottom-left-radius: 3px;
+}
+.array-cells.layout-matrix input.corner-bottom-right {
+  border-bottom-right-radius: 3px;
+}
+.array-cells.layout-matrix input.cell-active {
+  border: 0;
+  box-shadow: inset 0 0 0 1px #e88a75;
 }
 .pointer-layer {
   position: absolute;
@@ -983,6 +1017,9 @@
   background: #202e3e;
   color: #dce7f4;
 }
+.array-cells.layout-matrix {
+  background: #52677f;
+}
 .array-cells input:last-child {
   border-right-color: #52677f;
 }
@@ -1004,6 +1041,10 @@
 }
 .array-cells.layout-map input.cell-active {
   border: 1px solid #e48670;
+}
+.array-cells.layout-matrix input.cell-active {
+  border: 0;
+  box-shadow: inset 0 0 0 1px #e48670;
 }
 .canvas-footer {
   color: #8494aa;

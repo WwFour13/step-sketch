@@ -1,7 +1,11 @@
 import React from 'react'
 import { iteratorColors } from '../../constants/sketch'
 import type { SketchElement } from '../../types/sketch'
-import { getArrayEditorValue, parseArrayEditorValue } from '../../utils/canvas'
+import {
+  getArrayEditorValue,
+  parseArrayEditorValue,
+  parseMatrixEditorValue,
+} from '../../utils/canvas'
 
 export type InspectorProps = {
   selected?: SketchElement
@@ -39,9 +43,11 @@ export const Inspector: React.FC<InspectorProps> = ({
             value={selected.kind === 'array' ? getArrayEditorValue(selected) : selected.value}
             onChange={(event) =>
               selected.kind === 'array'
-                ? onUpdateSelected({
-                    values: parseArrayEditorValue(event.target.value, selected.layout),
-                  })
+                ? selected.layout === 'matrix'
+                  ? onUpdateSelected(parseMatrixEditorValue(event.target.value))
+                  : onUpdateSelected({
+                      values: parseArrayEditorValue(event.target.value, selected.layout),
+                    })
                 : onUpdateSelected({ value: event.target.value })
             }
           />
@@ -53,7 +59,9 @@ export const Inspector: React.FC<InspectorProps> = ({
             ? 'One key: value pair per line'
             : selected.layout === 'vertical'
               ? 'One value per line'
-              : 'Separate values with commas'}
+              : selected.layout === 'matrix'
+                ? 'Comma-separated values per row'
+                : 'Separate values with commas'}
         </p>
       )}
       {selected.kind === 'iterator' && (

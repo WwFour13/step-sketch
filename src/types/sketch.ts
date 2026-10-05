@@ -18,7 +18,8 @@ export type SketchArray = {
   element_ids: number[]
   values: string[]
   position: Position
-  layout?: 'horizontal' | 'vertical' | 'map'
+  layout?: 'horizontal' | 'vertical' | 'map' | 'matrix'
+  columns?: number
 }
 
 export type SketchNode = Omit<SketchVariable, 'kind'> & {
