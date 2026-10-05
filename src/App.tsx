@@ -108,7 +108,9 @@ function App() {
         activeElement?.id === 'problem-number' ||
         activeElement?.closest('.leetcode-modal-container') !== null
 
-      if (isEditing || isLeetCodeModalOpen) {
+      const isArrayCell = activeElement?.classList.contains('array-cell-input') ?? false
+      const isDeletingArrayCell = event.key === 'Delete' && isArrayCell
+      if ((isEditing && !isDeletingArrayCell) || isLeetCodeModalOpen) {
         return
       }
 
@@ -139,8 +141,9 @@ function App() {
         )
         return
       }
-      if (event.key === 'Delete' && selectedId) {
-        deleteElement(selectedId)
+      const deleteTargetId = isArrayCell && cellEdit ? cellEdit.arrayId : selectedId
+      if (event.key === 'Delete' && deleteTargetId) {
+        deleteElement(deleteTargetId)
       }
     }
 
@@ -548,6 +551,7 @@ function App() {
       }
       activeSelection = visited
       setSelectedIds(visited)
+      setSelectedId(id)
     } else if (!selectedIds.has(id)) {
       selectOne(id)
       activeSelection = new Set([id])
