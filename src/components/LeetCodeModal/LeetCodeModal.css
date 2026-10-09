@@ -444,6 +444,70 @@
   font-style: italic;
 }
 
+.preview-tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 2px 4px;
+}
+
+.preview-tree-level {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.preview-tree-node {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #475569;
+  border-radius: 50%;
+  background: #172334;
+  color: #f1f5f9;
+  font: 10px var(--mono);
+  flex: 0 0 auto;
+}
+
+.preview-tree-node.empty {
+  border-color: transparent;
+  background: transparent;
+  color: #64748b;
+}
+
+.preview-graph {
+  display: block;
+  width: min(100%, 180px);
+  height: auto;
+  overflow: visible;
+}
+
+.preview-graph-edge {
+  stroke: #64748b;
+  stroke-width: 1.5;
+}
+
+.preview-graph-node {
+  fill: #172334;
+  stroke: #475569;
+  stroke-width: 1;
+}
+
+.preview-graph-label {
+  fill: #f1f5f9;
+  font: 10px var(--mono);
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
 /* Footer */
 .leetcode-modal-footer {
   display: flex;

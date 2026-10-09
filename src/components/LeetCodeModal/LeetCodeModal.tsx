@@ -127,7 +127,13 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
   }
 
   return (
-    <div className="leetcode-modal-overlay" onClick={onClose} role="presentation">
+    <div
+      className="leetcode-modal-overlay"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose()
+      }}
+      role="presentation"
+    >
       <div
         className="leetcode-modal-container"
         role="dialog"
