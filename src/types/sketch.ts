@@ -107,6 +107,8 @@ export type CellEditState = {
   arrayId: number
   index: number
   hasTyped: boolean
+  replaceOnly?: boolean
+  appendMode?: boolean
 }
 
 /** Origin and additive-selection mode for an active marquee gesture. */

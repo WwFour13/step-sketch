@@ -17,6 +17,7 @@ export type CanvasProps = {
   elements: SketchElement[]
   selectedIds: Set<number>
   selectedCell: number | null
+  appendCellsArrayId: number | null
   pointerDraft: PointerDraft | null
   selectionBox: SelectionBox | null
   iteratorDrag: IteratorDragState | null
@@ -45,6 +46,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   elements,
   selectedIds,
   selectedCell,
+  appendCellsArrayId,
   pointerDraft,
   selectionBox,
   iteratorDrag,
@@ -91,6 +93,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             element={element}
             isSelected={selectedIds.has(element.id)}
             selectedCell={selectedCell}
+            isAppendingCells={element.id === appendCellsArrayId}
             onStartDrag={onStartDrag}
             onHostDoubleClick={onHostDoubleClick}
             onSelectCell={onSelectCell}

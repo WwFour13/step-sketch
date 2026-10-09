@@ -29,6 +29,7 @@ function App() {
   const [nextId, setNextId] = useState(15)
   const [isLeetCodeModalOpen, setIsLeetCodeModalOpen] = useState(false)
   const [problemStatus, setProblemStatus] = useState('')
+  const [appendCellsArrayId, setAppendCellsArrayId] = useState<number | null>(null)
 
   const canvasRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<DragState | null>(null)
@@ -48,7 +49,17 @@ function App() {
 
   useEffect(() => {
     const cellEdit = cellEditRef.current
-    if (!cellEdit || document.activeElement !== document.body) return
+    const activeElement = document.activeElement
+    if (
+      !cellEdit ||
+      (activeElement !== document.body &&
+        !(
+          activeElement instanceof HTMLElement &&
+          activeElement.classList.contains('array-cell-input')
+        ))
+    ) {
+      return
+    }
 
     const arrayElement = canvasRef.current?.querySelector<HTMLElement>(
       `.canvas-element[data-host-id="${cellEdit.arrayId}"]`,
@@ -65,12 +76,14 @@ function App() {
    */
   const selectCell = (arrayId: number, index: number) => {
     cellEditRef.current = { arrayId, index, hasTyped: false }
+    setAppendCellsArrayId(null)
     setSelectedCell(index)
   }
 
   /** Lets the next typed character replace the selected cell's current value. */
   const resetCellTyping = () => {
     if (cellEditRef.current) cellEditRef.current.hasTyped = false
+    setAppendCellsArrayId(null)
   }
 
   /**
@@ -138,8 +151,7 @@ function App() {
       const activeElement = document.activeElement as HTMLElement | null
       const cellEdit = cellEditRef.current
       const isArrayCell = activeElement?.classList.contains('array-cell-input') ?? false
-      const isCanvasCellEdit =
-        cellEdit !== null && (isArrayCell || activeElement === document.body)
+      const isCanvasCellEdit = cellEdit !== null && (isArrayCell || activeElement === document.body)
       const isEditing =
         activeElement?.tagName === 'INPUT' ||
         activeElement?.tagName === 'TEXTAREA' ||
@@ -148,19 +160,123 @@ function App() {
         activeElement?.id === 'value' ||
         activeElement?.id === 'problem-number' ||
         Boolean(activeElement?.closest('.leetcode-modal-container'))
+      const isTypedCharacter =
+        event.key.length === 1 &&
+        ((!event.ctrlKey && !event.metaKey && !event.altKey) || event.getModifierState('AltGraph'))
 
       const isDeletingArrayCell = event.key === 'Delete' && isArrayCell
       if ((isEditing && !isCanvasCellEdit && !isDeletingArrayCell) || isLeetCodeModalOpen) {
         return
       }
 
+      if (cellEdit && isCanvasCellEdit && (event.key === 'Backspace' || event.key === 'Delete')) {
+        cellEdit.appendMode = false
+        cellEdit.replaceOnly = true
+        setAppendCellsArrayId(null)
+      }
+
       if (
         cellEdit &&
         isCanvasCellEdit &&
-        (event.key.length === 1 || event.key === 'Backspace')
+        selectedIds.size === 1 &&
+        selectedIds.has(cellEdit.arrayId) &&
+        event.key.startsWith('Arrow')
       ) {
+        const array = elements.find(
+          (element): element is SketchArray =>
+            element.kind === 'array' && element.id === cellEdit.arrayId,
+        )
+        if (!array) return
+
+        const index = cellEdit.index
+        let nextIndex = index
+        if (array.layout === 'matrix') {
+          const columns = Math.max(1, array.columns ?? 1)
+          const row = Math.floor(index / columns)
+          const column = index % columns
+          if (event.key === 'ArrowLeft' && column > 0) nextIndex = index - 1
+          if (
+            event.key === 'ArrowRight' &&
+            column + 1 < Math.min(columns, array.values.length - row * columns)
+          ) {
+            nextIndex = index + 1
+          }
+          if (event.key === 'ArrowUp' && row > 0) nextIndex = index - columns
+          if (event.key === 'ArrowDown' && index + columns < array.values.length) {
+            nextIndex = index + columns
+          }
+        } else if (array.layout === 'map') {
+          const column = index % 2
+          if (event.key === 'ArrowLeft' && column > 0) nextIndex = index - 1
+          if (event.key === 'ArrowRight' && column === 0 && index + 1 < array.values.length) {
+            nextIndex = index + 1
+          }
+          if (event.key === 'ArrowUp' && index >= 2) nextIndex = index - 2
+          if (event.key === 'ArrowDown' && index + 2 < array.values.length) {
+            nextIndex = index + 2
+          }
+        } else if (array.layout === 'vertical') {
+          if (event.key === 'ArrowUp' && index > 0) nextIndex = index - 1
+          if (event.key === 'ArrowDown' && index + 1 < array.values.length) nextIndex = index + 1
+        } else {
+          if (event.key === 'ArrowLeft' && index > 0) nextIndex = index - 1
+          if (event.key === 'ArrowRight' && index + 1 < array.values.length) {
+            nextIndex = index + 1
+          }
+        }
+
         event.preventDefault()
-        if (event.key.length === 1 && !/^[0-9.-]$/.test(event.key)) {
+        if (nextIndex !== index) {
+          cellEditRef.current = { arrayId: array.id, index: nextIndex, hasTyped: false }
+          setAppendCellsArrayId(null)
+          setSelectedCell(nextIndex)
+        }
+        return
+      }
+
+      if (
+        cellEdit &&
+        isCanvasCellEdit &&
+        cellEdit.hasTyped &&
+        isTypedCharacter &&
+        event.key !== ',' &&
+        cellEdit.appendMode &&
+        !cellEdit.replaceOnly &&
+        !/^[0-9.-]$/.test(event.key)
+      ) {
+        const array = elements.find(
+          (element): element is SketchArray =>
+            element.kind === 'array' && element.id === cellEdit.arrayId,
+        )
+        if (array && cellEdit.index === array.values.length - 1) {
+          event.preventDefault()
+          const newIndex = array.values.length
+          const newCellId = nextId
+          setElements((current) =>
+            current.map((element) => {
+              if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
+              return {
+                ...element,
+                values: [...element.values, event.key],
+                element_ids: [...element.element_ids, newCellId],
+              }
+            }),
+          )
+          setNextId((current) => current + 1)
+          cellEditRef.current = {
+            arrayId: cellEdit.arrayId,
+            index: newIndex,
+            hasTyped: true,
+            appendMode: true,
+          }
+          setSelectedCell(newIndex)
+          return
+        }
+      }
+
+      if (cellEdit && isCanvasCellEdit && (isTypedCharacter || event.key === 'Backspace')) {
+        event.preventDefault()
+        if (isTypedCharacter && !/^[0-9.-]$/.test(event.key)) {
           const array = elements.find(
             (element): element is SketchArray =>
               element.kind === 'array' && element.id === cellEdit.arrayId,
@@ -171,7 +287,8 @@ function App() {
           }
 
           const nextIndex = cellEdit.index + 1
-          if (event.key === ',') {
+          const isAddingCell = event.key === ','
+          if (isAddingCell) {
             const cellId = nextId
             setElements((current) =>
               current.map((element) => {
@@ -196,11 +313,27 @@ function App() {
             )
           }
 
-          const selectedIndex = event.key === ',' ? nextIndex : Math.min(nextIndex, array.values.length - 1)
+          const selectedIndex = isAddingCell
+            ? nextIndex
+            : Math.min(nextIndex, array.values.length - 1)
+          setAppendCellsArrayId(
+            !isAddingCell &&
+              !cellEdit.replaceOnly &&
+              !/^[0-9.-]$/.test(event.key) &&
+              cellEdit.index === array.values.length - 1
+              ? array.id
+              : null,
+          )
           cellEditRef.current = {
             arrayId: cellEdit.arrayId,
             index: selectedIndex,
-            hasTyped: event.key !== ',' && selectedIndex === cellEdit.index,
+            hasTyped: !isAddingCell && selectedIndex === cellEdit.index,
+            replaceOnly: isAddingCell ? false : cellEdit.replaceOnly,
+            appendMode:
+              !isAddingCell &&
+              !cellEdit.replaceOnly &&
+              !/^[0-9.-]$/.test(event.key) &&
+              cellEdit.index === array.values.length - 1,
           }
           setSelectedCell(selectedIndex)
           return
@@ -218,12 +351,31 @@ function App() {
           )
           const removedCellId = array?.element_ids[cellEdit.index]
           if (array && removedCellId !== undefined) {
+            if (array.values.length === 1) {
+              const values = [...array.values]
+              values[cellEdit.index] = ''
+              cellEditRef.current = {
+                ...cellEdit,
+                hasTyped: false,
+                replaceOnly: true,
+                appendMode: false,
+              }
+              setAppendCellsArrayId(null)
+              setElements((current) =>
+                current.map((element) =>
+                  element.kind === 'array' && element.id === cellEdit.arrayId
+                    ? { ...element, values }
+                    : element,
+                ),
+              )
+              return
+            }
+
             const nextIndex = Math.min(cellEdit.index, array.values.length - 2)
             setElements((current) =>
               current
                 .filter(
-                  (element) =>
-                    !(element.kind === 'iterator' && element.hostId === removedCellId),
+                  (element) => !(element.kind === 'iterator' && element.hostId === removedCellId),
                 )
                 .map((element) => {
                   if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
@@ -234,17 +386,15 @@ function App() {
                   return { ...element, values, element_ids: elementIds }
                 }),
             )
-            if (array.values.length === 1) {
-              cellEditRef.current = null
-              setSelectedCell(null)
-            } else {
-              cellEditRef.current = {
-                arrayId: cellEdit.arrayId,
-                index: nextIndex,
-                hasTyped: false,
-              }
-              setSelectedCell(nextIndex)
+            cellEditRef.current = {
+              arrayId: cellEdit.arrayId,
+              index: nextIndex,
+              hasTyped: false,
+              replaceOnly: true,
+              appendMode: false,
             }
+            setAppendCellsArrayId(null)
+            setSelectedCell(nextIndex)
           }
           return
         }
@@ -256,6 +406,24 @@ function App() {
             : cellEdit.hasTyped
               ? currentValue + event.key
               : event.key
+        if (isTypedCharacter && !cellEdit.hasTyped) {
+          const array = elements.find(
+            (element): element is SketchArray =>
+              element.kind === 'array' && element.id === cellEdit.arrayId,
+          )
+          const startsAppendMode =
+            isTypedCharacter &&
+            event.key !== ',' &&
+            !/^[0-9.-]$/.test(event.key) &&
+            !cellEdit.replaceOnly &&
+            array !== undefined &&
+            cellEdit.index === array.values.length - 1
+          cellEdit.appendMode = startsAppendMode
+          setAppendCellsArrayId(startsAppendMode ? (array?.id ?? null) : null)
+        } else if (isTypedCharacter && /^[0-9.-]$/.test(event.key)) {
+          cellEdit.appendMode = false
+          setAppendCellsArrayId(null)
+        }
         cellEdit.hasTyped = true
         setElements((current) =>
           current.map((element) => {
@@ -275,15 +443,7 @@ function App() {
       }
 
       const elementEdit = elementEditRef.current
-      const isTypedCharacter =
-        event.key.length === 1 &&
-        ((!event.ctrlKey && !event.metaKey && !event.altKey) ||
-          event.getModifierState('AltGraph'))
-      if (
-        elementEdit &&
-        isTypedCharacter &&
-        !isEditing
-      ) {
+      if (elementEdit && isTypedCharacter && !isEditing) {
         event.preventDefault()
         const editElement = elements.find((element) => element.id === elementEdit.elementId)
         const currentValue =
@@ -329,6 +489,27 @@ function App() {
       }
       const deleteTargetId = isArrayCell && cellEdit ? cellEdit.arrayId : selectedId
       if (event.key === 'Delete' && deleteTargetId) {
+        const deleteTarget = elements.find((element) => element.id === deleteTargetId)
+        if (deleteTarget?.kind === 'array' && deleteTarget.values.length <= 1) {
+          event.preventDefault()
+          setElements((current) =>
+            current.map((element) =>
+              element.kind === 'array' && element.id === deleteTargetId
+                ? { ...element, values: [''] }
+                : element,
+            ),
+          )
+          cellEditRef.current = {
+            arrayId: deleteTargetId,
+            index: 0,
+            hasTyped: false,
+            replaceOnly: true,
+            appendMode: false,
+          }
+          setSelectedCell(0)
+          setAppendCellsArrayId(null)
+          return
+        }
         deleteElement(deleteTargetId)
       }
     }
@@ -350,7 +531,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('mousedown', handleMouseDown)
     }
-  }, [deleteElement, elements, isLeetCodeModalOpen, nextId, selectedId])
+  }, [deleteElement, elements, isLeetCodeModalOpen, nextId, selectedId, selectedIds])
 
   /**
    * Applies property edits to the selected element. Array value edits also
@@ -1220,6 +1401,7 @@ function App() {
           onHostDoubleClick={handleHostDoubleClick}
           onSelectCell={selectCell}
           onResetCellTyping={resetCellTyping}
+          appendCellsArrayId={appendCellsArrayId}
           onStartIteratorDrag={startIteratorDrag}
           onRelationshipStart={handleRelationshipStart}
           onRelationshipFinish={finishPointer}
