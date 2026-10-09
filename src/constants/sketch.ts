@@ -1,13 +1,16 @@
 import type { IteratorColor, IteratorMode, SketchElement } from '../types/sketch'
 
+/** Shared canvas dimensions used by bounds, layout, and rendering helpers. */
 export const NODE_RADIUS = 27
 export const NODE_SIZE = 54
 export const CELL_SIZE = 42
 export const MAP_CELL_WIDTH = CELL_SIZE * 2
 
+/** Palette and placement sides cycled through when creating iterators. */
 export const iteratorColors: IteratorColor[] = ['red', 'green', 'blue', 'yellow']
 export const iteratorModes: IteratorMode[] = ['top', 'bottom', 'left', 'right']
 
+/** Initial example data shown when the sketch canvas first loads. */
 export const initialElements: SketchElement[] = [
   {
     id: 1,
@@ -27,6 +30,7 @@ export const initialElements: SketchElement[] = [
   },
 ]
 
+/** GraphQL query used to request the question data needed by the importer. */
 export const leetCodeQuery = `
   query questionData($titleSlug: String!) {
     question(titleSlug: $titleSlug) {
@@ -41,6 +45,7 @@ export const leetCodeQuery = `
   }
 `
 
+/** Known question-number mappings avoid loading the full LeetCode problem index. */
 export const knownProblemSlugs: Record<string, string> = {
   '1': 'two-sum',
   '2': 'add-two-numbers',

@@ -2,6 +2,7 @@ import React from 'react'
 import { CELL_SIZE } from '../../constants/sketch'
 import type { SketchElement, SketchIterator } from '../../types/sketch'
 
+/** Element data, selection state, and event callbacks for one canvas object. */
 export type CanvasElementProps = {
   element: Exclude<SketchElement, SketchIterator>
   isSelected: boolean
@@ -12,6 +13,10 @@ export type CanvasElementProps = {
   onResetCellTyping: () => void
 }
 
+/**
+ * Renders one variable, node, or array. Array cells expose host IDs so pointer
+ * and iterator interactions can target individual cells.
+ */
 export const CanvasElement: React.FC<CanvasElementProps> = ({
   element,
   isSelected,

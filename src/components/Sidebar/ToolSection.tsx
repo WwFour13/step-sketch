@@ -1,5 +1,6 @@
 import React from 'react'
 
+/** Element-creation callbacks and import status consumed by the tool palette. */
 export type ToolSectionProps = {
   onAddVariable: (kind: 'variable' | 'node') => void
   onAddArray: (values: string[], label: string) => void
@@ -12,6 +13,10 @@ export type ToolSectionProps = {
   problemStatus: string
 }
 
+/**
+ * Renders the canvas template buttons and forwards each action to the owning
+ * application state handler.
+ */
 export const ToolSection: React.FC<ToolSectionProps> = ({
   onAddVariable,
   onAddArray,

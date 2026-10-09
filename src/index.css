@@ -1,3 +1,4 @@
+/* Base document typography, element defaults, and root sizing. */
 :root {
   --mono: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
   --heading: 'Space Grotesk', 'Segoe UI', sans-serif;
@@ -27,6 +28,7 @@ h1,
 p {
   margin: 0;
 }
+/* Application theme tokens override the starter defaults above. */
 :root {
   --text: #6b6375;
   --text-h: #08060d;

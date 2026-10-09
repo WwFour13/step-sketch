@@ -3,6 +3,10 @@ import type { Position, SketchArray, SketchElement, SketchIterator } from '../ty
 
 export { CELL_SIZE, MAP_CELL_WIDTH, NODE_SIZE }
 
+/**
+ * Returns the canvas-space rectangle occupied by an element. Array dimensions
+ * depend on the array's layout, while iterators are positioned separately.
+ */
 export const elementBounds = (element: SketchElement) => ({
   x: element.kind === 'iterator' ? 0 : element.position.x,
   y: element.kind === 'iterator' ? 0 : element.position.y,
@@ -31,6 +35,12 @@ export const elementBounds = (element: SketchElement) => ({
           : element.values.length * CELL_SIZE,
 })
 
+/**
+ * Resolves a node, array, or array-cell ID to its canvas-space bounds.
+ * @param elements Current sketch elements, including array cells represented by IDs.
+ * @param hostId ID of the requested node, array, or cell.
+ * @returns Bounds for a valid host, or null when the ID has no drawable host.
+ */
 export const hostBounds = (
   elements: SketchElement[],
   hostId: number,
@@ -71,6 +81,10 @@ export const hostBounds = (
   }
 }
 
+/**
+ * Calculates an iterator's canvas position and offsets neighboring iterators
+ * on the same side so their markers do not overlap.
+ */
 export const iteratorPosition = (elements: SketchElement[], iterator: SketchIterator) => {
   const bounds = hostBounds(elements, iterator.hostId)
   if (!bounds) return { x: 0, y: 0 }
@@ -109,6 +123,15 @@ export const iteratorPosition = (elements: SketchElement[], iterator: SketchIter
   }
 }
 
+/**
+ * Finds the node or array cell under a screen point, probing nearby points to
+ * make dropping small iterator markers easier. Map value cells resolve to
+ * their paired key cell.
+ * @param elements Current sketch elements used to validate candidate hosts.
+ * @param clientX Pointer's viewport-relative horizontal coordinate.
+ * @param clientY Pointer's viewport-relative vertical coordinate.
+ * @returns A host ID suitable for an iterator, or null if no host was found.
+ */
 export const hostIdFromPoint = (elements: SketchElement[], clientX: number, clientY: number) => {
   const offsets = [
     [0, 0],
@@ -153,6 +176,9 @@ export const hostIdFromPoint = (elements: SketchElement[], clientX: number, clie
   return null
 }
 
+/**
+ * Trims a line between two node centers so its endpoints meet the node edges.
+ */
 export const pointerEndpoints = (source: Position, target: Position) => {
   const sourceCenter = { x: source.x + NODE_RADIUS, y: source.y + NODE_RADIUS }
   const targetCenter = { x: target.x + NODE_RADIUS, y: target.y + NODE_RADIUS }
@@ -167,6 +193,10 @@ export const pointerEndpoints = (source: Position, target: Position) => {
   }
 }
 
+/**
+ * Formats an array's values for the multiline inspector editor according to
+ * its layout (map pairs, matrix rows, vertical items, or comma-separated items).
+ */
 export const getArrayEditorValue = (array: SketchArray) => {
   if (array.layout === 'map') {
     const pairs: string[] = []
@@ -185,6 +215,11 @@ export const getArrayEditorValue = (array: SketchArray) => {
   return array.values.join(', ')
 }
 
+/**
+ * Parses inspector text back into values for a non-matrix array layout.
+ * Map entries use one key/value pair per line; other layouts split by line
+ * or comma as appropriate.
+ */
 export const parseArrayEditorValue = (value: string, layout: SketchArray['layout']) => {
   if (layout === 'map') {
     return value.split('\n').flatMap((line) => {
@@ -198,6 +233,11 @@ export const parseArrayEditorValue = (value: string, layout: SketchArray['layout
   return value.split(',').map((item) => item.trim())
 }
 
+/**
+ * Parses comma-separated matrix rows, padding shorter rows to a shared width.
+ * @param value Multiline matrix text from the inspector.
+ * @returns Flat cell values and the inferred column count.
+ */
 export const parseMatrixEditorValue = (value: string) => {
   const rows = value.split('\n').map((line) => line.split(',').map((item) => item.trim()))
   const columns = Math.max(1, ...rows.map((row) => row.length))

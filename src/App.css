@@ -29,6 +29,7 @@
   }
 }
 
+/* Workspace shell, top bar, and sidebar layout. */
 .app-shell {
   min-height: 100vh;
   background: #f7f8fc;
@@ -183,6 +184,7 @@
   font-size: 16px;
   color: #abb3c1;
 }
+/* Sidebar template palette and selected-element inspector. */
 .tool-section {
   padding-top: 0;
 }
@@ -356,6 +358,7 @@
   color: #c0c5cf;
   font: 10px var(--mono);
 }
+/* Canvas stage, tool chrome, and the canvas background. */
 .canvas-area {
   flex: 1;
   min-width: 0;
@@ -444,6 +447,7 @@
   width: 18px;
   border-top: 1px solid #f06a4e;
 }
+/* Positioned sketch objects, array cells, and iterator markers. */
 .canvas-element {
   position: absolute;
   background: transparent;
@@ -686,6 +690,7 @@
   border: 0;
   box-shadow: inset 0 0 0 1px #e88a75;
 }
+/* SVG overlay for stored pointer relationships and active pointer drafts. */
 .pointer-layer {
   position: absolute;
   inset: 0;
@@ -757,6 +762,7 @@
   gap: 4px;
 }
 
+/* Canvas interaction hint and footer status bar. */
 .canvas-hint {
   position: absolute;
   bottom: 50px;
@@ -798,6 +804,7 @@
 .footer-right {
   margin-left: auto;
 }
+/* Collapse sidebar and header details as the viewport narrows. */
 @media (max-width: 760px) {
   .sidebar {
     width: 220px;
@@ -840,6 +847,7 @@
     display: none;
   }
 }
+/* Unused Vite starter styles retained below the canvas rules. */
 .counter {
   font-size: 16px;
   padding: 5px 10px;

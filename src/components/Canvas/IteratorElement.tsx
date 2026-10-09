@@ -1,6 +1,7 @@
 import React from 'react'
 import type { Position, SketchIterator } from '../../types/sketch'
 
+/** Iterator record, computed position, selection state, and pointer handler. */
 export type IteratorElementProps = {
   iterator: SketchIterator
   position: Position
@@ -9,6 +10,7 @@ export type IteratorElementProps = {
   onPointerDown: (event: React.PointerEvent<HTMLDivElement>, iterator: SketchIterator) => void
 }
 
+/** Renders the colored directional marker attached to a canvas host. */
 export const IteratorElement: React.FC<IteratorElementProps> = ({
   iterator,
   position,

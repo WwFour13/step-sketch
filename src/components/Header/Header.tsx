@@ -1,5 +1,6 @@
 import React from 'react'
 
+/** Renders the application brand, board breadcrumb, and top-bar actions. */
 export const Header: React.FC = () => {
   return (
     <header className="topbar">

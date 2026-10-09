@@ -12,6 +12,7 @@ import { CanvasFooter } from './CanvasFooter'
 import { IteratorElement } from './IteratorElement'
 import { PointerLayer } from './PointerLayer'
 
+/** Inputs and gesture callbacks required to render and operate the sketch area. */
 export type CanvasProps = {
   elements: SketchElement[]
   selectedIds: Set<number>
@@ -36,6 +37,10 @@ export type CanvasProps = {
   onRelationshipFinish: (event: React.PointerEvent<SVGLineElement>) => void
 }
 
+/**
+ * Renders the canvas layers in stacking order: pointer lines, sketch objects,
+ * iterators, then the active selection rectangle.
+ */
 export const Canvas: React.FC<CanvasProps> = ({
   elements,
   selectedIds,

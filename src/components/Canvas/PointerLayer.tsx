@@ -3,6 +3,7 @@ import { NODE_RADIUS } from '../../constants/sketch'
 import type { PointerDraft, SketchElement, SketchNode } from '../../types/sketch'
 import { pointerEndpoints } from '../../utils/canvas'
 
+/** Node data and callbacks needed to render stored and in-progress pointers. */
 export type PointerLayerProps = {
   elements: SketchElement[]
   pointerDraft: PointerDraft | null
@@ -14,6 +15,10 @@ export type PointerLayerProps = {
   onRelationshipFinish: (event: React.PointerEvent<SVGLineElement>) => void
 }
 
+/**
+ * Draws node-to-node relationships and the temporary line being created by a
+ * right-button drag from a node.
+ */
 export const PointerLayer: React.FC<PointerLayerProps> = ({
   elements,
   pointerDraft,

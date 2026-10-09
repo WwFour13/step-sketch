@@ -1,5 +1,6 @@
 import React from 'react'
 
+/** Displays the canvas keyboard hints and fixed canvas dimensions. */
 export const CanvasFooter: React.FC = () => {
   return (
     <footer className="canvas-footer">

@@ -8,6 +8,11 @@ import type {
   SketchNode,
 } from '../types/sketch'
 
+/**
+ * Extracts parameter names from a LeetCode solution signature for labeling
+ * parsed test-case inputs.
+ * @param code Source snippet used to infer the function's argument names.
+ */
 export const getInputNames = (code: string): string[] => {
   const solutionCode = code.match(/class\s+Solution[\s\S]*/)
     ? code.match(/class\s+Solution[\s\S]*/)![0]
@@ -22,6 +27,9 @@ export const getInputNames = (code: string): string[] => {
     .filter((name) => name && name !== 'self')
 }
 
+/**
+ * Returns the first case's input lines, limited to the expected argument count.
+ */
 export const getFirstTestcase = (exampleTestcases: string, inputCount: number): string[] =>
   exampleTestcases
     .trim()
@@ -30,6 +38,9 @@ export const getFirstTestcase = (exampleTestcases: string, inputCount: number): 
     .filter(Boolean)
     .slice(0, inputCount || 1)
 
+/**
+ * Groups the flat example-input lines into test cases with the given arity.
+ */
 export const getAllTestcases = (exampleTestcases: string, inputCount: number): string[][] => {
   const lines = exampleTestcases
     .trim()
@@ -44,6 +55,7 @@ export const getAllTestcases = (exampleTestcases: string, inputCount: number): s
   return testcases
 }
 
+/** Prefers the Python solution snippet and falls back to the first available language. */
 export const getPythonSnippet = (codeSnippets: LeetCodeQuestion['codeSnippets']): string =>
   codeSnippets.find((snippet) => snippet.lang.toLowerCase() === 'python')?.code ??
   codeSnippets[0]?.code ??
@@ -72,6 +84,15 @@ export type LeetCodeProblemDetail = {
   testCases: ParsedTestCase[]
 }
 
+/**
+ * Converts one parsed test case into positioned canvas elements. Strings become
+ * character arrays, nested arrays become matrices, list inputs become linked
+ * nodes with an iterator, and primitive inputs become variables.
+ * @param testCase Parsed inputs and the inferred linked-list representation.
+ * @param startId First unused element ID for the generated structure.
+ * @param basePosition Top-left canvas position for the generated structures.
+ * @returns Generated elements, the next unused ID, and the occupied height.
+ */
 export const buildTestCaseElements = (
   testCase: { parsedInputs: ParsedInput[]; hasLinkedListInput: boolean },
   startId: number,
@@ -210,6 +231,13 @@ export const buildTestCaseElements = (
   }
 }
 
+/**
+ * Lays out several selected test cases vertically and assigns IDs without
+ * collisions across the generated groups.
+ * @param selectedCases Test cases to add to the canvas.
+ * @param startId First unused element ID.
+ * @param startY Canvas-space y-coordinate where the first case begins.
+ */
 export const buildCanvasElementsFromTestCases = (
   selectedCases: ParsedTestCase[],
   startId: number,
@@ -229,6 +257,7 @@ export const buildCanvasElementsFromTestCases = (
   return { elements: allElements, nextId: curId }
 }
 
+/** Removes markup and decodes common entities from a problem description. */
 export const stripHtml = (html: string): string => {
   return html
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
@@ -245,6 +274,12 @@ export const stripHtml = (html: string): string => {
     .trim()
 }
 
+/**
+ * Resolves a problem number to its LeetCode question, parses example inputs,
+ * and returns preview-ready cases plus metadata used by the import modal.
+ * @param problemNumber Numeric question ID entered by the user.
+ * @throws Error when the ID is invalid, unavailable, or the request fails.
+ */
 export const fetchLeetCodeProblemDetails = async (
   problemNumber: string,
 ): Promise<LeetCodeProblemDetail> => {
@@ -325,6 +360,12 @@ export type LeetCodeFetchResult = {
   status: string
 }
 
+/**
+ * Legacy single-case import helper. Returns the first case's canvas elements,
+ * or a visible fallback array describing the failure.
+ * @param problemNumber LeetCode question number to fetch.
+ * @param nextId First unused canvas element ID.
+ */
 export const fetchLeetCodeTestCase = async (
   problemNumber: string,
   nextId: number,

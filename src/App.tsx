@@ -45,15 +45,27 @@ function App() {
 
   const selected = elements.find((element) => element.id === selectedId)
 
+  /**
+   * Selects a cell and initializes the typing state used to replace its value
+   * on the first key press.
+   * @param arrayId ID of the array that owns the cell.
+   * @param index Zero-based index of the selected cell.
+   */
   const selectCell = (arrayId: number, index: number) => {
     cellEditRef.current = { arrayId, index, hasTyped: false }
     setSelectedCell(index)
   }
 
+  /** Lets the next typed character replace the selected cell's current value. */
   const resetCellTyping = () => {
     if (cellEditRef.current) cellEditRef.current.hasTyped = false
   }
 
+  /**
+   * Selects one element, optionally preserving the other selected IDs.
+   * @param id ID of the element to make primary.
+   * @param additive When true, retain the existing selection set.
+   */
   const selectOne = (id: number, additive = false) => {
     setSelectedIds((current) => {
       const next = additive ? new Set(current) : new Set<number>()
@@ -63,6 +75,12 @@ function App() {
     setSelectedId(id)
   }
 
+  /**
+   * Deletes the requested element, or the full current selection when it
+   * includes that element. Also removes array cells, hosted iterators, and
+   * node pointers that refer to deleted IDs.
+   * @param id ID of the element whose deletion was requested.
+   */
   const deleteElement = useCallback((id: number) => {
     setSelectedIds((currentSelected) => {
       const idsToDelete = new Set(currentSelected.has(id) ? currentSelected : [id])
@@ -96,7 +114,14 @@ function App() {
     setSelectedId(0)
   }, [])
 
+  // Install global keyboard and mouse handlers for canvas editing, and remove
+  // them whenever this effect is re-run or the component is unmounted.
   useEffect(() => {
+    /**
+     * Handles Delete and cell-value typing while avoiding interference with
+     * text inputs or the open LeetCode modal.
+     * @param event Keyboard event from the browser window.
+     */
     const handleKeyDown = (event: KeyboardEvent) => {
       const activeElement = document.activeElement as HTMLElement | null
       const isEditing =
@@ -147,6 +172,7 @@ function App() {
       }
     }
 
+    /** Resets first-key replacement behavior when the user clicks elsewhere. */
     const handleMouseDown = () => {
       resetCellTyping()
     }
@@ -159,6 +185,11 @@ function App() {
     }
   }, [deleteElement, isLeetCodeModalOpen, selectedId])
 
+  /**
+   * Applies property edits to the selected element. Array value edits also
+   * keep cell IDs in sync and remove iterators hosted by cells that are removed.
+   * @param patch Partial set of element properties supplied by the sidebar.
+   */
   const updateSelected = (patch: Partial<SketchElement>) => {
     if (selected?.kind === 'array' && 'values' in patch && Array.isArray(patch.values)) {
       const values = patch.values as string[]
@@ -189,6 +220,13 @@ function App() {
     )
   }
 
+  /**
+   * Creates a new iterator record using the next available color.
+   * @param id Unique ID assigned to the iterator.
+   * @param hostId ID of the node or array cell the iterator points to.
+   * @param mode Side of the host where the iterator is displayed.
+   * @param colorIndex Index used to cycle through the iterator color palette.
+   */
   const createIterator = (
     id: number,
     hostId: number,
@@ -202,6 +240,12 @@ function App() {
     mode,
   })
 
+  /**
+   * Adds an iterator to a host, resolving array hosts to the selected cell (or
+   * the first cell) and choosing a display side compatible with its layout.
+   * @param hostId ID of the requested node, array, or array cell.
+   * @param preferredMode Optional top/bottom preference for node hosts.
+   */
   const addIterator = (hostId: number, preferredMode?: 'top' | 'bottom' | 'left' | 'right') => {
     let targetHostId = hostId
     const hostElement = elements.find((element) => element.id === hostId)
@@ -233,6 +277,11 @@ function App() {
     selectOne(id)
   }
 
+  /**
+   * Creates an iterator when the user double-clicks a node or array cell.
+   * Matrix cells receive both a column iterator and a row iterator.
+   * @param event Mouse event containing the clicked canvas coordinates and DOM target.
+   */
   const handleHostDoubleClick = (event: React.MouseEvent) => {
     event.preventDefault()
     window.getSelection()?.removeAllRanges()
@@ -318,6 +367,11 @@ function App() {
     addIterator(hostId, preferredMode)
   }
 
+  /**
+   * Advances an iterator one linked node or collection cell in its current
+   * direction. Does nothing when the host has no valid next item.
+   * @param iterator Iterator whose host position should advance.
+   */
   const advanceIterator = (iterator: SketchIterator) => {
     const host =
       elements.find((element) => element.id === iterator.hostId && element.kind === 'node') ||
@@ -355,6 +409,12 @@ function App() {
     )
   }
 
+  /**
+   * Starts dragging an iterator, advances it on right-click, and removes it on
+   * a rapid second left-click.
+   * @param event Pointer event on the iterator; its button determines the action.
+   * @param iterator Iterator being acted on.
+   */
   const startIteratorDrag = (
     event: React.PointerEvent<HTMLDivElement>,
     iterator: SketchIterator,
@@ -384,6 +444,11 @@ function App() {
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
+  /**
+   * Updates the selection rectangle and the set of non-iterator elements it
+   * intersects while the user drags on empty canvas space.
+   * @param event Pointer event providing the current cursor position.
+   */
   const updateMarquee = (event: React.PointerEvent<HTMLDivElement>) => {
     const bounds = canvasRef.current?.getBoundingClientRect()
     const marquee = marqueeRef.current
@@ -416,6 +481,12 @@ function App() {
     setSelectedCell(null)
   }
 
+  // Element-creation helpers append a new sketch object and select it. The
+  // collection helpers below create complete preset data structures at once.
+  /**
+   * Adds a variable or pointer node at a staggered canvas position.
+   * @param kind Determines whether the new element is a variable or node.
+   */
   const addVariable = (kind: 'variable' | 'node') => {
     const id = nextId
     const value = String(Math.floor(Math.random() * 10))
@@ -429,6 +500,11 @@ function App() {
     selectOne(id)
   }
 
+  /**
+   * Adds a horizontal array initialized with caller-provided values and label.
+   * @param values Initial value for each array cell.
+   * @param label Display label for the array.
+   */
   const addArray = (values: string[], label: string) => {
     const id = nextId
     const elementIds = values.map((_, index) => id + index + 1)
@@ -448,6 +524,7 @@ function App() {
     selectOne(id)
   }
 
+  /** Adds the example vertical set and selects it. */
   const addSet = () => {
     const id = nextId
     const values = ['2', '7', '11', '15']
@@ -468,6 +545,7 @@ function App() {
     selectOne(id)
   }
 
+  /** Adds the example key/value map and selects it. */
   const addMap = () => {
     const id = nextId
     const values = ['name', 'Ada', 'role', 'coder', 'level', '42']
@@ -488,6 +566,7 @@ function App() {
     selectOne(id)
   }
 
+  /** Adds a three-node linked list and a head iterator pointing to its first node. */
   const addLinkedList = () => {
     const firstId = nextId
     const nodes: SketchNode[] = [0, 1, 2].map((index) => ({
@@ -513,6 +592,7 @@ function App() {
     selectOne(firstId)
   }
 
+  /** Adds a seven-node binary tree with child pointers and selects its root. */
   const addBinaryTree = () => {
     const firstId = nextId
     const positions = [
@@ -542,6 +622,7 @@ function App() {
     selectOne(firstId)
   }
 
+  /** Adds a 3-by-3 matrix whose cells contain the values 1 through 9. */
   const addMatrix = () => {
     const id = nextId
     const values = Array.from({ length: 9 }, (_, index) => String(index + 1))
@@ -562,16 +643,24 @@ function App() {
     selectOne(id)
   }
 
+  /** Opens the test-case importer and clears any active array-cell edit. */
   const openLeetCodeModal = () => {
     cellEditRef.current = null
     setSelectedCell(null)
     setIsLeetCodeModalOpen(true)
   }
 
+  /** Closes the test-case importer. */
   const closeLeetCodeModal = () => {
     setIsLeetCodeModalOpen(false)
   }
 
+  /**
+   * Converts selected LeetCode test cases into canvas elements and appends them
+   * below existing content.
+   * @param selectedCases Parsed cases selected in the importer.
+   * @param problemTitle Title used for the import status message.
+   */
   const handleImportTestCases = (selectedCases: ParsedTestCase[], problemTitle: string) => {
     const maxY = elements.reduce((acc, el) => {
       if (el.kind === 'iterator') return acc
@@ -594,6 +683,14 @@ function App() {
     )
   }
 
+  /**
+   * Begins a canvas gesture on an element. A left-button press starts moving
+   * the selected group; Shift-dragging a node includes its reachable nodes;
+   * right-button dragging a node starts or edits its pointer connection.
+   * @param event React pointer event carrying the button, modifiers, cursor
+   *   coordinates, and capture target for the gesture.
+   * @param id ID of the element that received the pointer event.
+   */
   const startDrag = (event: React.PointerEvent, id: number) => {
     window.getSelection()?.removeAllRanges()
     const element = elements.find((item) => item.id === id)
@@ -669,6 +766,11 @@ function App() {
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
+  /**
+   * Updates the active iterator drag, pointer-connection draft, or element
+   * group drag from the current pointer position.
+   * @param event Pointer-move event over the canvas.
+   */
   const moveElement = (event: React.PointerEvent<HTMLDivElement>) => {
     if (iteratorDragRef.current) {
       const bounds = canvasRef.current?.getBoundingClientRect()
@@ -716,6 +818,12 @@ function App() {
     )
   }
 
+  /**
+   * Completes whichever canvas gesture is active: rehosts a dragged iterator,
+   * removes a dragged relationship, ends marquee selection, or toggles a node
+   * pointer connection at the pointer's release target.
+   * @param event Pointer-up event containing the release position and target.
+   */
   const finishPointer = (event: React.PointerEvent<HTMLDivElement | SVGLineElement>) => {
     if (iteratorDragRef.current) {
       const draggedIterator = iteratorDragRef.current
@@ -822,6 +930,13 @@ function App() {
     setPointerDraft(null)
   }
 
+  /**
+   * Starts a drag on an existing relationship line so releasing it elsewhere
+   * can remove the corresponding node pointer.
+   * @param event Pointer event on the SVG relationship line.
+   * @param sourceId ID of the node that owns the pointer.
+   * @param targetId ID of the node currently pointed to.
+   */
   const handleRelationshipStart = (
     event: React.PointerEvent<SVGLineElement>,
     sourceId: number,
@@ -838,6 +953,11 @@ function App() {
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
+  /**
+   * Starts marquee selection only when the primary button is pressed on the
+   * canvas background; Shift preserves the current selection.
+   * @param event Pointer-down event on the canvas container.
+   */
   const handleCanvasPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     resetCellTyping()
     if (event.target === event.currentTarget && event.button === 0) {
@@ -857,6 +977,10 @@ function App() {
     }
   }
 
+  /**
+   * Routes canvas pointer movement to marquee selection or the active drag.
+   * @param event Pointer-move event on the canvas container.
+   */
   const handleCanvasPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     if (marqueeRef.current) updateMarquee(event)
     else moveElement(event)

@@ -7,6 +7,7 @@ import {
 import './LeetCodeModal.css'
 import { TestCasePreview } from './TestCasePreview'
 
+/** Modal visibility, close/import callbacks, and optional starting question ID. */
 export type LeetCodeModalProps = {
   isOpen: boolean
   onClose: () => void
@@ -14,6 +15,10 @@ export type LeetCodeModalProps = {
   initialProblemNumber?: string
 }
 
+/**
+ * Loads and previews LeetCode example cases, tracks user selection, and imports
+ * the chosen cases into the canvas.
+ */
 export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
   isOpen,
   onClose,
@@ -28,6 +33,7 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
 
   const inputRef = useRef<HTMLInputElement>(null)
 
+  // Focus and select the current question ID when the modal becomes visible.
   useEffect(() => {
     if (isOpen) {
       setTimeout(() => {
@@ -37,6 +43,7 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
     }
   }, [isOpen])
 
+  // Allow Escape to close the modal while it is open; clean up on state changes.
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       if (!isOpen) return
@@ -50,6 +57,10 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
 
   if (!isOpen) return null
 
+  /**
+   * Validates the entered ID, fetches its question and cases, and initializes
+   * the selection to the first available test case.
+   */
   const handleLoad = async () => {
     const trimmed = problemNumber.trim()
     if (!trimmed) {
@@ -73,6 +84,7 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
     }
   }
 
+  /** Stops modal keystrokes reaching canvas shortcuts and loads on Enter. */
   const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     event.stopPropagation()
     if (event.key === 'Enter') {
@@ -81,6 +93,7 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
     }
   }
 
+  /** Toggles one case index without mutating the existing selection set. */
   const handleToggleCase = (index: number) => {
     setSelectedIndices((current) => {
       const next = new Set(current)
@@ -93,15 +106,18 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
     })
   }
 
+  /** Selects every case currently loaded in the modal. */
   const handleSelectAll = () => {
     if (!problemDetail) return
     setSelectedIndices(new Set(problemDetail.testCases.map((_, index) => index)))
   }
 
+  /** Clears the current case selection. */
   const handleClearAll = () => {
     setSelectedIndices(new Set())
   }
 
+  /** Imports the selected cases and closes the modal when at least one is selected. */
   const handleConfirm = () => {
     if (!problemDetail) return
     const selectedCases = problemDetail.testCases.filter((_, index) => selectedIndices.has(index))

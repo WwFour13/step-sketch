@@ -1,6 +1,7 @@
 import React from 'react'
 import type { ParsedTestCase } from '../../services/leetcode'
 
+/** Test-case data and selection controls for a single preview card. */
 export type TestCasePreviewProps = {
   testCase: ParsedTestCase
   caseNumber: number
@@ -8,6 +9,10 @@ export type TestCasePreviewProps = {
   onToggle: () => void
 }
 
+/**
+ * Renders one selectable case, choosing a compact preview for its scalar,
+ * array, matrix, or linked-list inputs.
+ */
 export const TestCasePreview: React.FC<TestCasePreviewProps> = ({
   testCase,
   caseNumber,

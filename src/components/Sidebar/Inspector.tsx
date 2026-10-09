@@ -7,12 +7,17 @@ import {
   parseMatrixEditorValue,
 } from '../../utils/canvas'
 
+/** Selected sketch item and callbacks for editing or deleting it. */
 export type InspectorProps = {
   selected?: SketchElement
   onUpdateSelected: (patch: Partial<SketchElement>) => void
   onDeleteElement: (id: number) => void
 }
 
+/**
+ * Displays editable fields tailored to the selected element kind, including
+ * layout-aware array text and iterator color controls.
+ */
 export const Inspector: React.FC<InspectorProps> = ({
   selected,
   onUpdateSelected,
