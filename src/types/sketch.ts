@@ -29,7 +29,11 @@ export type SketchArray = {
 export type SketchNode = Omit<SketchVariable, 'kind'> & {
   kind: 'node'
   pointer_ids: number[]
+  pointer_limit: PointerLimit
 }
+
+/** Maximum outgoing pointers allowed on a node; '+' means unbounded. */
+export type PointerLimit = 1 | 2 | '+'
 
 /** Iterator appearance and attachment-side choices. */
 export type IteratorColor = 'red' | 'green' | 'blue' | 'yellow'

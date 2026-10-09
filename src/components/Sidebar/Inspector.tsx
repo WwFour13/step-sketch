@@ -1,5 +1,5 @@
 import React from 'react'
-import { iteratorColors } from '../../constants/sketch'
+import { iteratorColors, pointerLimits } from '../../constants/sketch'
 import type { SketchElement } from '../../types/sketch'
 import {
   getArrayEditorValue,
@@ -38,6 +38,33 @@ export const Inspector: React.FC<InspectorProps> = ({
             value={selected.label || ''}
             onChange={(event) => onUpdateSelected({ label: event.target.value })}
           />
+        </div>
+      )}
+      {selected.kind === 'node' && (
+        <div className="field-row pointer-limit-field">
+          <label>Pointer limit</label>
+          <div className="pointer-limit-options" role="radiogroup" aria-label="Node pointer limit">
+            {pointerLimits.map((limit) => (
+              <label
+                key={limit}
+                className="pointer-limit-option"
+                title={
+                  limit === '+'
+                    ? 'Unlimited pointers'
+                    : `Up to ${limit} pointer${limit === 1 ? '' : 's'}`
+                }
+              >
+                <input
+                  type="radio"
+                  name="pointer-limit"
+                  value={limit}
+                  checked={selected.pointer_limit === limit}
+                  onChange={() => onUpdateSelected({ pointer_limit: limit })}
+                />
+                <span className="pointer-limit-radio">{limit}</span>
+              </label>
+            ))}
+          </div>
         </div>
       )}
       {selected.kind !== 'iterator' && (

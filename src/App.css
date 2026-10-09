@@ -332,6 +332,41 @@
   outline: 2px solid #f06a4e;
   outline-offset: 2px;
 }
+.pointer-limit-options {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+}
+.pointer-limit-option {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+.pointer-limit-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.pointer-limit-radio {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #cbd4e0;
+  border-radius: 50%;
+  color: #68748b;
+  font: 11px var(--mono);
+}
+.pointer-limit-option input:checked + .pointer-limit-radio {
+  border-color: #f06a4e;
+  background: #fff0eb;
+  color: #d6533c;
+}
+.pointer-limit-option input:focus-visible + .pointer-limit-radio {
+  outline: 2px solid #f06a4e;
+  outline-offset: 2px;
+}
 .sidebar-footer {
   margin-top: auto;
   padding-top: 20px;
@@ -1016,6 +1051,15 @@
 }
 .kind-node .variable-square {
   border-color: #70849c;
+}
+.pointer-limit-radio {
+  border-color: #52677f;
+  color: #aab8ca;
+}
+.pointer-limit-option input:checked + .pointer-limit-radio {
+  border-color: #e48670;
+  background: #3a2d32;
+  color: #f0a08d;
 }
 .variable-value {
   color: #dce7f4;

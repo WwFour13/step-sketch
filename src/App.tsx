@@ -214,9 +214,18 @@ function App() {
     }
     setElements(
       (current) =>
-        current.map((element) =>
-          element.id === selectedId ? { ...element, ...patch } : element,
-        ) as SketchElement[],
+        current.map((element) => {
+          if (element.id !== selectedId) return element
+          if (element.kind === 'node' && 'pointer_limit' in patch) {
+            const pointerLimit = patch.pointer_limit ?? element.pointer_limit
+            const pointerIds =
+              pointerLimit === '+'
+                ? element.pointer_ids
+                : element.pointer_ids.slice(0, pointerLimit)
+            return { ...element, ...patch, pointer_ids: pointerIds }
+          }
+          return { ...element, ...patch }
+        }) as SketchElement[],
     )
   }
 
@@ -493,7 +502,7 @@ function App() {
     const position = { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 }
     const element: SketchElement =
       kind === 'node'
-        ? { id, kind, label: '', value, pointer_ids: [], position }
+        ? { id, kind, label: '', value, pointer_ids: [], pointer_limit: '+', position }
         : { id, kind, label: 'variable', value, position }
     setElements((current) => [...current, element])
     setNextId((current) => current + 1)
@@ -575,6 +584,7 @@ function App() {
       label: '',
       value: String(index + 1),
       pointer_ids: index < 2 ? [firstId + index + 1] : [],
+      pointer_limit: 1,
       position: { x: 140 + index * 120, y: 170 },
     }))
     const count = elements.filter((element) => element.kind === 'iterator').length
@@ -614,6 +624,7 @@ function App() {
         label: '',
         value: String(index + 1),
         pointer_ids: pointerIds,
+        pointer_limit: 2,
         position: positions[index],
       }
     })
@@ -918,12 +929,17 @@ function App() {
         if (!targetId || targetId === sourceId) {
           return { ...element, pointer_ids: [] }
         }
-        return element.pointer_ids.includes(targetId)
-          ? {
-              ...element,
-              pointer_ids: element.pointer_ids.filter((pointerId) => pointerId !== targetId),
-            }
-          : { ...element, pointer_ids: [...element.pointer_ids, targetId] }
+        if (element.pointer_ids.includes(targetId)) {
+          return {
+            ...element,
+            pointer_ids: element.pointer_ids.filter((pointerId) => pointerId !== targetId),
+          }
+        }
+        if (element.pointer_limit === 1) {
+          return { ...element, pointer_ids: [targetId] }
+        }
+        if (element.pointer_limit === 2 && element.pointer_ids.length >= 2) return element
+        return { ...element, pointer_ids: [...element.pointer_ids, targetId] }
       }),
     )
     pointerRef.current = null

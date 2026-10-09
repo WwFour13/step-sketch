@@ -56,7 +56,8 @@ export const TestCasePreview: React.FC<TestCasePreviewProps> = ({
         {testCase.parsedInputs.map((input, index) => {
           const { name, value } = input
 
-          if (testCase.hasLinkedListInput && Array.isArray(value)) {
+          if (input.nodeStructure === 'linked-list' && (Array.isArray(value) || value === null)) {
+            const nodes = Array.isArray(value) ? value : []
             return (
               <div key={index} className="preview-item">
                 <div className="preview-label">{name || 'head'}</div>
@@ -64,13 +65,13 @@ export const TestCasePreview: React.FC<TestCasePreviewProps> = ({
                   <div className="preview-head-indicator" title="Iterator on head">
                     ▼
                   </div>
-                  {value.length === 0 ? (
+                  {nodes.length === 0 ? (
                     <span className="preview-empty">∅ null</span>
                   ) : (
-                    value.map((item, nodeIndex) => (
+                    nodes.map((item, nodeIndex) => (
                       <React.Fragment key={nodeIndex}>
                         <div className="preview-node">{String(item)}</div>
-                        {nodeIndex < value.length - 1 && <span className="preview-arrow">→</span>}
+                        {nodeIndex < nodes.length - 1 && <span className="preview-arrow">→</span>}
                       </React.Fragment>
                     ))
                   )}

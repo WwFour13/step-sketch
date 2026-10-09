@@ -1,10 +1,15 @@
-import { CELL_SIZE, iteratorColors, knownProblemSlugs, leetCodeQuery } from '../constants/sketch'
+import {
+  CELL_SIZE,
+  NODE_SIZE,
+  iteratorColors,
+  knownProblemSlugs,
+  leetCodeQuery,
+} from '../constants/sketch'
 import type {
   LeetCodeProblemIndex,
   LeetCodeQuestion,
   SketchArray,
   SketchElement,
-  SketchIterator,
   SketchNode,
 } from '../types/sketch'
 
@@ -55,6 +60,17 @@ export const getAllTestcases = (exampleTestcases: string, inputCount: number): s
   return testcases
 }
 
+/**
+ * Identifies common LeetCode node types from the supplied solution snippet.
+ * Graph inputs are recognized by their conventional neighbors property.
+ */
+export const inferNodeStructure = (code: string): NodeStructure | undefined => {
+  if (/\b(ListNode|LinkedList)\b/.test(code)) return 'linked-list'
+  if (/\bTreeNode\b/.test(code)) return 'binary-tree'
+  if (/\bneighbors\b/i.test(code)) return 'graph'
+  return undefined
+}
+
 /** Prefers the Python solution snippet and falls back to the first available language. */
 export const getPythonSnippet = (codeSnippets: LeetCodeQuestion['codeSnippets']): string =>
   codeSnippets.find((snippet) => snippet.lang.toLowerCase() === 'python')?.code ??
@@ -64,13 +80,15 @@ export const getPythonSnippet = (codeSnippets: LeetCodeQuestion['codeSnippets'])
 export type ParsedInput = {
   name: string
   value: unknown
+  nodeStructure?: NodeStructure
 }
+
+export type NodeStructure = 'linked-list' | 'binary-tree' | 'graph'
 
 export type ParsedTestCase = {
   id: number
   rawLines: string[]
   parsedInputs: ParsedInput[]
-  hasLinkedListInput: boolean
   previewElements: SketchElement[]
 }
 
@@ -80,21 +98,20 @@ export type LeetCodeProblemDetail = {
   titleSlug: string
   description?: string
   inputNames: string[]
-  hasLinkedListInput: boolean
   testCases: ParsedTestCase[]
 }
 
 /**
- * Converts one parsed test case into positioned canvas elements. Strings become
- * character arrays, nested arrays become matrices, list inputs become linked
- * nodes with an iterator, and primitive inputs become variables.
- * @param testCase Parsed inputs and the inferred linked-list representation.
+ * Converts one parsed test case into positioned canvas elements. Inputs
+ * recognized as linked lists, binary trees, or graphs become pointer nodes;
+ * other strings, arrays, and primitives retain their ordinary representations.
+ * @param testCase Parsed inputs, including any inferred node-structure kinds.
  * @param startId First unused element ID for the generated structure.
  * @param basePosition Top-left canvas position for the generated structures.
  * @returns Generated elements, the next unused ID, and the occupied height.
  */
 export const buildTestCaseElements = (
-  testCase: { parsedInputs: ParsedInput[]; hasLinkedListInput: boolean },
+  testCase: { parsedInputs: ParsedInput[] },
   startId: number,
   basePosition: { x: number; y: number },
 ): { elements: SketchElement[]; nextId: number; height: number } => {
@@ -104,6 +121,130 @@ export const buildTestCaseElements = (
 
   testCase.parsedInputs.forEach((input, index) => {
     const { name: label, value } = input
+
+    if (input.nodeStructure && (Array.isArray(value) || value === null)) {
+      const nodeValues = Array.isArray(value) ? value : []
+      const firstNodeId = nextId
+
+      if (input.nodeStructure === 'linked-list') {
+        const nodes: SketchNode[] = nodeValues.map((item, nodeIndex) => ({
+          id: firstNodeId + nodeIndex,
+          kind: 'node',
+          label: '',
+          value: String(item),
+          pointer_ids: nodeIndex < nodeValues.length - 1 ? [firstNodeId + nodeIndex + 1] : [],
+          pointer_limit: 1,
+          position: { x: basePosition.x + nodeIndex * 90, y: currentY },
+        }))
+        elements.push(...nodes)
+        nextId += nodes.length
+        if (nodes.length > 0) {
+          elements.push({
+            id: nextId,
+            kind: 'iterator',
+            hostId: firstNodeId,
+            color: iteratorColors[index % iteratorColors.length],
+            mode: 'bottom',
+            label,
+          })
+          nextId += 1
+        }
+        currentY += 110
+        return
+      }
+
+      if (input.nodeStructure === 'binary-tree') {
+        const nodesByIndex = new Map<number, SketchNode>()
+        const depthByIndex = new Map<number, number>()
+        const orderByIndex = new Map<number, number>()
+        nodeValues.forEach((item, nodeIndex) => {
+          if (item === null) return
+          nodesByIndex.set(nodeIndex, {
+            id: firstNodeId + nodeIndex,
+            kind: 'node',
+            label: nodeIndex === 0 ? label : '',
+            value: String(item),
+            pointer_ids: [],
+            pointer_limit: 2,
+            position: { x: basePosition.x, y: currentY },
+          })
+        })
+
+        const pendingParents = nodeValues[0] === null ? [] : [0]
+        depthByIndex.set(0, 0)
+        orderByIndex.set(0, 0)
+        let childIndex = 1
+        while (pendingParents.length > 0 && childIndex < nodeValues.length) {
+          const parentIndex = pendingParents.shift()!
+          const parent = nodesByIndex.get(parentIndex)
+          const depth = depthByIndex.get(parentIndex) ?? 0
+          for (let side = 0; side < 2 && childIndex < nodeValues.length; side += 1) {
+            const currentChildIndex = childIndex
+            childIndex += 1
+            if (nodeValues[currentChildIndex] === null) continue
+            const child = nodesByIndex.get(currentChildIndex)
+            if (!parent || !child) continue
+            parent.pointer_ids.push(child.id)
+            depthByIndex.set(currentChildIndex, depth + 1)
+            orderByIndex.set(currentChildIndex, (orderByIndex.get(parentIndex) ?? 0) * 2 + side)
+            pendingParents.push(currentChildIndex)
+          }
+        }
+
+        const maxDepth = Math.max(0, ...depthByIndex.values())
+        const treeWidth = Math.max(NODE_SIZE, 72 * 2 ** maxDepth)
+        nodesByIndex.forEach((node, nodeIndex) => {
+          const depth = depthByIndex.get(nodeIndex) ?? 0
+          const order = orderByIndex.get(nodeIndex) ?? 0
+          node.position = {
+            x: basePosition.x + ((order + 0.5) * treeWidth) / 2 ** depth - NODE_SIZE / 2,
+            y: currentY + depth * 90,
+          }
+        })
+        elements.push(...nodesByIndex.values())
+        nextId += nodeValues.length
+        currentY += Math.max(110, (maxDepth + 1) * 90)
+        return
+      }
+
+      const adjacencyLists = nodeValues as unknown[][]
+      const count = adjacencyLists.length
+      const radius = Math.max(55, count * 18)
+      const centerX = basePosition.x + radius + NODE_SIZE / 2
+      const centerY = currentY + radius + NODE_SIZE / 2
+      const nodes: SketchNode[] = adjacencyLists.map((neighbors, nodeIndex) => ({
+        id: firstNodeId + nodeIndex,
+        kind: 'node',
+        label: nodeIndex === 0 ? label : '',
+        value: String(nodeIndex + 1),
+        pointer_ids: Array.isArray(neighbors)
+          ? neighbors
+              .filter(
+                (neighbor): neighbor is number =>
+                  typeof neighbor === 'number' &&
+                  Number.isInteger(neighbor) &&
+                  neighbor >= 1 &&
+                  neighbor <= count,
+              )
+              .map((neighbor) => firstNodeId + neighbor - 1)
+          : [],
+        pointer_limit: '+',
+        position: {
+          x:
+            centerX +
+            radius * Math.cos((2 * Math.PI * nodeIndex) / Math.max(1, count)) -
+            NODE_SIZE / 2,
+          y:
+            centerY +
+            radius * Math.sin((2 * Math.PI * nodeIndex) / Math.max(1, count)) -
+            NODE_SIZE / 2,
+        },
+      }))
+      elements.push(...nodes)
+      nextId += nodes.length
+      currentY += Math.max(130, radius * 2 + NODE_SIZE + 20)
+      return
+    }
 
     if (typeof value === 'string') {
       const id = nextId
@@ -163,37 +304,6 @@ export const buildTestCaseElements = (
           columns,
         })
         currentY += Math.max(90, rows.length * CELL_SIZE + 35)
-        return
-      }
-
-      // Linked list
-      if (testCase.hasLinkedListInput) {
-        const nodes: SketchNode[] = value.map((item, nodeIndex) => ({
-          id: id + nodeIndex,
-          kind: 'node',
-          label: '',
-          value: String(item),
-          pointer_ids: nodeIndex < value.length - 1 ? [id + nodeIndex + 1] : [],
-          position: { x: basePosition.x + nodeIndex * 90, y: currentY },
-        }))
-
-        if (nodes.length > 0) {
-          const iteratorId = id + nodes.length
-          const iterator: SketchIterator = {
-            id: iteratorId,
-            kind: 'iterator',
-            hostId: id,
-            color: iteratorColors[index % iteratorColors.length],
-            mode: 'bottom',
-            label,
-          }
-          nextId += nodes.length + 1
-          elements.push(...nodes, iterator)
-        } else {
-          nextId += nodes.length
-          elements.push(...nodes)
-        }
-        currentY += 110
         return
       }
 
@@ -315,7 +425,7 @@ export const fetchLeetCodeProblemDetails = async (
   const snippet = getPythonSnippet(question.codeSnippets)
   const inputNames = getInputNames(snippet)
   const rawTestCases = getAllTestcases(question.exampleTestcases, inputNames.length)
-  const hasLinkedListInput = /\b(ListNode|LinkedList)\b/.test(snippet)
+  const nodeStructure = inferNodeStructure(snippet)
 
   const testCases: ParsedTestCase[] = rawTestCases.map((rawLines, caseIndex) => {
     const parsedInputs: ParsedInput[] = rawLines.map((line, argIndex) => {
@@ -326,16 +436,20 @@ export const fetchLeetCodeProblemDetails = async (
       } catch {
         value = line
       }
-      return { name, value }
+      const isNodeInput =
+        nodeStructure !== undefined &&
+        (Array.isArray(value) || (nodeStructure !== 'graph' && value === null)) &&
+        (nodeStructure !== 'graph' ||
+          (Array.isArray(value) && value.every((item) => Array.isArray(item))))
+      return { name, value, ...(isNodeInput ? { nodeStructure } : {}) }
     })
 
-    const preview = buildTestCaseElements({ parsedInputs, hasLinkedListInput }, 1, { x: 12, y: 12 })
+    const preview = buildTestCaseElements({ parsedInputs }, 1, { x: 12, y: 12 })
 
     return {
       id: caseIndex,
       rawLines,
       parsedInputs,
-      hasLinkedListInput,
       previewElements: preview.elements,
     }
   })
@@ -348,7 +462,6 @@ export const fetchLeetCodeProblemDetails = async (
     titleSlug,
     description,
     inputNames,
-    hasLinkedListInput,
     testCases,
   }
 }

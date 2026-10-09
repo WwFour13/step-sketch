@@ -1,4 +1,4 @@
-import type { IteratorColor, IteratorMode, SketchElement } from '../types/sketch'
+import type { IteratorColor, IteratorMode, PointerLimit, SketchElement } from '../types/sketch'
 
 /** Shared canvas dimensions used by bounds, layout, and rendering helpers. */
 export const NODE_RADIUS = 27
@@ -9,6 +9,7 @@ export const MAP_CELL_WIDTH = CELL_SIZE * 2
 /** Palette and placement sides cycled through when creating iterators. */
 export const iteratorColors: IteratorColor[] = ['red', 'green', 'blue', 'yellow']
 export const iteratorModes: IteratorMode[] = ['top', 'bottom', 'left', 'right']
+export const pointerLimits: PointerLimit[] = [1, 2, '+']
 
 /** Initial example data shown when the sketch canvas first loads. */
 export const initialElements: SketchElement[] = [
