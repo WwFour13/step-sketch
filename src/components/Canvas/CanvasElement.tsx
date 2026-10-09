@@ -102,7 +102,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         </>
       ) : (
         <>
-          {element.label && <div className="element-label">{element.label}</div>}
+          {element.kind === 'variable' && element.label && (
+            <div className="element-label">{element.label}</div>
+          )}
           <div
             className="variable-square"
             data-node-id={element.kind === 'node' ? element.id : undefined}

@@ -216,13 +216,24 @@ function App() {
       (current) =>
         current.map((element) => {
           if (element.id !== selectedId) return element
-          if (element.kind === 'node' && 'pointer_limit' in patch) {
-            const pointerLimit = patch.pointer_limit ?? element.pointer_limit
-            const pointerIds =
-              pointerLimit === '+'
-                ? element.pointer_ids
-                : element.pointer_ids.slice(0, pointerLimit)
-            return { ...element, ...patch, pointer_ids: pointerIds }
+          if (element.kind === 'node') {
+            const updatedNode: SketchNode = { ...element }
+            if ('value' in patch && typeof patch.value === 'string') {
+              updatedNode.value = patch.value
+            }
+            if ('position' in patch && patch.position) {
+              updatedNode.position = patch.position
+            }
+            if ('pointer_ids' in patch && Array.isArray(patch.pointer_ids)) {
+              updatedNode.pointer_ids = patch.pointer_ids
+            }
+            if ('pointer_limit' in patch && patch.pointer_limit) {
+              updatedNode.pointer_limit = patch.pointer_limit
+              if (patch.pointer_limit !== '+') {
+                updatedNode.pointer_ids = updatedNode.pointer_ids.slice(0, patch.pointer_limit)
+              }
+            }
+            return updatedNode
           }
           return { ...element, ...patch }
         }) as SketchElement[],
@@ -502,7 +513,7 @@ function App() {
     const position = { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 }
     const element: SketchElement =
       kind === 'node'
-        ? { id, kind, label: '', value, pointer_ids: [], pointer_limit: '+', position }
+        ? { id, kind, value, pointer_ids: [], pointer_limit: '+', position }
         : { id, kind, label: 'variable', value, position }
     setElements((current) => [...current, element])
     setNextId((current) => current + 1)
@@ -581,7 +592,6 @@ function App() {
     const nodes: SketchNode[] = [0, 1, 2].map((index) => ({
       id: firstId + index,
       kind: 'node',
-      label: '',
       value: String(index + 1),
       pointer_ids: index < 2 ? [firstId + index + 1] : [],
       pointer_limit: 1,
@@ -621,7 +631,6 @@ function App() {
       return {
         id: firstId + index,
         kind: 'node' as const,
-        label: '',
         value: String(index + 1),
         pointer_ids: pointerIds,
         pointer_limit: 2,

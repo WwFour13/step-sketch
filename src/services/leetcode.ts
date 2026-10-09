@@ -130,7 +130,6 @@ export const buildTestCaseElements = (
         const nodes: SketchNode[] = nodeValues.map((item, nodeIndex) => ({
           id: firstNodeId + nodeIndex,
           kind: 'node',
-          label: '',
           value: String(item),
           pointer_ids: nodeIndex < nodeValues.length - 1 ? [firstNodeId + nodeIndex + 1] : [],
           pointer_limit: 1,
@@ -162,7 +161,6 @@ export const buildTestCaseElements = (
           nodesByIndex.set(nodeIndex, {
             id: firstNodeId + nodeIndex,
             kind: 'node',
-            label: nodeIndex === 0 ? label : '',
             value: String(item),
             pointer_ids: [],
             pointer_limit: 2,
@@ -215,7 +213,6 @@ export const buildTestCaseElements = (
       const nodes: SketchNode[] = adjacencyLists.map((neighbors, nodeIndex) => ({
         id: firstNodeId + nodeIndex,
         kind: 'node',
-        label: nodeIndex === 0 ? label : '',
         value: String(nodeIndex + 1),
         pointer_ids: Array.isArray(neighbors)
           ? neighbors

@@ -25,8 +25,8 @@ export type SketchArray = {
   columns?: number
 }
 
-/** Pointer node with references to zero or more other node IDs. */
-export type SketchNode = Omit<SketchVariable, 'kind'> & {
+/** Pointer node with references to other node IDs and no user-facing label. */
+export type SketchNode = Omit<SketchVariable, 'kind' | 'label'> & {
   kind: 'node'
   pointer_ids: number[]
   pointer_limit: PointerLimit
