@@ -381,6 +381,34 @@ export const stripHtml = (html: string): string => {
     .trim()
 }
 
+let problemSlugIndexPromise: Promise<Map<string, string>> | null = null
+
+const getProblemSlugIndex = (): Promise<Map<string, string>> => {
+  if (!problemSlugIndexPromise) {
+    problemSlugIndexPromise = fetch('/leetcode-api/api/problems/all/')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Unable to load problem index')
+        const payload = (await response.json()) as {
+          stat_status_pairs?: LeetCodeProblemIndex[]
+        }
+        if (!Array.isArray(payload.stat_status_pairs)) {
+          throw new Error('Invalid problem index response')
+        }
+        return new Map(
+          payload.stat_status_pairs.map((item) => [
+            String(item.stat.frontend_question_id),
+            item.stat.question__title_slug,
+          ]),
+        )
+      })
+      .catch((error: unknown) => {
+        problemSlugIndexPromise = null
+        throw error
+      })
+  }
+  return problemSlugIndexPromise
+}
+
 /**
  * Resolves a problem number to its LeetCode question, parses example inputs,
  * and returns preview-ready cases plus metadata used by the import modal.
@@ -397,16 +425,9 @@ export const fetchLeetCodeProblemDetails = async (
 
   let titleSlug = knownProblemSlugs[number]
   if (!titleSlug) {
-    const indexResponse = await fetch('/leetcode-api/api/problems/all/')
-    if (!indexResponse.ok) throw new Error('Unable to load problem index')
-    const indexPayload = (await indexResponse.json()) as {
-      stat_status_pairs: LeetCodeProblemIndex[]
-    }
-    const problem = indexPayload.stat_status_pairs.find(
-      (item) => String(item.stat.frontend_question_id) === number,
-    )
-    if (!problem) throw new Error(`Problem #${number} not found`)
-    titleSlug = problem.stat.question__title_slug
+    const problemSlugs = await getProblemSlugIndex()
+    titleSlug = problemSlugs.get(number) ?? ''
+    if (!titleSlug) throw new Error(`Problem #${number} not found`)
   }
 
   const response = await fetch('/leetcode-api/graphql', {
