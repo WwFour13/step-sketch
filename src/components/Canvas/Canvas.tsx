@@ -16,6 +16,8 @@ import { PointerLayer } from './PointerLayer'
 export type CanvasProps = {
   elements: SketchElement[]
   selectedIds: Set<number>
+  selectedCellIds: Set<number>
+  selectedId: number
   selectedCell: number | null
   appendCellsArrayId: number | null
   pointerDraft: PointerDraft | null
@@ -45,6 +47,8 @@ export type CanvasProps = {
 export const Canvas: React.FC<CanvasProps> = ({
   elements,
   selectedIds,
+  selectedCellIds,
+  selectedId,
   selectedCell,
   appendCellsArrayId,
   pointerDraft,
@@ -92,6 +96,8 @@ export const Canvas: React.FC<CanvasProps> = ({
             key={element.id}
             element={element}
             isSelected={selectedIds.has(element.id)}
+            isPrimarySelected={selectedId === element.id}
+            selectedCellIds={selectedCellIds}
             selectedCell={selectedCell}
             isAppendingCells={
               element.kind === 'array' &&
@@ -137,7 +143,7 @@ export const Canvas: React.FC<CanvasProps> = ({
 
         <div className="canvas-hint">
           <span>+</span>
-          <span>Drag elements to arrange your explanation</span>
+          <span>Drag to arrange; Shift-drag to select cells</span>
         </div>
       </div>
 

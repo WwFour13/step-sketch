@@ -6,6 +6,8 @@ import type { SketchElement, SketchIterator } from '../../types/sketch'
 export type CanvasElementProps = {
   element: Exclude<SketchElement, SketchIterator>
   isSelected: boolean
+  isPrimarySelected: boolean
+  selectedCellIds: Set<number>
   selectedCell: number | null
   isAppendingCells: boolean
   onStartDrag: (event: React.PointerEvent, id: number) => void
@@ -21,6 +23,8 @@ export type CanvasElementProps = {
 export const CanvasElement: React.FC<CanvasElementProps> = ({
   element,
   isSelected,
+  isPrimarySelected,
+  selectedCellIds,
   selectedCell,
   isAppendingCells,
   onStartDrag,
@@ -51,6 +55,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             >
               {element.values.map((value, index) => {
                 const cellId = element.element_ids[index]
+                const hasPartialCellSelection = element.element_ids.some((id) =>
+                  selectedCellIds.has(id),
+                )
                 const targetCellId =
                   element.layout === 'map' && index % 2 !== 0
                     ? element.element_ids[index - 1]
@@ -78,7 +85,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     readOnly
                     draggable={false}
                     className={`array-cell-input ${matrixCorners} ${
-                      isSelected && (selectedCell === null || selectedCell === index)
+                      selectedCellIds.has(cellId) ||
+                      (isPrimarySelected && selectedCell === index) ||
+                      (isSelected && selectedCell === null && !hasPartialCellSelection)
                         ? 'cell-active'
                         : ''
                     }`}

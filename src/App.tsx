@@ -32,6 +32,7 @@ function App() {
   const [elements, setElements] = useState<SketchElement[]>(initialElements)
   const [selectedId, setSelectedId] = useState(1)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set([1]))
+  const [selectedCellIds, setSelectedCellIds] = useState<Set<number>>(new Set())
   const [selectedCell, setSelectedCell] = useState<number | null>(null)
   const [nextId, setNextId] = useState(15)
   const [isLeetCodeModalOpen, setIsLeetCodeModalOpen] = useState(false)
@@ -99,6 +100,18 @@ function App() {
       }
     }
     cellEditRef.current = { arrayId, index: selectedIndex, hasTyped: false }
+    const array = elements.find(
+      (element): element is SketchArray => element.kind === 'array' && element.id === arrayId,
+    )
+    const cellId = array?.element_ids[selectedIndex]
+    const preserveCellSelection =
+      selectedIds.has(arrayId) &&
+      cellId !== undefined &&
+      selectedCellIds.has(cellId) &&
+      selectedCellIds.size > 1
+    if (!preserveCellSelection) {
+      setSelectedCellIds(cellId === undefined ? new Set() : new Set([cellId]))
+    }
     setAppendCellsArrayId(null)
     setSelectedCell(selectedIndex)
   }
@@ -141,6 +154,11 @@ function App() {
       const adjustedIndex = cellEdit.index > start ? cellEdit.index - count : cellEdit.index
       const keepEditedCellPosition = cellEdit.index > start
 
+      setSelectedCellIds((current) => {
+        const next = new Set(current)
+        removedCellIds.forEach((cellId) => next.delete(cellId))
+        return next
+      })
       setElements((current) =>
         current
           .filter(
@@ -178,6 +196,10 @@ function App() {
       confirmCellEditRef.current(cellEditRef.current)
       cellEditRef.current = null
       setSelectedCell(null)
+    }
+    if (!additive) {
+      setSelectedCell(null)
+      setSelectedCellIds(new Set())
     }
     setSelectedIds((current) => {
       const next = additive ? new Set(current) : new Set<number>()
@@ -224,7 +246,177 @@ function App() {
       return new Set()
     })
     setSelectedId(0)
+    setSelectedCell(null)
+    setSelectedCellIds(new Set())
   }, [])
+
+  const deleteSelection = useCallback(() => {
+    const arraysById = new Map(
+      elements
+        .filter((element): element is SketchArray => element.kind === 'array')
+        .map((array) => [array.id, array]),
+    )
+    const fullySelectedArrays = new Set<number>()
+    const partiallySelectedArrayIds = new Set<number>()
+    selectedCellIds.forEach((cellId) => {
+      const array = [...arraysById.values()].find((item) => item.element_ids.includes(cellId))
+      if (array) partiallySelectedArrayIds.add(array.id)
+    })
+    partiallySelectedArrayIds.forEach((arrayId) => {
+      const array = arraysById.get(arrayId)
+      if (array && array.element_ids.every((cellId) => selectedCellIds.has(cellId))) {
+        fullySelectedArrays.add(arrayId)
+      }
+    })
+    const retainedMatrixCellIds = new Set<number>()
+    partiallySelectedArrayIds.forEach((arrayId) => {
+      const array = arraysById.get(arrayId)
+      if (array?.layout === 'matrix' && !fullySelectedArrays.has(arrayId)) {
+        array.element_ids.forEach((cellId) => {
+          if (selectedCellIds.has(cellId)) retainedMatrixCellIds.add(cellId)
+        })
+      }
+    })
+    const fullDeleteIds = new Set([
+      ...[...selectedIds].filter((id) => !partiallySelectedArrayIds.has(id)),
+      ...fullySelectedArrays,
+    ])
+    const deletedNodeChildren = new Set<number>()
+    elements.forEach((element) => {
+      if (fullDeleteIds.has(element.id) && element.kind === 'node') {
+        element.pointer_ids.forEach((childId) => deletedNodeChildren.add(childId))
+      }
+    })
+
+    const neighboringCellIds = new Set<number>()
+    const removedCellIds = new Set<number>()
+    const nextElements = elements.flatMap((element): SketchElement[] => {
+      if (element.kind === 'iterator') {
+        return fullDeleteIds.has(element.id) ? [] : [element]
+      }
+      if (fullDeleteIds.has(element.id)) {
+        if (element.kind === 'array') {
+          element.element_ids.forEach((cellId) => removedCellIds.add(cellId))
+        }
+        return []
+      }
+      if (element.kind !== 'array' || !partiallySelectedArrayIds.has(element.id)) {
+        return [element]
+      }
+
+      const selectedIndexes = new Set<number>()
+      element.element_ids.forEach((cellId, index) => {
+        if (selectedCellIds.has(cellId)) selectedIndexes.add(index)
+      })
+      if (element.layout === 'matrix' && !fullySelectedArrays.has(element.id)) {
+        return [element]
+      }
+      if (element.layout === 'map') {
+        for (const index of [...selectedIndexes]) {
+          selectedIndexes.add(index % 2 === 0 ? index + 1 : index - 1)
+        }
+        selectedIndexes.delete(-1)
+      }
+      const indexes = [...selectedIndexes]
+        .filter((index) => index >= 0 && index < element.values.length)
+        .sort((a, b) => a - b)
+      if (indexes.length === 0) return [element]
+
+      const minimumCellCount = element.layout === 'map' ? 2 : 1
+      const remainingCount = element.values.length - indexes.length
+      if (remainingCount < minimumCellCount) {
+        const values = [...element.values]
+        values.fill('')
+        element.element_ids.forEach((cellId) => neighboringCellIds.add(cellId))
+        return [{ ...element, values }]
+      }
+
+      let previousIndex = -2
+      const removedRuns: Array<{ start: number; end: number }> = []
+      indexes.forEach((index) => {
+        if (index > previousIndex + 1) removedRuns.push({ start: index, end: index })
+        else removedRuns[removedRuns.length - 1].end = index
+        previousIndex = index
+        removedCellIds.add(element.element_ids[index])
+      })
+      removedRuns.forEach(({ start, end }) => {
+        const neighborIndexes =
+          element.layout === 'map' ? [start - 2, end + 2] : [start - 1, end + 1]
+        neighborIndexes.forEach((index) => {
+          if (index < 0 || index >= element.element_ids.length || selectedIndexes.has(index)) return
+          if (element.layout === 'map') {
+            const pairStart = Math.floor(index / 2) * 2
+            element.element_ids
+              .slice(pairStart, pairStart + 2)
+              .forEach((cellId) => neighboringCellIds.add(cellId))
+          } else {
+            neighboringCellIds.add(element.element_ids[index])
+          }
+        })
+      })
+      const values = element.values.filter((_, index) => !selectedIndexes.has(index))
+      const elementIds = element.element_ids.filter((_, index) => !selectedIndexes.has(index))
+      return [{ ...element, values, element_ids: elementIds }]
+    })
+
+    const survivingChildren = [...deletedNodeChildren].filter((id) =>
+      nextElements.some((element) => element.id === id && element.kind === 'node'),
+    )
+    const nextSelectedIds = new Set<number>(survivingChildren)
+    const remainingSelectedCellIds = new Set([...neighboringCellIds, ...retainedMatrixCellIds])
+    remainingSelectedCellIds.forEach((cellId) => {
+      const array = nextElements.find(
+        (element): element is SketchArray =>
+          element.kind === 'array' && element.element_ids.includes(cellId),
+      )
+      if (array) nextSelectedIds.add(array.id)
+    })
+    const cleanedElements = nextElements
+      .filter(
+        (element) =>
+          !(
+            element.kind === 'iterator' &&
+            (removedCellIds.has(element.hostId) || fullDeleteIds.has(element.hostId))
+          ),
+      )
+      .map((element) =>
+        element.kind === 'node'
+          ? {
+              ...element,
+              pointer_ids: element.pointer_ids.filter((pointerId) => !fullDeleteIds.has(pointerId)),
+            }
+          : element,
+      )
+
+    setElements(cleanedElements)
+    setSelectedIds(nextSelectedIds)
+    setSelectedCellIds(remainingSelectedCellIds)
+    const nextPrimaryId = nextSelectedIds.values().next().value ?? 0
+    setSelectedId(nextPrimaryId)
+    const primaryArray = cleanedElements.find(
+      (element): element is SketchArray => element.kind === 'array' && element.id === nextPrimaryId,
+    )
+    const primaryCellId = primaryArray
+      ? [...remainingSelectedCellIds].find((cellId) => primaryArray.element_ids.includes(cellId))
+      : undefined
+    const primaryCellIndex = primaryCellId
+      ? primaryArray?.element_ids.indexOf(primaryCellId)
+      : undefined
+    if (primaryArray && primaryCellIndex !== undefined && primaryCellIndex >= 0) {
+      cellEditRef.current = {
+        arrayId: primaryArray.id,
+        index: primaryCellIndex,
+        hasTyped: false,
+        replaceOnly: true,
+      }
+      setSelectedCell(primaryCellIndex)
+    } else {
+      cellEditRef.current = null
+      setSelectedCell(null)
+    }
+    elementEditRef.current = null
+    setAppendCellsArrayId(null)
+  }, [elements, selectedCellIds, selectedIds])
 
   // Install global keyboard and mouse handlers for canvas editing, and remove
   // them whenever this effect is re-run or the component is unmounted.
@@ -328,6 +520,7 @@ function App() {
           }
           setAppendCellsArrayId(null)
           setSelectedCell(selectedIndex)
+          setSelectedCellIds(new Set([array.element_ids[selectedIndex]]))
         }
         return
       }
@@ -372,6 +565,7 @@ function App() {
             appendMode: true,
           }
           setSelectedCell(newIndex)
+          setSelectedCellIds(new Set([newCellId]))
           return
         }
       }
@@ -457,6 +651,8 @@ function App() {
               cellEdit.index === array.values.length - 1,
           }
           setSelectedCell(selectedIndex)
+          const selectedCellId = isAddingCell ? nextId : array.element_ids[selectedIndex]
+          setSelectedCellIds(new Set([selectedCellId]))
           return
         }
 
@@ -472,6 +668,11 @@ function App() {
           )
           const removedCellId = array?.element_ids[cellEdit.index]
           if (array && removedCellId !== undefined) {
+            if (selectedCellIds.size > 0) {
+              event.preventDefault()
+              deleteSelection()
+              return
+            }
             const isMap = array.layout === 'map'
             const pairStart = isMap ? Math.floor(cellEdit.index / 2) * 2 : cellEdit.index
             const removeCount = isMap ? 2 : 1
@@ -619,6 +820,11 @@ function App() {
       }
       const deleteTargetId = isArrayCell && cellEdit ? cellEdit.arrayId : selectedId
       if (event.key === 'Delete' && deleteTargetId) {
+        if (selectedCellIds.size > 0) {
+          event.preventDefault()
+          deleteSelection()
+          return
+        }
         const deleteTarget = elements.find((element) => element.id === deleteTargetId)
         if (
           isArrayCell &&
@@ -722,7 +928,16 @@ function App() {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('mousedown', handleMouseDown)
     }
-  }, [deleteElement, elements, isLeetCodeModalOpen, nextId, selectedId, selectedIds])
+  }, [
+    deleteElement,
+    deleteSelection,
+    elements,
+    isLeetCodeModalOpen,
+    nextId,
+    selectedCellIds,
+    selectedId,
+    selectedIds,
+  ])
 
   /**
    * Applies property edits to the selected element. Array value edits also
@@ -1019,24 +1234,108 @@ function App() {
     const width = Math.abs(currentX - marquee.startX)
     const height = Math.abs(currentY - marquee.startY)
     setSelectionBox({ x, y, width, height })
-    const selectedInBox = elements
-      .filter((element) => element.kind !== 'iterator')
-      .filter((element) => {
-        const item = elementBounds(element)
-        return (
-          item.x < x + width &&
-          item.x + item.width > x &&
-          item.y < y + height &&
-          item.y + item.height > y
+    const intersects = (item: { x: number; y: number; width: number; height: number }) =>
+      item.x < x + width &&
+      item.x + item.width > x &&
+      item.y < y + height &&
+      item.y + item.height > y
+    const selectedObjectIds: number[] = []
+    const selectedCellIdsInBox = new Set<number>()
+    const previouslyWholeSelectedArrayIds = new Set(
+      elements
+        .filter(
+          (element): element is SketchArray =>
+            element.kind === 'array' &&
+            selectedIds.has(element.id) &&
+            !element.element_ids.some((cellId) => selectedCellIds.has(cellId)),
         )
+        .map((array) => array.id),
+    )
+    elements.forEach((element) => {
+      if (element.kind === 'iterator') return
+      const bounds = elementBounds(element)
+      if (!intersects(bounds)) return
+      if (element.kind !== 'array') {
+        selectedObjectIds.push(element.id)
+        return
+      }
+
+      const fullyContained =
+        x <= bounds.x &&
+        y <= bounds.y &&
+        x + width >= bounds.x + bounds.width &&
+        y + height >= bounds.y + bounds.height
+      if (fullyContained) {
+        selectedObjectIds.push(element.id)
+        return
+      }
+
+      const selectedIndexes: number[] = []
+      element.values.forEach((_, index) => {
+        const columns = Math.max(1, element.columns ?? 1)
+        const column =
+          element.layout === 'vertical'
+            ? 0
+            : element.layout === 'map'
+              ? index % 2
+              : element.layout === 'matrix'
+                ? index % columns
+                : index
+        const row =
+          element.layout === 'vertical'
+            ? index
+            : element.layout === 'map'
+              ? Math.floor(index / 2)
+              : element.layout === 'matrix'
+                ? Math.floor(index / columns)
+                : 0
+        if (
+          intersects({
+            x: element.position.x + column * CELL_SIZE,
+            y: element.position.y + row * CELL_SIZE,
+            width: CELL_SIZE,
+            height: CELL_SIZE,
+          })
+        ) {
+          selectedIndexes.push(index)
+        }
       })
-      .map((element) => element.id)
+      if (element.layout === 'map') {
+        for (const index of [...selectedIndexes]) {
+          const pairedIndex = index % 2 === 0 ? index + 1 : index - 1
+          if (pairedIndex < element.element_ids.length) selectedIndexes.push(pairedIndex)
+        }
+      }
+      if (selectedIndexes.length > 0) {
+        selectedObjectIds.push(element.id)
+        if (!marquee.additive || !previouslyWholeSelectedArrayIds.has(element.id)) {
+          selectedIndexes.forEach((index) => selectedCellIdsInBox.add(element.element_ids[index]))
+        }
+      }
+    })
     setSelectedIds((currentSelection) => {
       const next = marquee.additive ? new Set(currentSelection) : new Set<number>()
-      selectedInBox.forEach((id) => next.add(id))
+      selectedObjectIds.forEach((id) => next.add(id))
       return next
     })
-    if (selectedInBox.length > 0) setSelectedId(selectedInBox[0])
+    setSelectedCellIds((currentSelection) => {
+      const next = marquee.additive ? new Set(currentSelection) : new Set<number>()
+      elements.forEach((element) => {
+        if (element.kind !== 'array' || !selectedObjectIds.includes(element.id)) return
+        const item = elementBounds(element)
+        if (
+          x <= item.x &&
+          y <= item.y &&
+          x + width >= item.x + item.width &&
+          y + height >= item.y + item.height
+        ) {
+          element.element_ids.forEach((cellId) => next.delete(cellId))
+        }
+      })
+      selectedCellIdsInBox.forEach((cellId) => next.add(cellId))
+      return next
+    })
+    if (selectedObjectIds.length > 0) setSelectedId(selectedObjectIds[0])
     setSelectedCell(null)
   }
 
@@ -1256,6 +1555,7 @@ function App() {
     const element = elements.find((item) => item.id === id)
     const bounds = canvasRef.current?.getBoundingClientRect()
     if (!element || !bounds) return
+    if (event.button === 0 && event.shiftKey) return
     const targetCell = event.target instanceof Element && event.target.closest('.array-cell-input')
     if (cellEditRef.current && !targetCell) {
       confirmCellEditRef.current(cellEditRef.current)
@@ -1275,12 +1575,14 @@ function App() {
       event.target instanceof HTMLInputElement &&
       event.target.classList.contains('array-cell-input')
     let activeSelection = isArrayCellTarget
-      ? new Set([id])
+      ? selectedIds.has(id)
+        ? new Set(selectedIds)
+        : new Set([id])
       : selectedIds.has(id)
         ? new Set(selectedIds)
         : new Set([id])
     if (isArrayCellTarget) {
-      setSelectedIds(activeSelection)
+      if (!selectedIds.has(id)) setSelectedIds(activeSelection)
       setSelectedId(id)
     } else if (event.shiftKey && element.kind === 'node') {
       const visited = new Set<number>(activeSelection)
@@ -1304,6 +1606,7 @@ function App() {
     }
     if (element.kind === 'array' && !isArrayCellTarget) {
       setSelectedCell(null)
+      setSelectedCellIds(new Set())
     }
     if (event.button === 2 && element.kind === 'node') {
       pointerRef.current = {
@@ -1541,13 +1844,15 @@ function App() {
   }
 
   /**
-   * Starts marquee selection only when the primary button is pressed on the
-   * canvas background; Shift preserves the current selection.
+   * Starts marquee selection on the background, or with Shift over an element.
+   * Shift preserves the current selection.
    * @param event Pointer-down event on the canvas container.
    */
   const handleCanvasPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     resetCellTyping()
-    if (event.target === event.currentTarget && event.button === 0) {
+    const startsMarquee =
+      event.button === 0 && (event.target === event.currentTarget || event.shiftKey)
+    if (startsMarquee) {
       confirmCellEditRef.current(cellEditRef.current)
       cellEditRef.current = null
       const bounds = canvasRef.current?.getBoundingClientRect()
@@ -1559,6 +1864,7 @@ function App() {
       }
       if (!event.shiftKey) {
         setSelectedIds(new Set())
+        setSelectedCellIds(new Set())
         setSelectedId(0)
       }
       setSelectedCell(null)
@@ -1582,7 +1888,9 @@ function App() {
         <Sidebar
           selected={selected}
           onUpdateSelected={updateSelected}
-          onDeleteElement={deleteElement}
+          onDeleteElement={(id) =>
+            selectedCellIds.size > 0 ? deleteSelection() : deleteElement(id)
+          }
           onAddVariable={addVariable}
           onAddArray={addArray}
           onAddLinkedList={addLinkedList}
@@ -1596,6 +1904,8 @@ function App() {
         <Canvas
           elements={elements}
           selectedIds={selectedIds}
+          selectedCellIds={selectedCellIds}
+          selectedId={selectedId}
           selectedCell={selectedCell}
           pointerDraft={pointerDraft}
           selectionBox={selectionBox}
