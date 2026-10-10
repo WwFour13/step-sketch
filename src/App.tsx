@@ -4,7 +4,7 @@ import { Canvas } from './components/Canvas/Canvas'
 import { Header } from './components/Header/Header'
 import { LeetCodeModal } from './components/LeetCodeModal/LeetCodeModal'
 import { Sidebar } from './components/Sidebar/Sidebar'
-import { initialElements, iteratorColors } from './constants/sketch'
+import { CELL_SIZE, initialElements, iteratorColors } from './constants/sketch'
 import { buildCanvasElementsFromTestCases, type ParsedTestCase } from './services/leetcode'
 import type {
   CellEditState,
@@ -20,6 +20,13 @@ import type {
   SketchNode,
 } from './types/sketch'
 import { elementBounds, hostBounds, hostIdFromPoint } from './utils/canvas'
+
+type CellEditConfirmation = {
+  arrayId: number
+  start: number
+  count: number
+  adjustedIndex: number
+}
 
 function App() {
   const [elements, setElements] = useState<SketchElement[]>(initialElements)
@@ -38,6 +45,9 @@ function App() {
   const iteratorDragRef = useRef<{ id: number; startX: number; startY: number } | null>(null)
   const iteratorClickRef = useRef<{ id: number; time: number } | null>(null)
   const cellEditRef = useRef<CellEditState | null>(null)
+  const confirmCellEditRef = useRef<
+    (cellEdit: CellEditState | null) => CellEditConfirmation | null
+  >(() => null)
   const elementEditRef = useRef<{ elementId: number; hasTyped: boolean } | null>(null)
   const marqueeRef = useRef<MarqueeDrag | null>(null)
 
@@ -75,9 +85,22 @@ function App() {
    * @param index Zero-based index of the selected cell.
    */
   const selectCell = (arrayId: number, index: number) => {
-    cellEditRef.current = { arrayId, index, hasTyped: false }
+    const currentEdit = cellEditRef.current
+    let selectedIndex = index
+    if (!currentEdit || currentEdit.arrayId !== arrayId || currentEdit.index !== index) {
+      const confirmed = confirmCellEditRef.current(cellEditRef.current)
+      if (confirmed?.arrayId === arrayId) {
+        selectedIndex =
+          index >= confirmed.start + confirmed.count
+            ? index - confirmed.count
+            : index >= confirmed.start
+              ? confirmed.adjustedIndex
+              : index
+      }
+    }
+    cellEditRef.current = { arrayId, index: selectedIndex, hasTyped: false }
     setAppendCellsArrayId(null)
-    setSelectedCell(index)
+    setSelectedCell(selectedIndex)
   }
 
   /** Lets the next typed character replace the selected cell's current value. */
@@ -87,11 +110,75 @@ function App() {
   }
 
   /**
+   * Enforces set-value and map-key uniqueness when leaving an edited cell.
+   * @returns The removed duplicate range so a newly selected cell can retain its position.
+   */
+  useEffect(() => {
+    confirmCellEditRef.current = (cellEdit) => {
+      if (!cellEdit) return null
+
+      const array = elements.find(
+        (element): element is SketchArray =>
+          element.kind === 'array' && element.id === cellEdit.arrayId,
+      )
+      if (!array) return null
+
+      const isSet = array.layout === 'vertical' && array.label === 'set'
+      const isMapKey = array.layout === 'map' && cellEdit.index % 2 === 0
+      if (!isSet && !isMapKey) return null
+
+      const value = array.values[cellEdit.index]
+      if (!value) return null
+      const duplicateIndex = array.values.findIndex(
+        (candidate, index) =>
+          index !== cellEdit.index && (!isMapKey || index % 2 === 0) && candidate === value,
+      )
+      if (duplicateIndex < 0) return null
+
+      const start = isMapKey ? Math.floor(duplicateIndex / 2) * 2 : duplicateIndex
+      const count = isMapKey ? 2 : 1
+      const removedCellIds = array.element_ids.slice(start, start + count)
+      const adjustedIndex = cellEdit.index > start ? cellEdit.index - count : cellEdit.index
+      const keepEditedCellPosition = cellEdit.index > start
+
+      setElements((current) =>
+        current
+          .filter(
+            (element) => !(element.kind === 'iterator' && removedCellIds.includes(element.hostId)),
+          )
+          .map((element) => {
+            if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
+            const values = [...element.values]
+            const elementIds = [...element.element_ids]
+            values.splice(start, count)
+            elementIds.splice(start, count)
+            return {
+              ...element,
+              values,
+              element_ids: elementIds,
+              position: {
+                ...element.position,
+                y: element.position.y + (keepEditedCellPosition ? CELL_SIZE : 0),
+              },
+            }
+          }),
+      )
+      setAppendCellsArrayId(null)
+      return { arrayId: array.id, start, count, adjustedIndex }
+    }
+  }, [elements])
+
+  /**
    * Selects one element, optionally preserving the other selected IDs.
    * @param id ID of the element to make primary.
    * @param additive When true, retain the existing selection set.
    */
   const selectOne = (id: number, additive = false) => {
+    if (cellEditRef.current && (id !== selectedId || !selectedIds.has(id))) {
+      confirmCellEditRef.current(cellEditRef.current)
+      cellEditRef.current = null
+      setSelectedCell(null)
+    }
     setSelectedIds((current) => {
       const next = additive ? new Set(current) : new Set<number>()
       next.add(id)
@@ -227,9 +314,20 @@ function App() {
 
         event.preventDefault()
         if (nextIndex !== index) {
-          cellEditRef.current = { arrayId: array.id, index: nextIndex, hasTyped: false }
+          const confirmed = confirmCellEditRef.current(cellEdit)
+          const selectedIndex =
+            confirmed?.arrayId === array.id && nextIndex >= confirmed.start + confirmed.count
+              ? nextIndex - confirmed.count
+              : confirmed?.arrayId === array.id && nextIndex >= confirmed.start
+                ? confirmed.adjustedIndex
+                : nextIndex
+          cellEditRef.current = {
+            arrayId: array.id,
+            index: selectedIndex,
+            hasTyped: false,
+          }
           setAppendCellsArrayId(null)
-          setSelectedCell(nextIndex)
+          setSelectedCell(selectedIndex)
         }
         return
       }
@@ -293,9 +391,11 @@ function App() {
           const nextIndex = cellEdit.index + 1
           const isAddingCell = event.key === ','
           const isHorizontalArray = array.layout === undefined || array.layout === 'horizontal'
-          let duplicateIndex = -1
           const isMap = array.layout === 'map'
-          const insertedIndex = isMap ? (Math.floor(cellEdit.index / 2) + 1) * 2 : nextIndex
+          const confirmed = isAddingCell ? confirmCellEditRef.current(cellEdit) : null
+          const activeIndex =
+            confirmed?.arrayId === array.id ? confirmed.adjustedIndex : cellEdit.index
+          const insertedIndex = isMap ? (Math.floor(activeIndex / 2) + 1) * 2 : activeIndex + 1
           const insertedCellCount = isMap ? 2 : 1
           if (isAddingCell) {
             setElements((current) =>
@@ -320,58 +420,14 @@ function App() {
               : cellEdit.hasTyped
                 ? currentValue + event.key
                 : event.key
-            const isSet = array.layout === 'vertical' && array.label === 'set'
-            const isUniqueMapKey = array.layout === 'map' && cellEdit.index % 2 === 0
-            duplicateIndex =
-              nextValue && (isSet || isUniqueMapKey)
-                ? array.values.findIndex(
-                    (value, index) =>
-                      index !== cellEdit.index &&
-                      (!isUniqueMapKey || index % 2 === 0) &&
-                      value === nextValue,
-                  )
-                : -1
-
-            if (duplicateIndex >= 0) {
-              const duplicateStart = isUniqueMapKey
-                ? Math.floor(duplicateIndex / 2) * 2
-                : duplicateIndex
-              const duplicateCount = isUniqueMapKey ? 2 : 1
-              const removedCellIds = array.element_ids.slice(
-                duplicateStart,
-                duplicateStart + duplicateCount,
-              )
-              const selectedIndex =
-                cellEdit.index > duplicateStart ? cellEdit.index - duplicateCount : cellEdit.index
-              const values = [...array.values]
-              const elementIds = [...array.element_ids]
-              values[cellEdit.index] = nextValue
-              values.splice(duplicateStart, duplicateCount)
-              elementIds.splice(duplicateStart, duplicateCount)
-              setElements((current) =>
-                current
-                  .filter(
-                    (element) =>
-                      !(element.kind === 'iterator' && removedCellIds.includes(element.hostId)),
-                  )
-                  .map((element) =>
-                    element.kind === 'array' && element.id === cellEdit.arrayId
-                      ? { ...element, values, element_ids: elementIds }
-                      : element,
-                  ),
-              )
-              cellEditRef.current = { ...cellEdit, index: selectedIndex }
-              setSelectedCell(selectedIndex)
-            } else {
-              setElements((current) =>
-                current.map((element) => {
-                  if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
-                  const values = [...element.values]
-                  values[cellEdit.index] = nextValue
-                  return { ...element, values }
-                }),
-              )
-            }
+            setElements((current) =>
+              current.map((element) => {
+                if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
+                const values = [...element.values]
+                values[cellEdit.index] = nextValue
+                return { ...element, values }
+              }),
+            )
           }
 
           const selectedIndex = isAddingCell
@@ -391,7 +447,7 @@ function App() {
           cellEditRef.current = {
             arrayId: cellEdit.arrayId,
             index: selectedIndex,
-            hasTyped: !isAddingCell && (duplicateIndex >= 0 || selectedIndex === cellEdit.index),
+            hasTyped: !isAddingCell && selectedIndex === cellEdit.index,
             replaceOnly: isAddingCell ? false : cellEdit.replaceOnly,
             appendMode:
               !isAddingCell &&
@@ -651,8 +707,10 @@ function App() {
     const handleMouseDown = (event: MouseEvent) => {
       resetCellTyping()
       const target = event.target
-      const canvasTarget = target instanceof Element && target.closest('.canvas-element')
-      if (!canvasTarget && !(target instanceof Element && target.closest('.array-cell-input'))) {
+      const canvasTarget = target instanceof Element && target.closest('.canvas')
+      const arrayCellTarget = target instanceof Element && target.closest('.array-cell-input')
+      if (canvasTarget && !arrayCellTarget) {
+        confirmCellEditRef.current(cellEditRef.current)
         cellEditRef.current = null
       }
       if (!canvasTarget) elementEditRef.current = null
@@ -1146,6 +1204,7 @@ function App() {
 
   /** Opens the test-case importer and clears any active array-cell edit. */
   const openLeetCodeModal = () => {
+    confirmCellEditRef.current(cellEditRef.current)
     cellEditRef.current = null
     setSelectedCell(null)
     setIsLeetCodeModalOpen(true)
@@ -1197,6 +1256,11 @@ function App() {
     const element = elements.find((item) => item.id === id)
     const bounds = canvasRef.current?.getBoundingClientRect()
     if (!element || !bounds) return
+    const targetCell = event.target instanceof Element && event.target.closest('.array-cell-input')
+    if (cellEditRef.current && !targetCell) {
+      confirmCellEditRef.current(cellEditRef.current)
+      cellEditRef.current = null
+    }
     if (event.button === 0 && (element.kind === 'variable' || element.kind === 'node')) {
       elementEditRef.current = { elementId: id, hasTyped: false }
       cellEditRef.current = null
@@ -1206,8 +1270,19 @@ function App() {
     } else if (element.kind === 'array') {
       elementEditRef.current = null
     }
-    let activeSelection = selectedIds.has(id) ? new Set(selectedIds) : new Set([id])
-    if (event.shiftKey && element.kind === 'node') {
+    const isArrayCellTarget =
+      element.kind === 'array' &&
+      event.target instanceof HTMLInputElement &&
+      event.target.classList.contains('array-cell-input')
+    let activeSelection = isArrayCellTarget
+      ? new Set([id])
+      : selectedIds.has(id)
+        ? new Set(selectedIds)
+        : new Set([id])
+    if (isArrayCellTarget) {
+      setSelectedIds(activeSelection)
+      setSelectedId(id)
+    } else if (event.shiftKey && element.kind === 'node') {
       const visited = new Set<number>(activeSelection)
       const pendingIds = [id]
       while (pendingIds.length > 0) {
@@ -1227,10 +1302,7 @@ function App() {
       selectOne(id)
       activeSelection = new Set([id])
     }
-    if (
-      element.kind === 'array' &&
-      (selectedIds.size > 1 || !(event.target instanceof HTMLInputElement))
-    ) {
+    if (element.kind === 'array' && !isArrayCellTarget) {
       setSelectedCell(null)
     }
     if (event.button === 2 && element.kind === 'node') {
@@ -1476,6 +1548,8 @@ function App() {
   const handleCanvasPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
     resetCellTyping()
     if (event.target === event.currentTarget && event.button === 0) {
+      confirmCellEditRef.current(cellEditRef.current)
+      cellEditRef.current = null
       const bounds = canvasRef.current?.getBoundingClientRect()
       if (!bounds) return
       marqueeRef.current = {
