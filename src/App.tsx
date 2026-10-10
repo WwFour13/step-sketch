@@ -248,7 +248,11 @@ function App() {
           (element): element is SketchArray =>
             element.kind === 'array' && element.id === cellEdit.arrayId,
         )
-        if (array && cellEdit.index === array.values.length - 1) {
+        if (
+          array &&
+          (array.layout === undefined || array.layout === 'horizontal') &&
+          cellEdit.index === array.values.length - 1
+        ) {
           event.preventDefault()
           const newIndex = array.values.length
           const newCellId = nextId
@@ -288,36 +292,96 @@ function App() {
 
           const nextIndex = cellEdit.index + 1
           const isAddingCell = event.key === ','
+          const isHorizontalArray = array.layout === undefined || array.layout === 'horizontal'
+          let duplicateIndex = -1
+          const isMap = array.layout === 'map'
+          const insertedIndex = isMap ? (Math.floor(cellEdit.index / 2) + 1) * 2 : nextIndex
+          const insertedCellCount = isMap ? 2 : 1
           if (isAddingCell) {
-            const cellId = nextId
             setElements((current) =>
               current.map((element) => {
                 if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
                 const values = [...element.values]
                 const elementIds = [...element.element_ids]
-                values.splice(nextIndex, 0, '')
-                elementIds.splice(nextIndex, 0, cellId)
+                values.splice(insertedIndex, 0, ...Array(insertedCellCount).fill(''))
+                elementIds.splice(
+                  insertedIndex,
+                  0,
+                  ...Array.from({ length: insertedCellCount }, (_, index) => nextId + index),
+                )
                 return { ...element, values, element_ids: elementIds }
               }),
             )
-            setNextId((current) => current + 1)
+            setNextId((current) => current + insertedCellCount)
           } else {
-            setElements((current) =>
-              current.map((element) => {
-                if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
-                const values = element.values.map((value, index) =>
-                  index === cellEdit.index ? event.key : value,
-                )
-                return { ...element, values }
-              }),
-            )
+            const currentValue = array.values[cellEdit.index] ?? ''
+            const nextValue = isHorizontalArray
+              ? event.key
+              : cellEdit.hasTyped
+                ? currentValue + event.key
+                : event.key
+            const isSet = array.layout === 'vertical' && array.label === 'set'
+            const isUniqueMapKey = array.layout === 'map' && cellEdit.index % 2 === 0
+            duplicateIndex =
+              nextValue && (isSet || isUniqueMapKey)
+                ? array.values.findIndex(
+                    (value, index) =>
+                      index !== cellEdit.index &&
+                      (!isUniqueMapKey || index % 2 === 0) &&
+                      value === nextValue,
+                  )
+                : -1
+
+            if (duplicateIndex >= 0) {
+              const duplicateStart = isUniqueMapKey
+                ? Math.floor(duplicateIndex / 2) * 2
+                : duplicateIndex
+              const duplicateCount = isUniqueMapKey ? 2 : 1
+              const removedCellIds = array.element_ids.slice(
+                duplicateStart,
+                duplicateStart + duplicateCount,
+              )
+              const selectedIndex =
+                cellEdit.index > duplicateStart ? cellEdit.index - duplicateCount : cellEdit.index
+              const values = [...array.values]
+              const elementIds = [...array.element_ids]
+              values[cellEdit.index] = nextValue
+              values.splice(duplicateStart, duplicateCount)
+              elementIds.splice(duplicateStart, duplicateCount)
+              setElements((current) =>
+                current
+                  .filter(
+                    (element) =>
+                      !(element.kind === 'iterator' && removedCellIds.includes(element.hostId)),
+                  )
+                  .map((element) =>
+                    element.kind === 'array' && element.id === cellEdit.arrayId
+                      ? { ...element, values, element_ids: elementIds }
+                      : element,
+                  ),
+              )
+              cellEditRef.current = { ...cellEdit, index: selectedIndex }
+              setSelectedCell(selectedIndex)
+            } else {
+              setElements((current) =>
+                current.map((element) => {
+                  if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
+                  const values = [...element.values]
+                  values[cellEdit.index] = nextValue
+                  return { ...element, values }
+                }),
+              )
+            }
           }
 
           const selectedIndex = isAddingCell
-            ? nextIndex
-            : Math.min(nextIndex, array.values.length - 1)
+            ? insertedIndex
+            : isHorizontalArray
+              ? Math.min(nextIndex, array.values.length - 1)
+              : (cellEditRef.current?.index ?? cellEdit.index)
           setAppendCellsArrayId(
             !isAddingCell &&
+              isHorizontalArray &&
               !cellEdit.replaceOnly &&
               !/^[0-9.-]$/.test(event.key) &&
               cellEdit.index === array.values.length - 1
@@ -327,10 +391,11 @@ function App() {
           cellEditRef.current = {
             arrayId: cellEdit.arrayId,
             index: selectedIndex,
-            hasTyped: !isAddingCell && selectedIndex === cellEdit.index,
+            hasTyped: !isAddingCell && (duplicateIndex >= 0 || selectedIndex === cellEdit.index),
             replaceOnly: isAddingCell ? false : cellEdit.replaceOnly,
             appendMode:
               !isAddingCell &&
+              isHorizontalArray &&
               !cellEdit.replaceOnly &&
               !/^[0-9.-]$/.test(event.key) &&
               cellEdit.index === array.values.length - 1,
@@ -351,11 +416,19 @@ function App() {
           )
           const removedCellId = array?.element_ids[cellEdit.index]
           if (array && removedCellId !== undefined) {
-            if (array.values.length === 1) {
+            const isMap = array.layout === 'map'
+            const pairStart = isMap ? Math.floor(cellEdit.index / 2) * 2 : cellEdit.index
+            const removeCount = isMap ? 2 : 1
+            const removedCellIds = array.element_ids.slice(pairStart, pairStart + removeCount)
+            const remainingCellCount = array.values.length - removedCellIds.length
+            if (remainingCellCount < (isMap ? 2 : 1)) {
               const values = [...array.values]
-              values[cellEdit.index] = ''
+              for (let index = pairStart; index < pairStart + removeCount; index += 1) {
+                if (index < values.length) values[index] = ''
+              }
               cellEditRef.current = {
                 ...cellEdit,
+                index: pairStart,
                 hasTyped: false,
                 replaceOnly: true,
                 appendMode: false,
@@ -371,18 +444,19 @@ function App() {
               return
             }
 
-            const nextIndex = Math.min(cellEdit.index, array.values.length - 2)
+            const nextIndex = Math.max(0, pairStart - (isMap ? 2 : 1))
             setElements((current) =>
               current
                 .filter(
-                  (element) => !(element.kind === 'iterator' && element.hostId === removedCellId),
+                  (element) =>
+                    !(element.kind === 'iterator' && removedCellIds.includes(element.hostId)),
                 )
                 .map((element) => {
                   if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
                   const values = [...element.values]
                   const elementIds = [...element.element_ids]
-                  values.splice(cellEdit.index, 1)
-                  elementIds.splice(cellEdit.index, 1)
+                  values.splice(pairStart, removeCount)
+                  elementIds.splice(pairStart, removeCount)
                   return { ...element, values, element_ids: elementIds }
                 }),
             )
@@ -490,6 +564,65 @@ function App() {
       const deleteTargetId = isArrayCell && cellEdit ? cellEdit.arrayId : selectedId
       if (event.key === 'Delete' && deleteTargetId) {
         const deleteTarget = elements.find((element) => element.id === deleteTargetId)
+        if (
+          isArrayCell &&
+          cellEdit &&
+          deleteTarget?.kind === 'array' &&
+          deleteTarget.layout === 'map'
+        ) {
+          event.preventDefault()
+          const pairStart = Math.floor(cellEdit.index / 2) * 2
+          const removedCellIds = deleteTarget.element_ids.slice(pairStart, pairStart + 2)
+          const remainingCellCount = deleteTarget.values.length - removedCellIds.length
+          if (remainingCellCount < 2) {
+            const values = [...deleteTarget.values]
+            for (let index = pairStart; index < pairStart + 2; index += 1) {
+              if (index < values.length) values[index] = ''
+            }
+            setElements((current) =>
+              current.map((element) =>
+                element.kind === 'array' && element.id === deleteTargetId
+                  ? { ...element, values }
+                  : element,
+              ),
+            )
+            cellEditRef.current = {
+              ...cellEdit,
+              index: pairStart,
+              hasTyped: false,
+              replaceOnly: true,
+              appendMode: false,
+            }
+            setSelectedCell(pairStart)
+          } else {
+            const nextIndex = Math.max(0, pairStart - 2)
+            setElements((current) =>
+              current
+                .filter(
+                  (element) =>
+                    !(element.kind === 'iterator' && removedCellIds.includes(element.hostId)),
+                )
+                .map((element) => {
+                  if (element.kind !== 'array' || element.id !== deleteTargetId) return element
+                  const values = [...element.values]
+                  const elementIds = [...element.element_ids]
+                  values.splice(pairStart, 2)
+                  elementIds.splice(pairStart, 2)
+                  return { ...element, values, element_ids: elementIds }
+                }),
+            )
+            cellEditRef.current = {
+              arrayId: deleteTargetId,
+              index: nextIndex,
+              hasTyped: false,
+              replaceOnly: true,
+              appendMode: false,
+            }
+            setSelectedCell(nextIndex)
+          }
+          setAppendCellsArrayId(null)
+          return
+        }
         if (deleteTarget?.kind === 'array' && deleteTarget.values.length <= 1) {
           event.preventDefault()
           setElements((current) =>
