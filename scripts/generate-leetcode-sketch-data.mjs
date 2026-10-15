@@ -3,10 +3,10 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const promptPath = fileURLToPath(new URL('./leetcode-data-prompt.md', import.meta.url))
+const promptPath = fileURLToPath(new URL('./leetcode-sketch-data-prompt.md', import.meta.url))
 const defaults = {
-  input: 'data/source/leetcode-problems.json',
-  output: 'public/data/leetcode-problems-v1.json',
+  input: 'data/source/leetcode-problems-api.json',
+  output: 'data/processed/leetcode-sketch-problems-v1.json',
   concurrency: 2,
   limit: Infinity,
   ids: null,
@@ -357,7 +357,7 @@ const main = async () => {
   const failures = []
 
   console.log(
-    `Generating ${pending.length} selected problem(s); ${sourceProblems.length - pending.length} already present with shape labels will be skipped.`,
+    `Generating ${pending.length} LeetCode Sketch record(s); ${sourceProblems.length - pending.length} already have shape labels and will be skipped.`,
   )
   await runPool(pending, options.concurrency, async (problem) => {
     const id = String(problem.questionId)
@@ -381,6 +381,7 @@ const main = async () => {
   })
 
   const output = {
+    dataset: 'leetcode-sketch',
     schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     generator: { provider: 'google-gemini', model },

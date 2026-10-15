@@ -1,6 +1,7 @@
 {
+  "dataset": "leetcode-sketch",
   "schemaVersion": 2,
-  "generatedAt": "2026-10-12T19:34:21.416Z",
+  "generatedAt": "2026-10-15T04:27:45.085Z",
   "generator": {
     "provider": "google-gemini",
     "model": "gemini-3.1-flash-lite"
@@ -204,6 +205,7 @@
                 1,
                 3
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
@@ -211,6 +213,7 @@
               "value": [
                 2
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -223,6 +226,7 @@
                 1,
                 2
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
@@ -231,6 +235,7 @@
                 3,
                 4
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -247,6 +252,7 @@
             {
               "name": "s",
               "value": "babad",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -256,6 +262,7 @@
             {
               "name": "s",
               "value": "cbbd",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -272,11 +279,13 @@
             {
               "name": "s",
               "value": "PAYPALISHIRING",
+              "shape": "string",
               "nodeStructure": null
             },
             {
               "name": "numRows",
               "value": 3,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -286,11 +295,13 @@
             {
               "name": "s",
               "value": "PAYPALISHIRING",
+              "shape": "string",
               "nodeStructure": null
             },
             {
               "name": "numRows",
               "value": 4,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -300,11 +311,13 @@
             {
               "name": "s",
               "value": "A",
+              "shape": "string",
               "nodeStructure": null
             },
             {
               "name": "numRows",
               "value": 1,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -321,6 +334,7 @@
             {
               "name": "x",
               "value": 123,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -330,6 +344,7 @@
             {
               "name": "x",
               "value": -123,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -339,6 +354,7 @@
             {
               "name": "x",
               "value": 120,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -355,6 +371,7 @@
             {
               "name": "s",
               "value": "42",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -364,6 +381,7 @@
             {
               "name": "s",
               "value": "   -042",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -373,6 +391,7 @@
             {
               "name": "s",
               "value": "1337c0d3",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -382,6 +401,7 @@
             {
               "name": "s",
               "value": "0-1",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -391,6 +411,7 @@
             {
               "name": "s",
               "value": "words and 987",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -407,6 +428,7 @@
             {
               "name": "x",
               "value": 121,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -416,6 +438,7 @@
             {
               "name": "x",
               "value": -121,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -425,6 +448,7 @@
             {
               "name": "x",
               "value": 10,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -441,11 +465,13 @@
             {
               "name": "s",
               "value": "aa",
+              "shape": "string",
               "nodeStructure": null
             },
             {
               "name": "p",
               "value": "a",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -455,11 +481,13 @@
             {
               "name": "s",
               "value": "aa",
+              "shape": "string",
               "nodeStructure": null
             },
             {
               "name": "p",
               "value": "a*",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -469,11 +497,13 @@
             {
               "name": "s",
               "value": "ab",
+              "shape": "string",
               "nodeStructure": null
             },
             {
               "name": "p",
               "value": ".*",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -500,6 +530,7 @@
                 3,
                 7
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -512,6 +543,7 @@
                 1,
                 1
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -528,6 +560,7 @@
             {
               "name": "num",
               "value": 3749,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -537,6 +570,7 @@
             {
               "name": "num",
               "value": 58,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -546,6 +580,7 @@
             {
               "name": "num",
               "value": 1994,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -562,6 +597,7 @@
             {
               "name": "s",
               "value": "III",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -571,6 +607,7 @@
             {
               "name": "s",
               "value": "LVIII",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -580,6 +617,7 @@
             {
               "name": "s",
               "value": "MCMXCIV",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -638,6 +676,7 @@
                 -1,
                 -4
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -651,6 +690,7 @@
                 1,
                 1
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -664,6 +704,7 @@
                 0,
                 0
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -685,11 +726,13 @@
                 1,
                 -4
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 1,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -703,11 +746,13 @@
                 0,
                 0
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 1,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -724,6 +769,7 @@
             {
               "name": "digits",
               "value": "23",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -733,6 +779,7 @@
             {
               "name": "digits",
               "value": "2",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -756,11 +803,13 @@
                 -2,
                 2
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 0,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -776,11 +825,13 @@
                 2,
                 2
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 8,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -803,11 +854,13 @@
                 4,
                 5
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             },
             {
               "name": "n",
               "value": 2,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -819,11 +872,13 @@
               "value": [
                 1
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             },
             {
               "name": "n",
               "value": 1,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -836,11 +891,13 @@
                 1,
                 2
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             },
             {
               "name": "n",
               "value": 1,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -857,6 +914,7 @@
             {
               "name": "s",
               "value": "()",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -866,6 +924,7 @@
             {
               "name": "s",
               "value": "()[]{}",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -875,6 +934,7 @@
             {
               "name": "s",
               "value": "(]",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -884,6 +944,7 @@
             {
               "name": "s",
               "value": "([])",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -893,6 +954,7 @@
             {
               "name": "s",
               "value": "([)]",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -913,6 +975,7 @@
                 2,
                 4
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             },
             {
@@ -922,6 +985,7 @@
                 3,
                 4
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             }
           ]
@@ -931,11 +995,13 @@
             {
               "name": "list1",
               "value": [],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             },
             {
               "name": "list2",
               "value": [],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             }
           ]
@@ -945,6 +1011,7 @@
             {
               "name": "list1",
               "value": [],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             },
             {
@@ -952,6 +1019,7 @@
               "value": [
                 0
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             }
           ]
@@ -968,6 +1036,7 @@
             {
               "name": "n",
               "value": 3,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -977,6 +1046,7 @@
             {
               "name": "n",
               "value": 1,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1052,6 +1122,7 @@
                 3,
                 4
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             }
           ]
@@ -1061,6 +1132,7 @@
             {
               "name": "head",
               "value": [],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             }
           ]
@@ -1072,6 +1144,7 @@
               "value": [
                 1
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             }
           ]
@@ -1085,6 +1158,7 @@
                 2,
                 3
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             }
           ]
@@ -1107,11 +1181,13 @@
                 4,
                 5
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             },
             {
               "name": "k",
               "value": 2,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1127,11 +1203,13 @@
                 4,
                 5
               ],
+              "shape": "linked_list",
               "nodeStructure": "linked-list"
             },
             {
               "name": "k",
               "value": 3,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1152,6 +1230,7 @@
                 1,
                 2
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -1172,6 +1251,7 @@
                 3,
                 4
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -1193,11 +1273,13 @@
                 2,
                 3
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "val",
               "value": 3,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1216,11 +1298,13 @@
                 4,
                 2
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "val",
               "value": 2,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1237,11 +1321,13 @@
             {
               "name": "haystack",
               "value": "sadbutsad",
+              "shape": "string",
               "nodeStructure": null
             },
             {
               "name": "needle",
               "value": "sad",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -1251,11 +1337,13 @@
             {
               "name": "haystack",
               "value": "leetcode",
+              "shape": "string",
               "nodeStructure": null
             },
             {
               "name": "needle",
               "value": "leeto",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -1272,11 +1360,13 @@
             {
               "name": "dividend",
               "value": 10,
+              "shape": "scalar",
               "nodeStructure": null
             },
             {
               "name": "divisor",
               "value": 3,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1286,11 +1376,13 @@
             {
               "name": "dividend",
               "value": 7,
+              "shape": "scalar",
               "nodeStructure": null
             },
             {
               "name": "divisor",
               "value": -3,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1307,6 +1399,7 @@
             {
               "name": "s",
               "value": "barfoothefoobarman",
+              "shape": "string",
               "nodeStructure": null
             },
             {
@@ -1315,6 +1408,7 @@
                 "foo",
                 "bar"
               ],
+              "shape": "array_of_strings",
               "nodeStructure": null
             }
           ]
@@ -1324,6 +1418,7 @@
             {
               "name": "s",
               "value": "wordgoodgoodgoodbestword",
+              "shape": "string",
               "nodeStructure": null
             },
             {
@@ -1334,6 +1429,7 @@
                 "best",
                 "word"
               ],
+              "shape": "array_of_strings",
               "nodeStructure": null
             }
           ]
@@ -1343,6 +1439,7 @@
             {
               "name": "s",
               "value": "barfoofoobarthefoobarman",
+              "shape": "string",
               "nodeStructure": null
             },
             {
@@ -1352,6 +1449,7 @@
                 "foo",
                 "the"
               ],
+              "shape": "array_of_strings",
               "nodeStructure": null
             }
           ]
@@ -1372,6 +1470,7 @@
                 2,
                 3
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -1385,6 +1484,7 @@
                 2,
                 1
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -1398,6 +1498,7 @@
                 1,
                 5
               ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -1414,6 +1515,7 @@
             {
               "name": "s",
               "value": "(()",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -1423,6 +1525,7 @@
             {
               "name": "s",
               "value": ")()())",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -1432,6 +1535,7 @@
             {
               "name": "s",
               "value": "",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -1456,11 +1560,13 @@
                 1,
                 2
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 0,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1478,11 +1584,13 @@
                 1,
                 2
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 3,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1494,11 +1602,13 @@
               "value": [
                 1
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 0,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1522,11 +1632,13 @@
                 8,
                 10
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 8,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1543,11 +1655,13 @@
                 8,
                 10
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 6,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1557,11 +1671,13 @@
             {
               "name": "nums",
               "value": [],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 0,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1583,11 +1699,13 @@
                 5,
                 6
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 5,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1602,11 +1720,13 @@
                 5,
                 6
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 2,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1621,11 +1741,13 @@
                 5,
                 6
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 7,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1742,6 +1864,7 @@
                   "9"
                 ]
               ],
+              "shape": "matrix",
               "nodeStructure": null
             }
           ]
@@ -1851,6 +1974,7 @@
                   "9"
                 ]
               ],
+              "shape": "matrix",
               "nodeStructure": null
             }
           ]
@@ -1967,6 +2091,7 @@
                   "9"
                 ]
               ],
+              "shape": "matrix",
               "nodeStructure": null
             }
           ]
@@ -1983,6 +2108,7 @@
             {
               "name": "n",
               "value": 4,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -1992,6 +2118,7 @@
             {
               "name": "n",
               "value": 1,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -2013,11 +2140,13 @@
                 6,
                 7
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 7,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -2031,11 +2160,13 @@
                 3,
                 5
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 8,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -2047,11 +2178,13 @@
               "value": [
                 2
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 1,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -2076,11 +2209,13 @@
                 1,
                 5
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 8,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -2096,11 +2231,245 @@
                 1,
                 2
               ],
+              "shape": "array",
               "nodeStructure": null
             },
             {
               "name": "target",
               "value": 5,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "41": {
+      "questionId": 41,
+      "title": "First Missing Positive",
+      "titleSlug": "first-missing-positive",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                2,
+                0
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                3,
+                4,
+                -1,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                7,
+                8,
+                9,
+                11,
+                12
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "42": {
+      "questionId": 42,
+      "title": "Trapping Rain Water",
+      "titleSlug": "trapping-rain-water",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "height",
+              "value": [
+                0,
+                1,
+                0,
+                2,
+                1,
+                0,
+                1,
+                3,
+                2,
+                1,
+                2,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "height",
+              "value": [
+                4,
+                2,
+                0,
+                3,
+                2,
+                5
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "43": {
+      "questionId": 43,
+      "title": "Multiply Strings",
+      "titleSlug": "multiply-strings",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "num1",
+              "value": "2",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "num2",
+              "value": "3",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "num1",
+              "value": "123",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "num2",
+              "value": "456",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "44": {
+      "questionId": 44,
+      "title": "Wildcard Matching",
+      "titleSlug": "wildcard-matching",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "aa",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "p",
+              "value": "a",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "aa",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "p",
+              "value": "*",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "cb",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "p",
+              "value": "?a",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "45": {
+      "questionId": 45,
+      "title": "Jump Game II",
+      "titleSlug": "jump-game-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                3,
+                1,
+                1,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                3,
+                0,
+                1,
+                4
+              ],
+              "shape": "array",
               "nodeStructure": null
             }
           ]
@@ -2175,6 +2544,862 @@
         }
       ]
     },
+    "53": {
+      "questionId": 53,
+      "title": "Maximum Subarray",
+      "titleSlug": "maximum-subarray",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                -2,
+                1,
+                -3,
+                4,
+                -1,
+                2,
+                1,
+                -5,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                5,
+                4,
+                -1,
+                7,
+                8
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "54": {
+      "questionId": 54,
+      "title": "Spiral Matrix",
+      "titleSlug": "spiral-matrix",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  1,
+                  2,
+                  3
+                ],
+                [
+                  4,
+                  5,
+                  6
+                ],
+                [
+                  7,
+                  8,
+                  9
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                [
+                  5,
+                  6,
+                  7,
+                  8
+                ],
+                [
+                  9,
+                  10,
+                  11,
+                  12
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "55": {
+      "questionId": 55,
+      "title": "Jump Game",
+      "titleSlug": "jump-game",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                3,
+                1,
+                1,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                3,
+                2,
+                1,
+                0,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "56": {
+      "questionId": 56,
+      "title": "Merge Intervals",
+      "titleSlug": "merge-intervals",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "intervals",
+              "value": [
+                [
+                  1,
+                  3
+                ],
+                [
+                  2,
+                  6
+                ],
+                [
+                  8,
+                  10
+                ],
+                [
+                  15,
+                  18
+                ]
+              ],
+              "shape": "interval_list",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "intervals",
+              "value": [
+                [
+                  1,
+                  4
+                ],
+                [
+                  4,
+                  5
+                ]
+              ],
+              "shape": "interval_list",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "intervals",
+              "value": [
+                [
+                  4,
+                  7
+                ],
+                [
+                  1,
+                  4
+                ]
+              ],
+              "shape": "interval_list",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "57": {
+      "questionId": 57,
+      "title": "Insert Interval",
+      "titleSlug": "insert-interval",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "intervals",
+              "value": [
+                [
+                  1,
+                  3
+                ],
+                [
+                  6,
+                  9
+                ]
+              ],
+              "shape": "interval_list",
+              "nodeStructure": null
+            },
+            {
+              "name": "newInterval",
+              "value": [
+                2,
+                5
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "intervals",
+              "value": [
+                [
+                  1,
+                  2
+                ],
+                [
+                  3,
+                  5
+                ],
+                [
+                  6,
+                  7
+                ],
+                [
+                  8,
+                  10
+                ],
+                [
+                  12,
+                  16
+                ]
+              ],
+              "shape": "interval_list",
+              "nodeStructure": null
+            },
+            {
+              "name": "newInterval",
+              "value": [
+                4,
+                8
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "58": {
+      "questionId": 58,
+      "title": "Length of Last Word",
+      "titleSlug": "length-of-last-word",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "Hello World",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "   fly me   to   the moon  ",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "luffy is still joyboy",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "59": {
+      "questionId": 59,
+      "title": "Spiral Matrix II",
+      "titleSlug": "spiral-matrix-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "60": {
+      "questionId": 60,
+      "title": "Permutation Sequence",
+      "titleSlug": "permutation-sequence",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "k",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 4,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "k",
+              "value": 9,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "k",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "61": {
+      "questionId": 61,
+      "title": "Rotate List",
+      "titleSlug": "rotate-list",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "k",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                0,
+                1,
+                2
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "k",
+              "value": 4,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "62": {
+      "questionId": 62,
+      "title": "Unique Paths",
+      "titleSlug": "unique-paths",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "m",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "n",
+              "value": 7,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "m",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "n",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "63": {
+      "questionId": 63,
+      "title": "Unique Paths II",
+      "titleSlug": "unique-paths-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "obstacleGrid",
+              "value": [
+                [
+                  0,
+                  0,
+                  0
+                ],
+                [
+                  0,
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  0,
+                  0
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "obstacleGrid",
+              "value": [
+                [
+                  0,
+                  1
+                ],
+                [
+                  0,
+                  0
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "64": {
+      "questionId": 64,
+      "title": "Minimum Path Sum",
+      "titleSlug": "minimum-path-sum",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "grid",
+              "value": [
+                [
+                  1,
+                  3,
+                  1
+                ],
+                [
+                  1,
+                  5,
+                  1
+                ],
+                [
+                  4,
+                  2,
+                  1
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "grid",
+              "value": [
+                [
+                  1,
+                  2,
+                  3
+                ],
+                [
+                  4,
+                  5,
+                  6
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "65": {
+      "questionId": 65,
+      "title": "Valid Number",
+      "titleSlug": "valid-number",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "0",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "e",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": ".",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "66": {
+      "questionId": 66,
+      "title": "Plus One",
+      "titleSlug": "plus-one",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "digits",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "digits",
+              "value": [
+                4,
+                3,
+                2,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "digits",
+              "value": [
+                9
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "67": {
+      "questionId": 67,
+      "title": "Add Binary",
+      "titleSlug": "add-binary",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "a",
+              "value": "11",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "b",
+              "value": "1",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "a",
+              "value": "1010",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "b",
+              "value": "1011",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "68": {
+      "questionId": 68,
+      "title": "Text Justification",
+      "titleSlug": "text-justification",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "words",
+              "value": [
+                "This",
+                "is",
+                "an",
+                "example",
+                "of",
+                "text",
+                "justification."
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            },
+            {
+              "name": "maxWidth",
+              "value": 16,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "words",
+              "value": [
+                "What",
+                "must",
+                "be",
+                "acknowledgment",
+                "shall",
+                "be"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            },
+            {
+              "name": "maxWidth",
+              "value": 16,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "words",
+              "value": [
+                "Science",
+                "is",
+                "what",
+                "we",
+                "understand",
+                "well",
+                "enough",
+                "to",
+                "explain",
+                "to",
+                "a",
+                "computer.",
+                "Art",
+                "is",
+                "everything",
+                "else",
+                "we",
+                "do"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            },
+            {
+              "name": "maxWidth",
+              "value": 20,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "69": {
+      "questionId": 69,
+      "title": "Sqrt(x)",
+      "titleSlug": "sqrtx",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": 4,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": 8,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
     "70": {
       "questionId": 70,
       "title": "Climbing Stairs",
@@ -2196,6 +3421,522 @@
               "name": "n",
               "value": 3,
               "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "84": {
+      "questionId": 84,
+      "title": "Largest Rectangle in Histogram",
+      "titleSlug": "largest-rectangle-in-histogram",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "heights",
+              "value": [
+                2,
+                1,
+                5,
+                6,
+                2,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "heights",
+              "value": [
+                2,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "85": {
+      "questionId": 85,
+      "title": "Maximal Rectangle",
+      "titleSlug": "maximal-rectangle",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  "1",
+                  "0",
+                  "1",
+                  "0",
+                  "0"
+                ],
+                [
+                  "1",
+                  "0",
+                  "1",
+                  "1",
+                  "1"
+                ],
+                [
+                  "1",
+                  "1",
+                  "1",
+                  "1",
+                  "1"
+                ],
+                [
+                  "1",
+                  "0",
+                  "0",
+                  "1",
+                  "0"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  "0"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  "1"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "86": {
+      "questionId": 86,
+      "title": "Partition List",
+      "titleSlug": "partition-list",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                4,
+                3,
+                2,
+                5,
+                2
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "x",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                2,
+                1
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "x",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "87": {
+      "questionId": 87,
+      "title": "Scramble String",
+      "titleSlug": "scramble-string",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s1",
+              "value": "great",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "s2",
+              "value": "rgeat",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s1",
+              "value": "abcde",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "s2",
+              "value": "caebd",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s1",
+              "value": "a",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "s2",
+              "value": "a",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "88": {
+      "questionId": 88,
+      "title": "Merge Sorted Array",
+      "titleSlug": "merge-sorted-array",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums1",
+              "value": [
+                1,
+                2,
+                3,
+                0,
+                0,
+                0
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "m",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "nums2",
+              "value": [
+                2,
+                5,
+                6
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "n",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums1",
+              "value": [
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "m",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "nums2",
+              "value": [],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "n",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums1",
+              "value": [
+                0
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "m",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "nums2",
+              "value": [
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "n",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "89": {
+      "questionId": 89,
+      "title": "Gray Code",
+      "titleSlug": "gray-code",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "90": {
+      "questionId": 90,
+      "title": "Subsets II",
+      "titleSlug": "subsets-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                2,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "91": {
+      "questionId": 91,
+      "title": "Decode Ways",
+      "titleSlug": "decode-ways",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "12",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "226",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "06",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "92": {
+      "questionId": 92,
+      "title": "Reverse Linked List II",
+      "titleSlug": "reverse-linked-list-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "left",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "right",
+              "value": 4,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                5
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "left",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "right",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "93": {
+      "questionId": 93,
+      "title": "Restore IP Addresses",
+      "titleSlug": "restore-ip-addresses",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "25525511135",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "0000",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "101023",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -2261,6 +4002,290 @@
               "name": "root",
               "value": [
                 1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "95": {
+      "questionId": 95,
+      "title": "Unique Binary Search Trees II",
+      "titleSlug": "unique-binary-search-trees-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "96": {
+      "questionId": 96,
+      "title": "Unique Binary Search Trees",
+      "titleSlug": "unique-binary-search-trees",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "97": {
+      "questionId": 97,
+      "title": "Interleaving String",
+      "titleSlug": "interleaving-string",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s1",
+              "value": "aabcc",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "s2",
+              "value": "dbbca",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "s3",
+              "value": "aadbbcbcac",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s1",
+              "value": "aabcc",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "s2",
+              "value": "dbbca",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "s3",
+              "value": "aadbbbaccc",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s1",
+              "value": "",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "s2",
+              "value": "",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "s3",
+              "value": "",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "98": {
+      "questionId": 98,
+      "title": "Validate Binary Search Tree",
+      "titleSlug": "validate-binary-search-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                2,
+                1,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                5,
+                1,
+                4,
+                null,
+                null,
+                3,
+                6
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "99": {
+      "questionId": 99,
+      "title": "Recover Binary Search Tree",
+      "titleSlug": "recover-binary-search-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                3,
+                null,
+                null,
+                2
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                3,
+                1,
+                4,
+                null,
+                null,
+                2
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "100": {
+      "questionId": 100,
+      "title": "Same Tree",
+      "titleSlug": "same-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "p",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            },
+            {
+              "name": "q",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "p",
+              "value": [
+                1,
+                2
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            },
+            {
+              "name": "q",
+              "value": [
+                1,
+                null,
+                2
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "p",
+              "value": [
+                1,
+                2,
+                1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            },
+            {
+              "name": "q",
+              "value": [
+                1,
+                1,
+                2
               ],
               "shape": "binary_tree",
               "nodeStructure": "binary-tree"

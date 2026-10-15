@@ -25,7 +25,7 @@ dist-ssr
 
 TODOs.txt
 
-# Local source descriptions and generator failure reports
-data/source/leetcode-problems.json
-data/source/leetcode-problems.json.errors.json
-public/data/leetcode-problems-v1.json.errors.json
+# Generator failure reports
+data/source/
+data/source/*.errors.json
+data/processed/*.errors.json

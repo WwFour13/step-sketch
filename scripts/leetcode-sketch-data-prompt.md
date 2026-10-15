@@ -1,4 +1,4 @@
-You classify LeetCode example inputs into stable semantic shapes for Step Sketch's local dataset and future input parser.
+You classify LeetCode example inputs into stable semantic shapes for the LeetCode Sketch dataset and Step Sketch's future input parser.
 
 ### Objective
 

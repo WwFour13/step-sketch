@@ -1,9 +1,9 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { iteratorColors } from '../constants/sketch'
-import { buildCanvasElementsFromTestCases } from '../services/leetcode'
+import { buildCanvasElementsFromTestCases } from '../services/leetcodeSketch'
 import type { CellEditConfirmation } from './useSketchSelection'
 import type { CellEditState, SketchElement, SketchIterator, SketchNode } from '../types/sketch'
-import type { ParsedTestCase } from '../services/leetcode'
+import type { ParsedTestCase } from '../services/leetcodeSketch'
 
 type UseSketchActionsOptions = {
   elements: SketchElement[]

@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
 import {
-  loadLeetCodeProblemDetails,
-  type LeetCodeProblemDetail,
+  loadLeetCodeSketchProblemDetails,
+  type LeetCodeSketchProblemDetail,
   type ParsedTestCase,
-} from '../../services/leetcode'
+} from '../../services/leetcodeSketch'
 import './LeetCodeModal.css'
 import { TestCasePreview } from './TestCasePreview'
 
@@ -28,7 +28,7 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
   const [problemNumber, setProblemNumber] = useState(initialProblemNumber)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [problemDetail, setProblemDetail] = useState<LeetCodeProblemDetail | null>(null)
+  const [problemDetail, setProblemDetail] = useState<LeetCodeSketchProblemDetail | null>(null)
   const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set())
 
   const inputRef = useRef<HTMLInputElement>(null)
@@ -58,7 +58,7 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
   if (!isOpen) return null
 
   /**
-   * Loads the entered ID from the local dataset and selects its first case.
+   * Loads the entered ID and selects its first LeetCode Sketch test case.
    */
   const handleLoad = async () => {
     const trimmed = problemNumber.trim()
@@ -70,7 +70,7 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
     setIsLoading(true)
     setErrorMessage(null)
     try {
-      const details = await loadLeetCodeProblemDetails(trimmed)
+      const details = await loadLeetCodeSketchProblemDetails(trimmed)
       setProblemDetail(details)
       // Default to having only case 1 selected
       setSelectedIndices(new Set(details.testCases.length > 0 ? [0] : []))
@@ -184,11 +184,6 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
                 >
                   #{problemDetail.questionId}. {problemDetail.title}
                 </span>
-                {problemDetail.description && (
-                  <span className="problem-description-text" title={problemDetail.description}>
-                    — {problemDetail.description}
-                  </span>
-                )}
                 <span className="problem-case-count">
                   {problemDetail.testCases.length}{' '}
                   {problemDetail.testCases.length === 1 ? 'testcase' : 'testcases'} available

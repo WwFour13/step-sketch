@@ -7,10 +7,12 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
+    "test": "node --test",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "fetch:leetcode-source": "node scripts/fetch-leetcode-source.mjs",
-    "generate:leetcode": "node --env-file=.env.local scripts/generate-leetcode-data.mjs",
-    "preview": "vite preview"
+    "generate:leetcode-sketch": "node --env-file=.env.local scripts/generate-leetcode-sketch-data.mjs",
+    "preview": "vite preview",
+    "start": "node server/index.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

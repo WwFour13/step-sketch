@@ -30,33 +30,26 @@ export type ParsedTestCase = {
   previewElements: SketchElement[]
 }
 
-export type LeetCodeProblemDetail = {
+export type LeetCodeSketchProblemDetail = {
   questionId: string
   title: string
   titleSlug: string
-  description?: string
   inputNames: string[]
   testCases: ParsedTestCase[]
 }
 
-type LocalInputRecord = {
+type LeetCodeSketchInputRecord = {
   name: string
   value: unknown
   nodeStructure: NodeStructure | null
   shape?: InputShape
 }
 
-type LocalProblemRecord = {
+type LeetCodeSketchProblemRecord = {
   questionId: number
   title: string
   titleSlug: string
-  testCases: { inputs: LocalInputRecord[] }[]
-}
-
-type LocalProblemDataset = {
-  schemaVersion: number
-  problems: Record<string, LocalProblemRecord>
-  premiumProblems?: { questionId: number; titleSlug: string }[]
+  testCases: { inputs: LeetCodeSketchInputRecord[] }[]
 }
 
 /**
@@ -484,7 +477,7 @@ const isValueCompatibleWithShape = (shape: InputShape, value: unknown): boolean 
   return value.every(Array.isArray)
 }
 
-const isLocalInputRecord = (value: unknown): value is LocalInputRecord =>
+const isLeetCodeSketchInputRecord = (value: unknown): value is LeetCodeSketchInputRecord =>
   isRecord(value) &&
   typeof value.name === 'string' &&
   value.name.trim().length > 0 &&
@@ -494,7 +487,10 @@ const isLocalInputRecord = (value: unknown): value is LocalInputRecord =>
     (isInputShape(value.shape) && isValueCompatibleWithShape(value.shape, value.value))) &&
   (value.nodeStructure === null || isNodeStructure(value.nodeStructure))
 
-const isLocalProblemRecord = (value: unknown, expectedId: string): value is LocalProblemRecord =>
+const isLeetCodeSketchProblemRecord = (
+  value: unknown,
+  expectedId: string,
+): value is LeetCodeSketchProblemRecord =>
   isRecord(value) &&
   Number.isInteger(value.questionId) &&
   String(value.questionId) === expectedId &&
@@ -506,75 +502,27 @@ const isLocalProblemRecord = (value: unknown, expectedId: string): value is Loca
       isRecord(testCase) &&
       Array.isArray(testCase.inputs) &&
       testCase.inputs.length > 0 &&
-      testCase.inputs.every(isLocalInputRecord),
+      testCase.inputs.every(isLeetCodeSketchInputRecord),
   )
 
-const isLocalProblemDataset = (value: unknown): value is LocalProblemDataset =>
-  isRecord(value) &&
-  (value.schemaVersion === 1 || value.schemaVersion === 2) &&
-  isRecord(value.problems) &&
-  (value.premiumProblems === undefined ||
-    (Array.isArray(value.premiumProblems) &&
-      value.premiumProblems.every(
-        (problem) =>
-          isRecord(problem) &&
-          typeof problem.questionId === 'number' &&
-          Number.isSafeInteger(problem.questionId) &&
-          Number(problem.questionId) > 0 &&
-          typeof problem.titleSlug === 'string',
-      ))) &&
-  Object.entries(value.problems).every(([id, problem]) => isLocalProblemRecord(problem, id))
+const problemDetailsCache = new Map<number, Promise<LeetCodeSketchProblemDetail>>()
 
-let localProblemDatasetPromise: Promise<LocalProblemDataset> | null = null
-
-const getLocalProblemDataset = (): Promise<LocalProblemDataset> => {
-  if (!localProblemDatasetPromise) {
-    localProblemDatasetPromise = fetch('/data/leetcode-problems-v1.json')
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error(`Unable to load local LeetCode dataset (${response.status})`)
-        }
-        const payload: unknown = await response.json()
-        if (!isLocalProblemDataset(payload)) {
-          throw new Error('Local LeetCode dataset has an unsupported or invalid format')
-        }
-        return payload
-      })
-      .catch((error: unknown) => {
-        localProblemDatasetPromise = null
-        throw error
-      })
+const fetchLeetCodeSketchProblemDetails = async (
+  normalizedNumber: number,
+): Promise<LeetCodeSketchProblemDetail> => {
+  const response = await fetch(`/api/leetcode-sketch/problems/${normalizedNumber}`)
+  const payload: unknown = await response.json()
+  if (!response.ok) {
+    const message =
+      isRecord(payload) && typeof payload.error === 'string'
+        ? payload.error
+        : `Unable to load problem #${normalizedNumber} (${response.status})`
+    throw new Error(message)
   }
-  return localProblemDatasetPromise
-}
-
-/**
- * Loads a problem from the bundled local dataset and adapts its inputs into
- * preview-ready test cases.
- * @param problemNumber Numeric question ID entered by the user.
- * @throws Error when the ID is invalid, absent, or malformed in the dataset.
- */
-export const loadLeetCodeProblemDetails = async (
-  problemNumber: string,
-): Promise<LeetCodeProblemDetail> => {
-  const number = problemNumber.trim()
-  if (!/^\d+$/.test(number)) {
-    throw new Error('Please enter a valid problem number')
+  if (!isLeetCodeSketchProblemRecord(payload, String(normalizedNumber))) {
+    throw new Error('LeetCode Sketch API returned an unsupported or invalid format')
   }
-
-  const dataset = await getLocalProblemDataset()
-  const questionId = Number(number)
-  const record = dataset.problems[String(questionId)]
-  if (!record) {
-    if (dataset.premiumProblems?.some((problem) => problem.questionId === questionId)) {
-      throw new Error(
-        `Problem #${questionId} is premium-locked on LeetCode and is not available in the local dataset. A LeetCode Premium subscription may be required to view its description and examples.`,
-      )
-    }
-    throw new Error(
-      `Problem #${questionId} is not in the local dataset (${Object.keys(dataset.problems).length} problems available)`,
-    )
-  }
+  const record = payload
 
   const inputNames = [
     ...new Set(record.testCases.flatMap(({ inputs }) => inputs.map(({ name }) => name))),
@@ -602,4 +550,35 @@ export const loadLeetCodeProblemDetails = async (
     inputNames,
     testCases,
   }
+}
+
+/**
+ * Loads one LeetCode Sketch problem and reuses it for this page session.
+ * Failed requests are removed from the cache so they can be retried.
+ * @param problemNumber Numeric question ID entered by the user.
+ * @throws Error when the ID is invalid, absent, or malformed in the dataset.
+ */
+export const loadLeetCodeSketchProblemDetails = (
+  problemNumber: string,
+): Promise<LeetCodeSketchProblemDetail> => {
+  const number = problemNumber.trim()
+  if (!/^\d+$/.test(number)) {
+    throw new Error('Please enter a valid problem number')
+  }
+  const normalizedNumber = Number(number)
+  if (!Number.isSafeInteger(normalizedNumber) || normalizedNumber < 1) {
+    throw new Error('Please enter a valid problem number')
+  }
+
+  const cachedRequest = problemDetailsCache.get(normalizedNumber)
+  if (cachedRequest) return cachedRequest
+
+  const request = fetchLeetCodeSketchProblemDetails(normalizedNumber)
+  problemDetailsCache.set(normalizedNumber, request)
+  void request.catch(() => {
+    if (problemDetailsCache.get(normalizedNumber) === request) {
+      problemDetailsCache.delete(normalizedNumber)
+    }
+  })
+  return request
 }

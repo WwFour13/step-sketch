@@ -1,5 +1,5 @@
 import React from 'react'
-import type { ParsedTestCase } from '../../services/leetcode'
+import type { ParsedTestCase } from '../../services/leetcodeSketch'
 
 const getBinaryTreeLevels = (values: unknown[]): unknown[][] => {
   if (values.length === 0 || values[0] === null) return []

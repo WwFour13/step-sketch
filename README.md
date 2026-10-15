@@ -29,21 +29,44 @@ An interactive, Excalidraw-style canvas application for sketching, visualizing, 
    cd step-sketch
    ```
 
-## One-time LeetCode data generation
+## LeetCode Sketch data and backend
 
-The source-fetcher in `scripts/fetch-leetcode-source.mjs` downloads problem
-descriptions and example inputs from LeetCode into a local, gitignored file. The
-batch generator in `scripts/generate-leetcode-data.mjs` then converts that file
-into normalized test-case data using the Gemini API. The importer reads the
-checked-in generated JSON file at runtime and does not call LeetCode.
-The generation instructions are maintained separately in
-`scripts/leetcode-data-prompt.md`.
+The browser requests a single LeetCode Sketch problem at a time from
+`GET /api/leetcode-sketch/problems/:number`. The Node backend reads only
+`data/processed/leetcode-sketch-problems-v1.json` at runtime and returns the
+matching **LeetCode Sketch** record. That file contains our generated input
+shape classifications, not LeetCode's raw API response. The raw LeetCode source
+file is used only as input to the maintenance/generation scripts, never by the
+app or backend API.
+The `scripts/` directory contains maintenance tools and is not served to
+website users.
+
+In development, Vite hosts the API middleware alongside the frontend. For
+production, build and run the Node server so it serves the frontend and API
+together:
+
+```bash
+npm run build
+npm start
+```
+
+Set `PORT` to change the production server's default port (`4173`). Deploy the
+`server/` code and the LeetCode Sketch dataset together with the frontend.
+
+### Refreshing the LeetCode Sketch dataset
+
+The source-fetcher in `scripts/fetch-leetcode-source.mjs` downloads LeetCode's
+raw problem descriptions and example inputs into
+`data/source/leetcode-problems-api.json`. The LeetCode Sketch generator in
+`scripts/generate-leetcode-sketch-data.mjs` classifies those inputs into shapes
+and writes the app's LeetCode Sketch dataset using the Gemini API. Its instructions
+are maintained in `scripts/leetcode-sketch-data-prompt.md`.
 
 The input is an array (or an object with a `problems` array). Each item must have
 `questionId`, `title`, `titleSlug`, `description`, and either `examples` (an
 array of strings) or `exampleTestcases` (a string). `signature` is optional.
-The default source path is `data/source/leetcode-problems.json`; that local
-source file and its error report are gitignored. To fetch the first 1,000:
+The default source path is `data/source/leetcode-problems-api.json`. To fetch
+the first 1,000:
 
 ```bash
 npm run fetch:leetcode-source
@@ -62,7 +85,7 @@ loading option. After source fetching succeeds, select only the problems that
 need LLM analysis:
 
 ```bash
-npm run generate:leetcode -- --ids 23,94,133
+npm run generate:leetcode-sketch -- --ids 23,94,133
 ```
 
 `--ids` accepts a comma-separated list of exact problem numbers and cannot be
@@ -72,25 +95,28 @@ generated records with shape labels are skipped unless `--force` is supplied,
 so rerunning can continue a partial batch. Records without per-input `shape`
 labels are regenerated when selected. Optional flags are `--input`, `--output`,
 `--limit`, `--ids`, `--concurrency`, `--retries`, and `--force`.
-Successful records are written to `public/data/leetcode-problems-v1.json`.
-Failed records are written to the adjacent `.errors.json` report and cause a
-non-zero exit; a rerun retries them while skipping already generated IDs.
-Premium-only IDs are copied into the generated dataset and are not sent to
-Gemini. The importer uses that metadata to explain when a requested problem is
-unavailable because of LeetCode Premium; other missing IDs retain the generic
-not-in-local-dataset message. Re-run both the source fetch and generator to
-refresh premium availability metadata.
+Successful records are written to
+`data/processed/leetcode-sketch-problems-v1.json`. Failed records are written to
+the adjacent `.errors.json` report and cause a non-zero exit; a rerun retries
+them while skipping already generated IDs.
+Premium-only IDs from LeetCode's index are copied into the LeetCode Sketch
+dataset and are not sent to Gemini. The API uses that metadata to explain when
+a requested problem is unavailable because of LeetCode Premium. Re-run both
+the source fetch and generator to refresh premium availability metadata.
 
 The source-fetcher accepts `--limit`, `--output`, `--retries`, and `--delay`
 (milliseconds between question requests). It retrieves problems in ascending
 question-number order and resumes by skipping IDs already in the source file.
 
-The generated dataset is intentionally **not gitignored**: it is checked in so
-builds and deployments contain the same local data. The importer currently
-supports only problem IDs present in this file. The output has this shape:
+The LeetCode Sketch dataset must be present on the backend at deployment time.
+Raw LeetCode source data is only needed when running the maintenance scripts.
+The LeetCode Sketch dataset remains repository-managed and is not exposed as a
+static browser asset. The API supports only IDs present in that dataset. The
+generated output has this shape:
 
 ```json
 {
+  "dataset": "leetcode-sketch",
   "schemaVersion": 2,
   "generatedAt": "2026-10-11T00:00:00.000Z",
   "generator": { "provider": "google-gemini", "model": "your-model" },

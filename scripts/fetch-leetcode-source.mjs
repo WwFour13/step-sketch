@@ -3,7 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const defaultOutput = 'data/source/leetcode-problems.json'
+const defaultOutput = 'data/source/leetcode-problems-api.json'
 const problemIndexUrl = 'https://leetcode.com/api/problems/all/'
 const graphqlUrl = 'https://leetcode.com/graphql/'
 const questionQuery = `
