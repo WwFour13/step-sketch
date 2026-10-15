@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import {
-  fetchLeetCodeProblemDetails,
+  loadLeetCodeProblemDetails,
   type LeetCodeProblemDetail,
   type ParsedTestCase,
 } from '../../services/leetcode'
@@ -58,8 +58,7 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
   if (!isOpen) return null
 
   /**
-   * Validates the entered ID, fetches its question and cases, and initializes
-   * the selection to the first available test case.
+   * Loads the entered ID from the local dataset and selects its first case.
    */
   const handleLoad = async () => {
     const trimmed = problemNumber.trim()
@@ -71,7 +70,7 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
     setIsLoading(true)
     setErrorMessage(null)
     try {
-      const details = await fetchLeetCodeProblemDetails(trimmed)
+      const details = await loadLeetCodeProblemDetails(trimmed)
       setProblemDetail(details)
       // Default to having only case 1 selected
       setSelectedIndices(new Set(details.testCases.length > 0 ? [0] : []))

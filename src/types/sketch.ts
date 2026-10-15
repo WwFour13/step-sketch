@@ -52,25 +52,6 @@ export type SketchIterator = {
 /** Discriminated union of every element stored on the sketch canvas. */
 export type SketchElement = SketchVariable | SketchArray | SketchNode | SketchIterator
 
-/** Question fields returned by the LeetCode GraphQL query. */
-export type LeetCodeQuestion = {
-  title: string
-  content?: string
-  exampleTestcases: string
-  codeSnippets: {
-    lang: string
-    code: string
-  }[]
-}
-
-/** Minimal problem-index entry used to resolve a numeric question ID to a slug. */
-export type LeetCodeProblemIndex = {
-  stat: {
-    frontend_question_id: number
-    question__title_slug: string
-  }
-}
-
 /** Snapshot of element positions and offsets captured at the start of a drag. */
 export type DragState = {
   id: number

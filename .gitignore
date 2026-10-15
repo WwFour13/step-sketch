@@ -24,3 +24,8 @@ dist-ssr
 *.sw?
 
 TODOs.txt
+
+# Local source descriptions and generator failure reports
+data/source/leetcode-problems.json
+data/source/leetcode-problems.json.errors.json
+public/data/leetcode-problems-v1.json.errors.json

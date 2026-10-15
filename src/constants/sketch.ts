@@ -30,31 +30,3 @@ export const initialElements: SketchElement[] = [
     position: { x: 388, y: 338 },
   },
 ]
-
-/** GraphQL query used to request the question data needed by the importer. */
-export const leetCodeQuery = `
-  query questionData($titleSlug: String!) {
-    question(titleSlug: $titleSlug) {
-      title
-      content
-      exampleTestcases
-      codeSnippets {
-        lang
-        code
-      }
-    }
-  }
-`
-
-/** Known question-number mappings avoid loading the full LeetCode problem index. */
-export const knownProblemSlugs: Record<string, string> = {
-  '1': 'two-sum',
-  '2': 'add-two-numbers',
-  '3': 'longest-substring-without-repeating-characters',
-  '14': 'longest-common-prefix',
-  '48': 'rotate-image',
-  '70': 'climbing-stairs',
-  '94': 'binary-tree-inorder-traversal',
-  '133': 'clone-graph',
-  '206': 'reverse-linked-list',
-}

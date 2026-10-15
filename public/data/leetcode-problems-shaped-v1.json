@@ -1,0 +1,2894 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-12T19:34:21.416Z",
+  "generator": {
+    "provider": "google-gemini",
+    "model": "gemini-3.1-flash-lite"
+  },
+  "premiumProblems": [],
+  "problems": {
+    "1": {
+      "questionId": 1,
+      "title": "Two Sum",
+      "titleSlug": "two-sum",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                7,
+                11,
+                15
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 9,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                3,
+                2,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 6,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                3,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 6,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "2": {
+      "questionId": 2,
+      "title": "Add Two Numbers",
+      "titleSlug": "add-two-numbers",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "l1",
+              "value": [
+                2,
+                4,
+                3
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "l2",
+              "value": [
+                5,
+                6,
+                4
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "l1",
+              "value": [
+                0
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "l2",
+              "value": [
+                0
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "l1",
+              "value": [
+                9,
+                9,
+                9,
+                9,
+                9,
+                9,
+                9
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "l2",
+              "value": [
+                9,
+                9,
+                9,
+                9
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        }
+      ]
+    },
+    "3": {
+      "questionId": 3,
+      "title": "Longest Substring Without Repeating Characters",
+      "titleSlug": "longest-substring-without-repeating-characters",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "abcabcbb",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "bbbbb",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "pwwkew",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "4": {
+      "questionId": 4,
+      "title": "Median of Two Sorted Arrays",
+      "titleSlug": "median-of-two-sorted-arrays",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums1",
+              "value": [
+                1,
+                3
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "nums2",
+              "value": [
+                2
+              ],
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums1",
+              "value": [
+                1,
+                2
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "nums2",
+              "value": [
+                3,
+                4
+              ],
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "5": {
+      "questionId": 5,
+      "title": "Longest Palindromic Substring",
+      "titleSlug": "longest-palindromic-substring",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "babad",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "cbbd",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "6": {
+      "questionId": 6,
+      "title": "Zigzag Conversion",
+      "titleSlug": "zigzag-conversion",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "PAYPALISHIRING",
+              "nodeStructure": null
+            },
+            {
+              "name": "numRows",
+              "value": 3,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "PAYPALISHIRING",
+              "nodeStructure": null
+            },
+            {
+              "name": "numRows",
+              "value": 4,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "A",
+              "nodeStructure": null
+            },
+            {
+              "name": "numRows",
+              "value": 1,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "7": {
+      "questionId": 7,
+      "title": "Reverse Integer",
+      "titleSlug": "reverse-integer",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": 123,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": -123,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": 120,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "8": {
+      "questionId": 8,
+      "title": "String to Integer (atoi)",
+      "titleSlug": "string-to-integer-atoi",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "42",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "   -042",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "1337c0d3",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "0-1",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "words and 987",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "9": {
+      "questionId": 9,
+      "title": "Palindrome Number",
+      "titleSlug": "palindrome-number",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": 121,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": -121,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": 10,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "10": {
+      "questionId": 10,
+      "title": "Regular Expression Matching",
+      "titleSlug": "regular-expression-matching",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "aa",
+              "nodeStructure": null
+            },
+            {
+              "name": "p",
+              "value": "a",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "aa",
+              "nodeStructure": null
+            },
+            {
+              "name": "p",
+              "value": "a*",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "ab",
+              "nodeStructure": null
+            },
+            {
+              "name": "p",
+              "value": ".*",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "11": {
+      "questionId": 11,
+      "title": "Container With Most Water",
+      "titleSlug": "container-with-most-water",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "height",
+              "value": [
+                1,
+                8,
+                6,
+                2,
+                5,
+                4,
+                8,
+                3,
+                7
+              ],
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "height",
+              "value": [
+                1,
+                1
+              ],
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "12": {
+      "questionId": 12,
+      "title": "Integer to Roman",
+      "titleSlug": "integer-to-roman",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "num",
+              "value": 3749,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "num",
+              "value": 58,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "num",
+              "value": 1994,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "13": {
+      "questionId": 13,
+      "title": "Roman to Integer",
+      "titleSlug": "roman-to-integer",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "III",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "LVIII",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "MCMXCIV",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "14": {
+      "questionId": 14,
+      "title": "Longest Common Prefix",
+      "titleSlug": "longest-common-prefix",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "strs",
+              "value": [
+                "flower",
+                "flow",
+                "flight"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "strs",
+              "value": [
+                "dog",
+                "racecar",
+                "car"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "15": {
+      "questionId": 15,
+      "title": "3Sum",
+      "titleSlug": "3sum",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                -1,
+                0,
+                1,
+                2,
+                -1,
+                -4
+              ],
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0,
+                1,
+                1
+              ],
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0,
+                0,
+                0
+              ],
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "16": {
+      "questionId": 16,
+      "title": "3Sum Closest",
+      "titleSlug": "3sum-closest",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                -1,
+                2,
+                1,
+                -4
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 1,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0,
+                0,
+                0
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 1,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "17": {
+      "questionId": 17,
+      "title": "Letter Combinations of a Phone Number",
+      "titleSlug": "letter-combinations-of-a-phone-number",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "digits",
+              "value": "23",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "digits",
+              "value": "2",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "18": {
+      "questionId": 18,
+      "title": "4Sum",
+      "titleSlug": "4sum",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                0,
+                -1,
+                0,
+                -2,
+                2
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 0,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 8,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "19": {
+      "questionId": 19,
+      "title": "Remove Nth Node From End of List",
+      "titleSlug": "remove-nth-node-from-end-of-list",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "n",
+              "value": 2,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1
+              ],
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "n",
+              "value": 1,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2
+              ],
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "n",
+              "value": 1,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "20": {
+      "questionId": 20,
+      "title": "Valid Parentheses",
+      "titleSlug": "valid-parentheses",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "()",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "()[]{}",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "(]",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "([])",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "([)]",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "21": {
+      "questionId": 21,
+      "title": "Merge Two Sorted Lists",
+      "titleSlug": "merge-two-sorted-lists",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "list1",
+              "value": [
+                1,
+                2,
+                4
+              ],
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "list2",
+              "value": [
+                1,
+                3,
+                4
+              ],
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "list1",
+              "value": [],
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "list2",
+              "value": [],
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "list1",
+              "value": [],
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "list2",
+              "value": [
+                0
+              ],
+              "nodeStructure": "linked-list"
+            }
+          ]
+        }
+      ]
+    },
+    "22": {
+      "questionId": 22,
+      "title": "Generate Parentheses",
+      "titleSlug": "generate-parentheses",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 3,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 1,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "23": {
+      "questionId": 23,
+      "title": "Merge k Sorted Lists",
+      "titleSlug": "merge-k-sorted-lists",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "lists",
+              "value": [
+                [
+                  1,
+                  4,
+                  5
+                ],
+                [
+                  1,
+                  3,
+                  4
+                ],
+                [
+                  2,
+                  6
+                ]
+              ],
+              "shape": "list_of_linked_lists",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "lists",
+              "value": [],
+              "shape": "list_of_linked_lists",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "lists",
+              "value": [
+                []
+              ],
+              "shape": "list_of_linked_lists",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "24": {
+      "questionId": 24,
+      "title": "Swap Nodes in Pairs",
+      "titleSlug": "swap-nodes-in-pairs",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [],
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1
+              ],
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "nodeStructure": "linked-list"
+            }
+          ]
+        }
+      ]
+    },
+    "25": {
+      "questionId": 25,
+      "title": "Reverse Nodes in k-Group",
+      "titleSlug": "reverse-nodes-in-k-group",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "k",
+              "value": 2,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "k",
+              "value": 3,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "26": {
+      "questionId": 26,
+      "title": "Remove Duplicates from Sorted Array",
+      "titleSlug": "remove-duplicates-from-sorted-array",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                1,
+                2
+              ],
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0,
+                0,
+                1,
+                1,
+                1,
+                2,
+                2,
+                3,
+                3,
+                4
+              ],
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "27": {
+      "questionId": 27,
+      "title": "Remove Element",
+      "titleSlug": "remove-element",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                3,
+                2,
+                2,
+                3
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "val",
+              "value": 3,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0,
+                1,
+                2,
+                2,
+                3,
+                0,
+                4,
+                2
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "val",
+              "value": 2,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "28": {
+      "questionId": 28,
+      "title": "Find the Index of the First Occurrence in a String",
+      "titleSlug": "find-the-index-of-the-first-occurrence-in-a-string",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "haystack",
+              "value": "sadbutsad",
+              "nodeStructure": null
+            },
+            {
+              "name": "needle",
+              "value": "sad",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "haystack",
+              "value": "leetcode",
+              "nodeStructure": null
+            },
+            {
+              "name": "needle",
+              "value": "leeto",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "29": {
+      "questionId": 29,
+      "title": "Divide Two Integers",
+      "titleSlug": "divide-two-integers",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "dividend",
+              "value": 10,
+              "nodeStructure": null
+            },
+            {
+              "name": "divisor",
+              "value": 3,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "dividend",
+              "value": 7,
+              "nodeStructure": null
+            },
+            {
+              "name": "divisor",
+              "value": -3,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "30": {
+      "questionId": 30,
+      "title": "Substring with Concatenation of All Words",
+      "titleSlug": "substring-with-concatenation-of-all-words",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "barfoothefoobarman",
+              "nodeStructure": null
+            },
+            {
+              "name": "words",
+              "value": [
+                "foo",
+                "bar"
+              ],
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "wordgoodgoodgoodbestword",
+              "nodeStructure": null
+            },
+            {
+              "name": "words",
+              "value": [
+                "word",
+                "good",
+                "best",
+                "word"
+              ],
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "barfoofoobarthefoobarman",
+              "nodeStructure": null
+            },
+            {
+              "name": "words",
+              "value": [
+                "bar",
+                "foo",
+                "the"
+              ],
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "31": {
+      "questionId": 31,
+      "title": "Next Permutation",
+      "titleSlug": "next-permutation",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                3,
+                2,
+                1
+              ],
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                1,
+                5
+              ],
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "32": {
+      "questionId": 32,
+      "title": "Longest Valid Parentheses",
+      "titleSlug": "longest-valid-parentheses",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "(()",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": ")()())",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "33": {
+      "questionId": 33,
+      "title": "Search in Rotated Sorted Array",
+      "titleSlug": "search-in-rotated-sorted-array",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                4,
+                5,
+                6,
+                7,
+                0,
+                1,
+                2
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 0,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                4,
+                5,
+                6,
+                7,
+                0,
+                1,
+                2
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 3,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 0,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "34": {
+      "questionId": 34,
+      "title": "Find First and Last Position of Element in Sorted Array",
+      "titleSlug": "find-first-and-last-position-of-element-in-sorted-array",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                5,
+                7,
+                7,
+                8,
+                8,
+                10
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 8,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                5,
+                7,
+                7,
+                8,
+                8,
+                10
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 6,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 0,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "35": {
+      "questionId": 35,
+      "title": "Search Insert Position",
+      "titleSlug": "search-insert-position",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                3,
+                5,
+                6
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 5,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                3,
+                5,
+                6
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 2,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                3,
+                5,
+                6
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 7,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "36": {
+      "questionId": 36,
+      "title": "Valid Sudoku",
+      "titleSlug": "valid-sudoku",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "board",
+              "value": [
+                [
+                  "5",
+                  "3",
+                  ".",
+                  ".",
+                  "7",
+                  ".",
+                  ".",
+                  ".",
+                  "."
+                ],
+                [
+                  "6",
+                  ".",
+                  ".",
+                  "1",
+                  "9",
+                  "5",
+                  ".",
+                  ".",
+                  "."
+                ],
+                [
+                  ".",
+                  "9",
+                  "8",
+                  ".",
+                  ".",
+                  ".",
+                  ".",
+                  "6",
+                  "."
+                ],
+                [
+                  "8",
+                  ".",
+                  ".",
+                  ".",
+                  "6",
+                  ".",
+                  ".",
+                  ".",
+                  "3"
+                ],
+                [
+                  "4",
+                  ".",
+                  ".",
+                  "8",
+                  ".",
+                  "3",
+                  ".",
+                  ".",
+                  "1"
+                ],
+                [
+                  "7",
+                  ".",
+                  ".",
+                  ".",
+                  "2",
+                  ".",
+                  ".",
+                  ".",
+                  "6"
+                ],
+                [
+                  ".",
+                  "6",
+                  ".",
+                  ".",
+                  ".",
+                  ".",
+                  "2",
+                  "8",
+                  "."
+                ],
+                [
+                  ".",
+                  ".",
+                  ".",
+                  "4",
+                  "1",
+                  "9",
+                  ".",
+                  ".",
+                  "5"
+                ],
+                [
+                  ".",
+                  ".",
+                  ".",
+                  ".",
+                  "8",
+                  ".",
+                  ".",
+                  "7",
+                  "9"
+                ]
+              ],
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "board",
+              "value": [
+                [
+                  "8",
+                  "3",
+                  ".",
+                  ".",
+                  "7",
+                  ".",
+                  ".",
+                  ".",
+                  "."
+                ],
+                [
+                  "6",
+                  ".",
+                  ".",
+                  "1",
+                  "9",
+                  "5",
+                  ".",
+                  ".",
+                  "."
+                ],
+                [
+                  ".",
+                  "9",
+                  "8",
+                  ".",
+                  ".",
+                  ".",
+                  ".",
+                  "6",
+                  "."
+                ],
+                [
+                  "8",
+                  ".",
+                  ".",
+                  ".",
+                  "6",
+                  ".",
+                  ".",
+                  ".",
+                  "3"
+                ],
+                [
+                  "4",
+                  ".",
+                  ".",
+                  "8",
+                  ".",
+                  "3",
+                  ".",
+                  ".",
+                  "1"
+                ],
+                [
+                  "7",
+                  ".",
+                  ".",
+                  ".",
+                  "2",
+                  ".",
+                  ".",
+                  ".",
+                  "6"
+                ],
+                [
+                  ".",
+                  "6",
+                  ".",
+                  ".",
+                  ".",
+                  ".",
+                  "2",
+                  "8",
+                  "."
+                ],
+                [
+                  ".",
+                  ".",
+                  ".",
+                  "4",
+                  "1",
+                  "9",
+                  ".",
+                  ".",
+                  "5"
+                ],
+                [
+                  ".",
+                  ".",
+                  ".",
+                  ".",
+                  "8",
+                  ".",
+                  ".",
+                  "7",
+                  "9"
+                ]
+              ],
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "37": {
+      "questionId": 37,
+      "title": "Sudoku Solver",
+      "titleSlug": "sudoku-solver",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "board",
+              "value": [
+                [
+                  "5",
+                  "3",
+                  ".",
+                  ".",
+                  "7",
+                  ".",
+                  ".",
+                  ".",
+                  "."
+                ],
+                [
+                  "6",
+                  ".",
+                  ".",
+                  "1",
+                  "9",
+                  "5",
+                  ".",
+                  ".",
+                  "."
+                ],
+                [
+                  ".",
+                  "9",
+                  "8",
+                  ".",
+                  ".",
+                  ".",
+                  ".",
+                  "6",
+                  "."
+                ],
+                [
+                  "8",
+                  ".",
+                  ".",
+                  ".",
+                  "6",
+                  ".",
+                  ".",
+                  ".",
+                  "3"
+                ],
+                [
+                  "4",
+                  ".",
+                  ".",
+                  "8",
+                  ".",
+                  "3",
+                  ".",
+                  ".",
+                  "1"
+                ],
+                [
+                  "7",
+                  ".",
+                  ".",
+                  ".",
+                  "2",
+                  ".",
+                  ".",
+                  ".",
+                  "6"
+                ],
+                [
+                  ".",
+                  "6",
+                  ".",
+                  ".",
+                  ".",
+                  ".",
+                  "2",
+                  "8",
+                  "."
+                ],
+                [
+                  ".",
+                  ".",
+                  ".",
+                  "4",
+                  "1",
+                  "9",
+                  ".",
+                  ".",
+                  "5"
+                ],
+                [
+                  ".",
+                  ".",
+                  ".",
+                  ".",
+                  "8",
+                  ".",
+                  ".",
+                  "7",
+                  "9"
+                ]
+              ],
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "38": {
+      "questionId": 38,
+      "title": "Count and Say",
+      "titleSlug": "count-and-say",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 4,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 1,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "39": {
+      "questionId": 39,
+      "title": "Combination Sum",
+      "titleSlug": "combination-sum",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "candidates",
+              "value": [
+                2,
+                3,
+                6,
+                7
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 7,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "candidates",
+              "value": [
+                2,
+                3,
+                5
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 8,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "candidates",
+              "value": [
+                2
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 1,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "40": {
+      "questionId": 40,
+      "title": "Combination Sum II",
+      "titleSlug": "combination-sum-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "candidates",
+              "value": [
+                10,
+                1,
+                2,
+                7,
+                6,
+                1,
+                5
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 8,
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "candidates",
+              "value": [
+                2,
+                5,
+                2,
+                1,
+                2
+              ],
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 5,
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "48": {
+      "questionId": 48,
+      "title": "Rotate Image",
+      "titleSlug": "rotate-image",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  1,
+                  2,
+                  3
+                ],
+                [
+                  4,
+                  5,
+                  6
+                ],
+                [
+                  7,
+                  8,
+                  9
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  5,
+                  1,
+                  9,
+                  11
+                ],
+                [
+                  2,
+                  4,
+                  8,
+                  10
+                ],
+                [
+                  13,
+                  3,
+                  6,
+                  7
+                ],
+                [
+                  15,
+                  14,
+                  12,
+                  16
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "70": {
+      "questionId": 70,
+      "title": "Climbing Stairs",
+      "titleSlug": "climbing-stairs",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "94": {
+      "questionId": 94,
+      "title": "Binary Tree Inorder Traversal",
+      "titleSlug": "binary-tree-inorder-traversal",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                null,
+                2,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                null,
+                8,
+                null,
+                null,
+                6,
+                7,
+                9
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "113": {
+      "questionId": 113,
+      "title": "Path Sum II",
+      "titleSlug": "path-sum-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                5,
+                4,
+                8,
+                11,
+                null,
+                13,
+                4,
+                7,
+                2,
+                null,
+                null,
+                5,
+                1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            },
+            {
+              "name": "targetSum",
+              "value": 22,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            },
+            {
+              "name": "targetSum",
+              "value": 5,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            },
+            {
+              "name": "targetSum",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "133": {
+      "questionId": 133,
+      "title": "Clone Graph",
+      "titleSlug": "clone-graph",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "adjList",
+              "value": [
+                [
+                  2,
+                  4
+                ],
+                [
+                  1,
+                  3
+                ],
+                [
+                  2,
+                  4
+                ],
+                [
+                  1,
+                  3
+                ]
+              ],
+              "shape": "graph_adjacency_list",
+              "nodeStructure": "graph"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "adjList",
+              "value": [
+                []
+              ],
+              "shape": "graph_adjacency_list",
+              "nodeStructure": "graph"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "adjList",
+              "value": [],
+              "shape": "graph_adjacency_list",
+              "nodeStructure": "graph"
+            }
+          ]
+        }
+      ]
+    },
+    "146": {
+      "questionId": 146,
+      "title": "LRU Cache",
+      "titleSlug": "lru-cache",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "actions",
+              "value": [
+                "LRUCache",
+                "put",
+                "put",
+                "get",
+                "put",
+                "get",
+                "put",
+                "get",
+                "get",
+                "get"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            },
+            {
+              "name": "params",
+              "value": [
+                [
+                  2
+                ],
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ],
+                [
+                  1
+                ],
+                [
+                  3,
+                  3
+                ],
+                [
+                  2
+                ],
+                [
+                  4,
+                  4
+                ],
+                [
+                  1
+                ],
+                [
+                  3
+                ],
+                [
+                  4
+                ]
+              ],
+              "shape": "array_of_arrays",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "200": {
+      "questionId": 200,
+      "title": "Number of Islands",
+      "titleSlug": "number-of-islands",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "grid",
+              "value": [
+                [
+                  "1",
+                  "1",
+                  "1",
+                  "1",
+                  "0"
+                ],
+                [
+                  "1",
+                  "1",
+                  "0",
+                  "1",
+                  "0"
+                ],
+                [
+                  "1",
+                  "1",
+                  "0",
+                  "0",
+                  "0"
+                ],
+                [
+                  "0",
+                  "0",
+                  "0",
+                  "0",
+                  "0"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "grid",
+              "value": [
+                [
+                  "1",
+                  "1",
+                  "0",
+                  "0",
+                  "0"
+                ],
+                [
+                  "1",
+                  "1",
+                  "0",
+                  "0",
+                  "0"
+                ],
+                [
+                  "0",
+                  "0",
+                  "1",
+                  "0",
+                  "0"
+                ],
+                [
+                  "0",
+                  "0",
+                  "0",
+                  "1",
+                  "1"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "206": {
+      "questionId": 206,
+      "title": "Reverse Linked List",
+      "titleSlug": "reverse-linked-list",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        }
+      ]
+    },
+    "207": {
+      "questionId": 207,
+      "title": "Course Schedule",
+      "titleSlug": "course-schedule",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "numCourses",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "prerequisites",
+              "value": [
+                [
+                  1,
+                  0
+                ]
+              ],
+              "shape": "graph_edge_list",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "numCourses",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "prerequisites",
+              "value": [
+                [
+                  1,
+                  0
+                ],
+                [
+                  0,
+                  1
+                ]
+              ],
+              "shape": "graph_edge_list",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "297": {
+      "questionId": 297,
+      "title": "Serialize and Deserialize Binary Tree",
+      "titleSlug": "serialize-and-deserialize-binary-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3,
+                null,
+                null,
+                4,
+                5
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "429": {
+      "questionId": 429,
+      "title": "N-ary Tree Level Order Traversal",
+      "titleSlug": "n-ary-tree-level-order-traversal",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                null,
+                3,
+                2,
+                4,
+                null,
+                5,
+                6
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                null,
+                2,
+                3,
+                4,
+                5,
+                null,
+                null,
+                6,
+                7,
+                null,
+                8,
+                null,
+                9,
+                10,
+                null,
+                null,
+                11,
+                null,
+                12,
+                null,
+                13,
+                null,
+                null,
+                14
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "435": {
+      "questionId": 435,
+      "title": "Non-overlapping Intervals",
+      "titleSlug": "non-overlapping-intervals",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "intervals",
+              "value": [
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  3
+                ],
+                [
+                  3,
+                  4
+                ],
+                [
+                  1,
+                  3
+                ]
+              ],
+              "shape": "interval_list",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "intervals",
+              "value": [
+                [
+                  1,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ],
+              "shape": "interval_list",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "intervals",
+              "value": [
+                [
+                  1,
+                  2
+                ],
+                [
+                  2,
+                  3
+                ]
+              ],
+              "shape": "interval_list",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "847": {
+      "questionId": 847,
+      "title": "Shortest Path Visiting All Nodes",
+      "titleSlug": "shortest-path-visiting-all-nodes",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "graph",
+              "value": [
+                [
+                  1,
+                  2,
+                  3
+                ],
+                [
+                  0
+                ],
+                [
+                  0
+                ],
+                [
+                  0
+                ]
+              ],
+              "shape": "graph_adjacency_list",
+              "nodeStructure": "graph"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "graph",
+              "value": [
+                [
+                  1
+                ],
+                [
+                  0,
+                  2,
+                  4
+                ],
+                [
+                  1,
+                  3,
+                  4
+                ],
+                [
+                  2
+                ],
+                [
+                  1,
+                  2
+                ]
+              ],
+              "shape": "graph_adjacency_list",
+              "nodeStructure": "graph"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

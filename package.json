@@ -8,6 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "fetch:leetcode-source": "node scripts/fetch-leetcode-source.mjs",
+    "generate:leetcode": "node --env-file=.env.local scripts/generate-leetcode-data.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

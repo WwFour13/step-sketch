@@ -1,89 +1,27 @@
-import {
-  CELL_SIZE,
-  NODE_SIZE,
-  iteratorColors,
-  knownProblemSlugs,
-  leetCodeQuery,
-} from '../constants/sketch'
-import type {
-  LeetCodeProblemIndex,
-  LeetCodeQuestion,
-  SketchArray,
-  SketchElement,
-  SketchNode,
-} from '../types/sketch'
-
-/**
- * Extracts parameter names from a LeetCode solution signature for labeling
- * parsed test-case inputs.
- * @param code Source snippet used to infer the function's argument names.
- */
-export const getInputNames = (code: string): string[] => {
-  const solutionCode = code.match(/class\s+Solution[\s\S]*/)
-    ? code.match(/class\s+Solution[\s\S]*/)![0]
-    : code
-  const signature = solutionCode.match(
-    /(?:def\s+\w+|function\s+\w+|\w+\s*=\s*\([^)]*\))\s*\(([^)]*)\)/,
-  )
-  if (!signature) return []
-  return signature[1]
-    .split(',')
-    .map((name) => name.trim().replace(/=.*/, '').split(':')[0].trim())
-    .filter((name) => name && name !== 'self')
-}
-
-/**
- * Returns the first case's input lines, limited to the expected argument count.
- */
-export const getFirstTestcase = (exampleTestcases: string, inputCount: number): string[] =>
-  exampleTestcases
-    .trim()
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .slice(0, inputCount || 1)
-
-/**
- * Groups the flat example-input lines into test cases with the given arity.
- */
-export const getAllTestcases = (exampleTestcases: string, inputCount: number): string[][] => {
-  const lines = exampleTestcases
-    .trim()
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-  const step = Math.max(1, inputCount)
-  const testcases: string[][] = []
-  for (let i = 0; i < lines.length; i += step) {
-    testcases.push(lines.slice(i, i + step))
-  }
-  return testcases
-}
-
-/**
- * Identifies common LeetCode node types from the supplied solution snippet.
- * Graph inputs are recognized by their conventional neighbors property.
- */
-export const inferNodeStructure = (code: string): NodeStructure | undefined => {
-  if (/\b(ListNode|LinkedList)\b/.test(code)) return 'linked-list'
-  if (/\bTreeNode\b/.test(code)) return 'binary-tree'
-  if (/\bneighbors\b/i.test(code)) return 'graph'
-  return undefined
-}
-
-/** Prefers the Python solution snippet and falls back to the first available language. */
-export const getPythonSnippet = (codeSnippets: LeetCodeQuestion['codeSnippets']): string =>
-  codeSnippets.find((snippet) => snippet.lang.toLowerCase() === 'python')?.code ??
-  codeSnippets[0]?.code ??
-  ''
+import { CELL_SIZE, NODE_SIZE, iteratorColors } from '../constants/sketch'
+import type { SketchElement, SketchNode } from '../types/sketch'
 
 export type ParsedInput = {
   name: string
   value: unknown
+  shape?: InputShape
   nodeStructure?: NodeStructure
 }
 
 export type NodeStructure = 'linked-list' | 'binary-tree' | 'graph'
+export type InputShape =
+  | 'scalar'
+  | 'string'
+  | 'array'
+  | 'array_of_strings'
+  | 'matrix'
+  | 'array_of_arrays'
+  | 'linked_list'
+  | 'list_of_linked_lists'
+  | 'binary_tree'
+  | 'graph_adjacency_list'
+  | 'graph_edge_list'
+  | 'interval_list'
 
 export type ParsedTestCase = {
   id: number
@@ -101,10 +39,29 @@ export type LeetCodeProblemDetail = {
   testCases: ParsedTestCase[]
 }
 
+type LocalInputRecord = {
+  name: string
+  value: unknown
+  nodeStructure: NodeStructure | null
+  shape?: InputShape
+}
+
+type LocalProblemRecord = {
+  questionId: number
+  title: string
+  titleSlug: string
+  testCases: { inputs: LocalInputRecord[] }[]
+}
+
+type LocalProblemDataset = {
+  schemaVersion: number
+  problems: Record<string, LocalProblemRecord>
+  premiumProblems?: { questionId: number; titleSlug: string }[]
+}
+
 /**
- * Converts one parsed test case into positioned canvas elements. Inputs
- * recognized as linked lists, binary trees, or graphs become pointer nodes;
- * other strings, arrays, and primitives retain their ordinary representations.
+ * Converts one parsed test case into positioned canvas elements using semantic
+ * shape labels and legacy node-structure hints.
  * @param testCase Parsed inputs, including any inferred node-structure kinds.
  * @param startId First unused element ID for the generated structure.
  * @param basePosition Top-left canvas position for the generated structures.
@@ -122,11 +79,79 @@ export const buildTestCaseElements = (
   testCase.parsedInputs.forEach((input, index) => {
     const { name: label, value } = input
 
-    if (input.nodeStructure && (Array.isArray(value) || value === null)) {
+    if (input.shape === 'list_of_linked_lists') {
+      if (!Array.isArray(value) || !value.every(Array.isArray)) {
+        throw new Error(
+          `Input "${label}" is labeled list_of_linked_lists but is not an array of arrays`,
+        )
+      }
+      if (value.length === 0) {
+        elements.push({
+          id: nextId,
+          kind: 'array',
+          label,
+          element_ids: [],
+          values: [],
+          position: { x: basePosition.x, y: currentY },
+        })
+        nextId += 1
+        currentY += 90
+        return
+      }
+
+      value.forEach((list, listIndex) => {
+        const listLabel = `${label}[${listIndex}]`
+        const firstNodeId = nextId
+        const nodes: SketchNode[] = list.map((item, nodeIndex) => ({
+          id: firstNodeId + nodeIndex,
+          kind: 'node',
+          value: String(item),
+          pointer_ids: nodeIndex < list.length - 1 ? [firstNodeId + nodeIndex + 1] : [],
+          pointer_limit: 1,
+          position: { x: basePosition.x + nodeIndex * 90, y: currentY },
+        }))
+        elements.push(...nodes)
+        nextId += nodes.length
+        if (nodes.length > 0) {
+          elements.push({
+            id: nextId,
+            kind: 'iterator',
+            hostId: firstNodeId,
+            color: iteratorColors[(index + listIndex) % iteratorColors.length],
+            mode: 'bottom',
+            label: listLabel,
+          })
+          nextId += 1
+        } else {
+          elements.push({
+            id: nextId,
+            kind: 'variable',
+            label: listLabel,
+            value: '∅',
+            position: { x: basePosition.x, y: currentY },
+          })
+          nextId += 1
+        }
+        currentY += 110
+      })
+      return
+    }
+
+    const nodeStructure = input.shape
+      ? input.shape === 'linked_list'
+        ? 'linked-list'
+        : input.shape === 'binary_tree'
+          ? 'binary-tree'
+          : input.shape === 'graph_adjacency_list'
+            ? 'graph'
+            : undefined
+      : input.nodeStructure
+
+    if (nodeStructure && (Array.isArray(value) || value === null)) {
       const nodeValues = Array.isArray(value) ? value : []
       const firstNodeId = nextId
 
-      if (input.nodeStructure === 'linked-list') {
+      if (nodeStructure === 'linked-list') {
         const nodes: SketchNode[] = nodeValues.map((item, nodeIndex) => ({
           id: firstNodeId + nodeIndex,
           kind: 'node',
@@ -152,7 +177,7 @@ export const buildTestCaseElements = (
         return
       }
 
-      if (input.nodeStructure === 'binary-tree') {
+      if (nodeStructure === 'binary-tree') {
         const nodesByIndex = new Map<number, SketchNode>()
         const depthByIndex = new Map<number, number>()
         const orderByIndex = new Map<number, number>()
@@ -262,6 +287,43 @@ export const buildTestCaseElements = (
     if (Array.isArray(value)) {
       const id = nextId
 
+      if (
+        (input.shape === 'array_of_arrays' ||
+          input.shape === 'graph_edge_list' ||
+          input.shape === 'interval_list') &&
+        value.every(Array.isArray)
+      ) {
+        if (value.length === 0) {
+          elements.push({
+            id,
+            kind: 'array',
+            label,
+            element_ids: [],
+            values: [],
+            position: { x: basePosition.x, y: currentY },
+          })
+          nextId += 1
+          currentY += 90
+          return
+        }
+
+        value.forEach((row, rowIndex) => {
+          const rowId = nextId
+          const rowValues = row.map(String)
+          nextId += rowValues.length + 1
+          elements.push({
+            id: rowId,
+            kind: 'array',
+            label: `${label}[${rowIndex}]`,
+            element_ids: rowValues.map((_, valueIndex) => rowId + valueIndex + 1),
+            values: rowValues,
+            position: { x: basePosition.x, y: currentY },
+          })
+          currentY += 90
+        })
+        return
+      }
+
       // Array of strings: e.g. ["flower", "flow", "flight"]
       if (value.length > 0 && value.every((item) => typeof item === 'string')) {
         value.forEach((item, stringIndex) => {
@@ -281,7 +343,11 @@ export const buildTestCaseElements = (
         return
       }
 
-      if (value.length > 0 && value.every(Array.isArray)) {
+      if (
+        value.length > 0 &&
+        value.every(Array.isArray) &&
+        (input.shape === 'matrix' || input.shape === undefined)
+      ) {
         const rows = value as unknown[][]
         const columns = Math.max(1, ...rows.map((row) => row.length))
         const matrixValues = rows.flatMap((row) => [
@@ -364,58 +430,131 @@ export const buildCanvasElementsFromTestCases = (
   return { elements: allElements, nextId: curId }
 }
 
-/** Removes markup and decodes common entities from a problem description. */
-export const stripHtml = (html: string): string => {
-  return html
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&#39;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
-    .replace(/\s+/g, ' ')
-    .trim()
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value)
+
+const isJsonValue = (value: unknown): boolean => {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return true
+  if (typeof value === 'number') return Number.isFinite(value)
+  if (Array.isArray(value)) return value.every(isJsonValue)
+  if (isRecord(value)) return Object.values(value).every(isJsonValue)
+  return false
 }
 
-let problemSlugIndexPromise: Promise<Map<string, string>> | null = null
+const isNodeStructure = (value: unknown): value is NodeStructure =>
+  value === 'linked-list' || value === 'binary-tree' || value === 'graph'
 
-const getProblemSlugIndex = (): Promise<Map<string, string>> => {
-  if (!problemSlugIndexPromise) {
-    problemSlugIndexPromise = fetch('/leetcode-api/api/problems/all/')
+const inputShapes = new Set<string>([
+  'scalar',
+  'string',
+  'array',
+  'array_of_strings',
+  'matrix',
+  'array_of_arrays',
+  'linked_list',
+  'list_of_linked_lists',
+  'binary_tree',
+  'graph_adjacency_list',
+  'graph_edge_list',
+  'interval_list',
+])
+
+const isInputShape = (value: unknown): value is InputShape =>
+  typeof value === 'string' && inputShapes.has(value)
+
+const isValueCompatibleWithShape = (shape: InputShape, value: unknown): boolean => {
+  if (shape === 'scalar') {
+    return value === null || typeof value === 'boolean' || typeof value === 'number'
+  }
+  if (shape === 'string') return typeof value === 'string'
+  if (!Array.isArray(value)) return false
+  if (shape === 'array') return value.every((item) => !Array.isArray(item))
+  if (shape === 'array_of_strings') return value.every((item) => typeof item === 'string')
+  if (shape === 'linked_list') return value.every((item) => !Array.isArray(item))
+  if (shape === 'binary_tree') {
+    return value.every(
+      (item) =>
+        item === null ||
+        typeof item === 'string' ||
+        typeof item === 'number' ||
+        typeof item === 'boolean',
+    )
+  }
+  if (shape === 'matrix') return value.every(Array.isArray)
+  return value.every(Array.isArray)
+}
+
+const isLocalInputRecord = (value: unknown): value is LocalInputRecord =>
+  isRecord(value) &&
+  typeof value.name === 'string' &&
+  value.name.trim().length > 0 &&
+  Object.hasOwn(value, 'value') &&
+  isJsonValue(value.value) &&
+  (value.shape === undefined ||
+    (isInputShape(value.shape) && isValueCompatibleWithShape(value.shape, value.value))) &&
+  (value.nodeStructure === null || isNodeStructure(value.nodeStructure))
+
+const isLocalProblemRecord = (value: unknown, expectedId: string): value is LocalProblemRecord =>
+  isRecord(value) &&
+  Number.isInteger(value.questionId) &&
+  String(value.questionId) === expectedId &&
+  typeof value.title === 'string' &&
+  typeof value.titleSlug === 'string' &&
+  Array.isArray(value.testCases) &&
+  value.testCases.every(
+    (testCase) =>
+      isRecord(testCase) &&
+      Array.isArray(testCase.inputs) &&
+      testCase.inputs.length > 0 &&
+      testCase.inputs.every(isLocalInputRecord),
+  )
+
+const isLocalProblemDataset = (value: unknown): value is LocalProblemDataset =>
+  isRecord(value) &&
+  (value.schemaVersion === 1 || value.schemaVersion === 2) &&
+  isRecord(value.problems) &&
+  (value.premiumProblems === undefined ||
+    (Array.isArray(value.premiumProblems) &&
+      value.premiumProblems.every(
+        (problem) =>
+          isRecord(problem) &&
+          typeof problem.questionId === 'number' &&
+          Number.isSafeInteger(problem.questionId) &&
+          Number(problem.questionId) > 0 &&
+          typeof problem.titleSlug === 'string',
+      ))) &&
+  Object.entries(value.problems).every(([id, problem]) => isLocalProblemRecord(problem, id))
+
+let localProblemDatasetPromise: Promise<LocalProblemDataset> | null = null
+
+const getLocalProblemDataset = (): Promise<LocalProblemDataset> => {
+  if (!localProblemDatasetPromise) {
+    localProblemDatasetPromise = fetch('/data/leetcode-problems-v1.json')
       .then(async (response) => {
-        if (!response.ok) throw new Error('Unable to load problem index')
-        const payload = (await response.json()) as {
-          stat_status_pairs?: LeetCodeProblemIndex[]
+        if (!response.ok) {
+          throw new Error(`Unable to load local LeetCode dataset (${response.status})`)
         }
-        if (!Array.isArray(payload.stat_status_pairs)) {
-          throw new Error('Invalid problem index response')
+        const payload: unknown = await response.json()
+        if (!isLocalProblemDataset(payload)) {
+          throw new Error('Local LeetCode dataset has an unsupported or invalid format')
         }
-        return new Map(
-          payload.stat_status_pairs.map((item) => [
-            String(item.stat.frontend_question_id),
-            item.stat.question__title_slug,
-          ]),
-        )
+        return payload
       })
       .catch((error: unknown) => {
-        problemSlugIndexPromise = null
+        localProblemDatasetPromise = null
         throw error
       })
   }
-  return problemSlugIndexPromise
+  return localProblemDatasetPromise
 }
 
 /**
- * Resolves a problem number to its LeetCode question, parses example inputs,
- * and returns preview-ready cases plus metadata used by the import modal.
+ * Loads a problem from the bundled local dataset and adapts its inputs into
+ * preview-ready test cases.
  * @param problemNumber Numeric question ID entered by the user.
- * @throws Error when the ID is invalid, unavailable, or the request fails.
+ * @throws Error when the ID is invalid, absent, or malformed in the dataset.
  */
-export const fetchLeetCodeProblemDetails = async (
+export const loadLeetCodeProblemDetails = async (
   problemNumber: string,
 ): Promise<LeetCodeProblemDetail> => {
   const number = problemNumber.trim()
@@ -423,112 +562,44 @@ export const fetchLeetCodeProblemDetails = async (
     throw new Error('Please enter a valid problem number')
   }
 
-  let titleSlug = knownProblemSlugs[number]
-  if (!titleSlug) {
-    const problemSlugs = await getProblemSlugIndex()
-    titleSlug = problemSlugs.get(number) ?? ''
-    if (!titleSlug) throw new Error(`Problem #${number} not found`)
+  const dataset = await getLocalProblemDataset()
+  const questionId = Number(number)
+  const record = dataset.problems[String(questionId)]
+  if (!record) {
+    if (dataset.premiumProblems?.some((problem) => problem.questionId === questionId)) {
+      throw new Error(
+        `Problem #${questionId} is premium-locked on LeetCode and is not available in the local dataset. A LeetCode Premium subscription may be required to view its description and examples.`,
+      )
+    }
+    throw new Error(
+      `Problem #${questionId} is not in the local dataset (${Object.keys(dataset.problems).length} problems available)`,
+    )
   }
 
-  const response = await fetch('/leetcode-api/graphql', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query: leetCodeQuery, variables: { titleSlug } }),
-  })
-  if (!response.ok) throw new Error('LeetCode request failed')
-  const payload = (await response.json()) as { data?: { question?: LeetCodeQuestion | null } }
-  const question = payload.data?.question
-  if (!question) throw new Error(`Problem #${number} not found`)
-
-  const snippet = getPythonSnippet(question.codeSnippets)
-  const inputNames = getInputNames(snippet)
-  const rawTestCases = getAllTestcases(question.exampleTestcases, inputNames.length)
-  const nodeStructure = inferNodeStructure(snippet)
-
-  const testCases: ParsedTestCase[] = rawTestCases.map((rawLines, caseIndex) => {
-    const parsedInputs: ParsedInput[] = rawLines.map((line, argIndex) => {
-      const name = inputNames[argIndex] || `arg${argIndex + 1}`
-      let value: unknown
-      try {
-        value = JSON.parse(line)
-      } catch {
-        value = line
-      }
-      const isNodeInput =
-        nodeStructure !== undefined &&
-        (Array.isArray(value) || (nodeStructure !== 'graph' && value === null)) &&
-        (nodeStructure !== 'graph' ||
-          (Array.isArray(value) && value.every((item) => Array.isArray(item))))
-      return { name, value, ...(isNodeInput ? { nodeStructure } : {}) }
-    })
-
+  const inputNames = [
+    ...new Set(record.testCases.flatMap(({ inputs }) => inputs.map(({ name }) => name))),
+  ]
+  const testCases: ParsedTestCase[] = record.testCases.map(({ inputs }, id) => {
+    const parsedInputs: ParsedInput[] = inputs.map(({ name, value, shape, nodeStructure }) => ({
+      name,
+      value,
+      ...(shape ? { shape } : {}),
+      ...(nodeStructure ? { nodeStructure } : {}),
+    }))
     const preview = buildTestCaseElements({ parsedInputs }, 1, { x: 12, y: 12 })
-
     return {
-      id: caseIndex,
-      rawLines,
+      id,
+      rawLines: inputs.map(({ value }) => JSON.stringify(value)),
       parsedInputs,
       previewElements: preview.elements,
     }
   })
 
-  const description = question.content ? stripHtml(question.content) : ''
-
   return {
-    questionId: number,
-    title: question.title,
-    titleSlug,
-    description,
+    questionId: String(record.questionId),
+    title: record.title,
+    titleSlug: record.titleSlug,
     inputNames,
     testCases,
-  }
-}
-
-export type LeetCodeFetchResult = {
-  elements: SketchElement[]
-  nextId: number
-  firstId: number
-  status: string
-}
-
-/**
- * Legacy single-case import helper. Returns the first case's canvas elements,
- * or a visible fallback array describing the failure.
- * @param problemNumber LeetCode question number to fetch.
- * @param nextId First unused canvas element ID.
- */
-export const fetchLeetCodeTestCase = async (
-  problemNumber: string,
-  nextId: number,
-): Promise<LeetCodeFetchResult> => {
-  try {
-    const details = await fetchLeetCodeProblemDetails(problemNumber)
-    if (details.testCases.length === 0) {
-      throw new Error('No testcases found for problem')
-    }
-    const result = buildCanvasElementsFromTestCases(details.testCases.slice(0, 1), nextId, 100)
-    return {
-      elements: result.elements,
-      nextId: result.nextId,
-      firstId: nextId,
-      status: details.title,
-    }
-  } catch (error) {
-    const fallback: SketchArray = {
-      id: nextId,
-      kind: 'array',
-      label: `LeetCode ${problemNumber} testcase`,
-      element_ids: [nextId + 1],
-      values: [
-        `Missing representation: ${error instanceof Error ? error.message : 'unable to load problem'}`,
-      ],
-      position: { x: 130, y: 100 },
-    }
-    return {
-      elements: [fallback],
-      nextId: nextId + 2,
-      firstId: nextId,
-      status: 'Loaded fallback',
-    }
   }
 }
