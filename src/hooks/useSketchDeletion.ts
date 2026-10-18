@@ -1,6 +1,12 @@
 import { useCallback } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
-import type { CellEditState, SketchArray, SketchElement } from '../types/sketch'
+import type { CellEditState, SketchCollection, SketchElement } from '../types/sketch'
+import {
+  getCollectionElementIds,
+  getCollectionValues,
+  isSketchCollection,
+  withCollectionCells,
+} from '../utils/sketchCollections'
 
 type UseSketchDeletionOptions = {
   elements: SketchElement[]
@@ -44,8 +50,8 @@ export const useSketchDeletion = ({
           current.forEach((element) => {
             if (idsToDelete.has(element.id)) {
               deletedIds.add(element.id)
-              if (element.kind === 'array') {
-                element.element_ids.forEach((elementId) => deletedIds.add(elementId))
+              if (isSketchCollection(element)) {
+                getCollectionElementIds(element).forEach((elementId) => deletedIds.add(elementId))
               }
             }
           })
@@ -75,27 +81,27 @@ export const useSketchDeletion = ({
 
   const deleteSelection = useCallback(() => {
     const arraysById = new Map(
-      elements
-        .filter((element): element is SketchArray => element.kind === 'array')
-        .map((array) => [array.id, array]),
+      elements.filter(isSketchCollection).map((array) => [array.id, array]),
     )
     const fullySelectedArrays = new Set<number>()
     const partiallySelectedArrayIds = new Set<number>()
     selectedCellIds.forEach((cellId) => {
-      const array = [...arraysById.values()].find((item) => item.element_ids.includes(cellId))
+      const array = [...arraysById.values()].find((item) =>
+        getCollectionElementIds(item).includes(cellId),
+      )
       if (array) partiallySelectedArrayIds.add(array.id)
     })
     partiallySelectedArrayIds.forEach((arrayId) => {
       const array = arraysById.get(arrayId)
-      if (array && array.element_ids.every((cellId) => selectedCellIds.has(cellId))) {
+      if (array && getCollectionElementIds(array).every((cellId) => selectedCellIds.has(cellId))) {
         fullySelectedArrays.add(arrayId)
       }
     })
     const retainedMatrixCellIds = new Set<number>()
     partiallySelectedArrayIds.forEach((arrayId) => {
       const array = arraysById.get(arrayId)
-      if (array?.layout === 'matrix' && !fullySelectedArrays.has(arrayId)) {
-        array.element_ids.forEach((cellId) => {
+      if (array?.kind === 'matrix' && !fullySelectedArrays.has(arrayId)) {
+        getCollectionElementIds(array).forEach((cellId) => {
           if (selectedCellIds.has(cellId)) retainedMatrixCellIds.add(cellId)
         })
       }
@@ -118,40 +124,42 @@ export const useSketchDeletion = ({
         return fullDeleteIds.has(element.id) ? [] : [element]
       }
       if (fullDeleteIds.has(element.id)) {
-        if (element.kind === 'array') {
-          element.element_ids.forEach((cellId) => removedCellIds.add(cellId))
+        if (isSketchCollection(element)) {
+          getCollectionElementIds(element).forEach((cellId) => removedCellIds.add(cellId))
         }
         return []
       }
-      if (element.kind !== 'array' || !partiallySelectedArrayIds.has(element.id)) {
+      if (!isSketchCollection(element) || !partiallySelectedArrayIds.has(element.id)) {
         return [element]
       }
 
+      const elementIds = getCollectionElementIds(element)
+      const values = getCollectionValues(element)
       const selectedIndexes = new Set<number>()
-      element.element_ids.forEach((cellId, index) => {
+      elementIds.forEach((cellId, index) => {
         if (selectedCellIds.has(cellId)) selectedIndexes.add(index)
       })
-      if (element.layout === 'matrix' && !fullySelectedArrays.has(element.id)) {
+      if (element.kind === 'matrix' && !fullySelectedArrays.has(element.id)) {
         return [element]
       }
-      if (element.layout === 'map') {
+      if (element.kind === 'map') {
         for (const index of [...selectedIndexes]) {
           selectedIndexes.add(index % 2 === 0 ? index + 1 : index - 1)
         }
         selectedIndexes.delete(-1)
       }
       const indexes = [...selectedIndexes]
-        .filter((index) => index >= 0 && index < element.values.length)
+        .filter((index) => index >= 0 && index < values.length)
         .sort((a, b) => a - b)
       if (indexes.length === 0) return [element]
 
-      const minimumCellCount = element.layout === 'map' ? 2 : 1
-      const remainingCount = element.values.length - indexes.length
+      const minimumCellCount = element.kind === 'map' ? 2 : 1
+      const remainingCount = values.length - indexes.length
       if (remainingCount < minimumCellCount) {
-        const values = [...element.values]
-        values.fill('')
-        element.element_ids.forEach((cellId) => neighboringCellIds.add(cellId))
-        return [{ ...element, values }]
+        const emptyValues = [...values]
+        emptyValues.fill('')
+        elementIds.forEach((cellId) => neighboringCellIds.add(cellId))
+        return [withCollectionCells(element, emptyValues, elementIds)]
       }
 
       let previousIndex = -2
@@ -160,26 +168,25 @@ export const useSketchDeletion = ({
         if (index > previousIndex + 1) removedRuns.push({ start: index, end: index })
         else removedRuns[removedRuns.length - 1].end = index
         previousIndex = index
-        removedCellIds.add(element.element_ids[index])
+        removedCellIds.add(elementIds[index])
       })
       removedRuns.forEach(({ start, end }) => {
-        const neighborIndexes =
-          element.layout === 'map' ? [start - 2, end + 2] : [start - 1, end + 1]
+        const neighborIndexes = element.kind === 'map' ? [start - 2, end + 2] : [start - 1, end + 1]
         neighborIndexes.forEach((index) => {
-          if (index < 0 || index >= element.element_ids.length || selectedIndexes.has(index)) return
-          if (element.layout === 'map') {
+          if (index < 0 || index >= elementIds.length || selectedIndexes.has(index)) return
+          if (element.kind === 'map') {
             const pairStart = Math.floor(index / 2) * 2
-            element.element_ids
+            elementIds
               .slice(pairStart, pairStart + 2)
               .forEach((cellId) => neighboringCellIds.add(cellId))
           } else {
-            neighboringCellIds.add(element.element_ids[index])
+            neighboringCellIds.add(elementIds[index])
           }
         })
       })
-      const values = element.values.filter((_, index) => !selectedIndexes.has(index))
-      const elementIds = element.element_ids.filter((_, index) => !selectedIndexes.has(index))
-      return [{ ...element, values, element_ids: elementIds }]
+      const nextValues = values.filter((_, index) => !selectedIndexes.has(index))
+      const nextElementIds = elementIds.filter((_, index) => !selectedIndexes.has(index))
+      return [withCollectionCells(element, nextValues, nextElementIds)]
     })
 
     const survivingChildren = [...deletedNodeChildren].filter((id) =>
@@ -189,8 +196,8 @@ export const useSketchDeletion = ({
     const remainingSelectedCellIds = new Set([...neighboringCellIds, ...retainedMatrixCellIds])
     remainingSelectedCellIds.forEach((cellId) => {
       const array = nextElements.find(
-        (element): element is SketchArray =>
-          element.kind === 'array' && element.element_ids.includes(cellId),
+        (element): element is SketchCollection =>
+          isSketchCollection(element) && getCollectionElementIds(element).includes(cellId),
       )
       if (array) nextSelectedIds.add(array.id)
     })
@@ -217,14 +224,14 @@ export const useSketchDeletion = ({
     const nextPrimaryId = nextSelectedIds.values().next().value ?? 0
     setSelectedId(nextPrimaryId)
     const primaryArray = cleanedElements.find(
-      (element): element is SketchArray => element.kind === 'array' && element.id === nextPrimaryId,
+      (element): element is SketchCollection =>
+        isSketchCollection(element) && element.id === nextPrimaryId,
     )
+    const primaryArrayIds = primaryArray ? getCollectionElementIds(primaryArray) : []
     const primaryCellId = primaryArray
-      ? [...remainingSelectedCellIds].find((cellId) => primaryArray.element_ids.includes(cellId))
+      ? [...remainingSelectedCellIds].find((cellId) => primaryArrayIds.includes(cellId))
       : undefined
-    const primaryCellIndex = primaryCellId
-      ? primaryArray?.element_ids.indexOf(primaryCellId)
-      : undefined
+    const primaryCellIndex = primaryCellId ? primaryArrayIds.indexOf(primaryCellId) : undefined
     if (primaryArray && primaryCellIndex !== undefined && primaryCellIndex >= 0) {
       cellEditRef.current = {
         arrayId: primaryArray.id,

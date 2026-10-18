@@ -6,6 +6,7 @@ import {
   parseArrayEditorValue,
   parseMatrixEditorValue,
 } from '../../utils/canvas'
+import { getCollectionLayout, isSketchCollection } from '../../utils/sketchCollections'
 
 /** Selected sketch item and callbacks for editing or deleting it. */
 export type InspectorProps = {
@@ -26,11 +27,13 @@ export const Inspector: React.FC<InspectorProps> = ({
   if (!selected) {
     return <div className="empty-inspector">Select an element to edit it</div>
   }
+  const isCollection = isSketchCollection(selected)
+  const layout = isCollection ? getCollectionLayout(selected) : null
 
   return (
     <div className="inspector">
       <div className="section-label">SELECTED ELEMENT</div>
-      {selected.kind !== 'node' && (
+      {(selected.kind === 'variable' || isCollection) && (
         <div className="field-row">
           <label htmlFor="label">Label</label>
           <input
@@ -67,31 +70,37 @@ export const Inspector: React.FC<InspectorProps> = ({
           </div>
         </div>
       )}
-      {selected.kind !== 'iterator' && (
+      {selected.kind === 'variable' || selected.kind === 'node' || isCollection ? (
         <div className="field-row">
           <label htmlFor="value">Value</label>
           <textarea
             id="value"
-            value={selected.kind === 'array' ? getArrayEditorValue(selected) : selected.value}
+            value={
+              isCollection
+                ? getArrayEditorValue(selected)
+                : selected.kind === 'variable' || selected.kind === 'node'
+                  ? selected.value
+                  : ''
+            }
             onChange={(event) =>
-              selected.kind === 'array'
-                ? selected.layout === 'matrix'
+              isCollection
+                ? layout === 'matrix'
                   ? onUpdateSelected(parseMatrixEditorValue(event.target.value))
                   : onUpdateSelected({
-                      values: parseArrayEditorValue(event.target.value, selected.layout),
+                      values: parseArrayEditorValue(event.target.value, layout ?? 'horizontal'),
                     })
                 : onUpdateSelected({ value: event.target.value })
             }
           />
         </div>
-      )}
-      {selected.kind === 'array' && (
+      ) : null}
+      {isCollection && (
         <p className="field-help">
-          {selected.layout === 'map'
+          {layout === 'map'
             ? 'One key: value pair per line'
-            : selected.layout === 'vertical'
+            : layout === 'vertical'
               ? 'One value per line'
-              : selected.layout === 'matrix'
+              : layout === 'matrix'
                 ? 'Comma-separated values per row'
                 : 'Separate values with commas'}
         </p>

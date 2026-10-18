@@ -2,8 +2,19 @@ import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { iteratorColors } from '../constants/sketch'
 import { buildCanvasElementsFromTestCases } from '../services/leetcodeSketch'
 import type { CellEditConfirmation } from './useSketchSelection'
-import type { CellEditState, SketchElement, SketchIterator, SketchNode } from '../types/sketch'
+import type {
+  CellEditState,
+  SketchCollection,
+  SketchElement,
+  SketchIterator,
+  SketchNode,
+} from '../types/sketch'
 import type { ParsedTestCase } from '../services/leetcodeSketch'
+import {
+  getCollectionElementIds,
+  isSketchCollection,
+  withCollectionCells,
+} from '../utils/sketchCollections'
 
 type UseSketchActionsOptions = {
   elements: SketchElement[]
@@ -63,7 +74,6 @@ export const useSketchActions = ({
         element_ids: elementIds,
         values,
         position: { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 },
-        layout: 'horizontal',
       },
     ])
     setNextId((current) => current + values.length + 1)
@@ -78,12 +88,11 @@ export const useSketchActions = ({
       ...current,
       {
         id,
-        kind: 'array',
+        kind: 'set',
         label: 'set',
         element_ids: elementIds,
         values,
         position: { x: 180, y: 120 },
-        layout: 'vertical',
       },
     ])
     setNextId((current) => current + values.length + 1)
@@ -98,12 +107,11 @@ export const useSketchActions = ({
       ...current,
       {
         id,
-        kind: 'array',
+        kind: 'map',
         label: 'map',
         element_ids: elementIds,
         values,
         position: { x: 180, y: 120 },
-        layout: 'map',
       },
     ])
     setNextId((current) => current + values.length + 1)
@@ -171,12 +179,13 @@ export const useSketchActions = ({
       ...current,
       {
         id,
-        kind: 'array',
+        kind: 'matrix',
         label: 'matrix',
-        element_ids: values.map((_, index) => id + index + 1),
-        values,
+        element_ids: [0, 1, 2].map((row) =>
+          values.slice(row * 3, row * 3 + 3).map((_, column) => id + row * 3 + column + 1),
+        ),
+        values: [values.slice(0, 3), values.slice(3, 6), values.slice(6, 9)],
         position: { x: 180, y: 120 },
-        layout: 'matrix',
         columns: 3,
       },
     ])
@@ -217,10 +226,25 @@ export const useSketchActions = ({
   }
 
   const updateSelected = (patch: Partial<SketchElement>) => {
-    if (selected?.kind === 'array' && 'values' in patch && Array.isArray(patch.values)) {
-      const values = patch.values as string[]
-      const addedCellCount = Math.max(0, values.length - selected.element_ids.length)
-      const removedCellIds = new Set(selected.element_ids.slice(values.length))
+    if (
+      selected &&
+      isSketchCollection(selected) &&
+      'values' in patch &&
+      Array.isArray(patch.values)
+    ) {
+      const patchedValues = patch.values as string[] | string[][]
+      const values = Array.isArray(patchedValues[0])
+        ? (patchedValues as string[][]).flat()
+        : (patchedValues as string[])
+      const oldElementIds = getCollectionElementIds(selected)
+      const addedCellCount = Math.max(0, values.length - oldElementIds.length)
+      const removedCellIds = new Set(oldElementIds.slice(values.length))
+      const updatedColumns =
+        selected.kind === 'matrix' && 'columns' in patch && typeof patch.columns === 'number'
+          ? patch.columns
+          : selected.kind === 'matrix'
+            ? selected.columns
+            : undefined
       setElements(
         (current) =>
           current
@@ -228,11 +252,15 @@ export const useSketchActions = ({
               (element) => !(element.kind === 'iterator' && removedCellIds.has(element.hostId)),
             )
             .map((element) => {
-              if (element.id !== selectedId || element.kind !== 'array') return element
+              if (element.id !== selectedId || !isSketchCollection(element)) return element
               const elementIds = values.map(
-                (_, index) => element.element_ids[index] ?? nextId + index,
+                (_, index) => oldElementIds[index] ?? nextId + index - oldElementIds.length,
               )
-              return { ...element, ...patch, values, element_ids: elementIds }
+              const collection =
+                element.kind === 'matrix' && updatedColumns !== undefined
+                  ? ({ ...element, columns: updatedColumns } as SketchCollection)
+                  : element
+              return withCollectionCells(collection, values, elementIds)
             }) as SketchElement[],
       )
       if (addedCellCount > 0) setNextId((current) => current + addedCellCount)

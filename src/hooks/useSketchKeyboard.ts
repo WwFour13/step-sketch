@@ -1,7 +1,13 @@
 import { useEffect } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
-import type { CellEditState, SketchArray, SketchElement } from '../types/sketch'
+import type { CellEditState, SketchCollection, SketchElement } from '../types/sketch'
 import type { CellEditConfirmation } from './useSketchSelection'
+import {
+  getCollectionElementIds,
+  getCollectionValues,
+  isSketchCollection,
+  withCollectionCells,
+} from '../utils/sketchCollections'
 
 type UseSketchKeyboardOptions = {
   elements: SketchElement[]
@@ -103,44 +109,46 @@ export const useSketchKeyboard = ({
         event.key.startsWith('Arrow')
       ) {
         const array = elements.find(
-          (element): element is SketchArray =>
-            element.kind === 'array' && element.id === cellEdit.arrayId,
+          (element): element is SketchCollection =>
+            isSketchCollection(element) && element.id === cellEdit.arrayId,
         )
         if (!array) return
 
+        const values = getCollectionValues(array)
+        const elementIds = getCollectionElementIds(array)
         const index = cellEdit.index
         let nextIndex = index
-        if (array.layout === 'matrix') {
-          const columns = Math.max(1, array.columns ?? 1)
+        if (array.kind === 'matrix') {
+          const columns = Math.max(1, array.columns)
           const row = Math.floor(index / columns)
           const column = index % columns
           if (event.key === 'ArrowLeft' && column > 0) nextIndex = index - 1
           if (
             event.key === 'ArrowRight' &&
-            column + 1 < Math.min(columns, array.values.length - row * columns)
+            column + 1 < Math.min(columns, values.length - row * columns)
           ) {
             nextIndex = index + 1
           }
           if (event.key === 'ArrowUp' && row > 0) nextIndex = index - columns
-          if (event.key === 'ArrowDown' && index + columns < array.values.length) {
+          if (event.key === 'ArrowDown' && index + columns < values.length) {
             nextIndex = index + columns
           }
-        } else if (array.layout === 'map') {
+        } else if (array.kind === 'map') {
           const column = index % 2
           if (event.key === 'ArrowLeft' && column > 0) nextIndex = index - 1
-          if (event.key === 'ArrowRight' && column === 0 && index + 1 < array.values.length) {
+          if (event.key === 'ArrowRight' && column === 0 && index + 1 < values.length) {
             nextIndex = index + 1
           }
           if (event.key === 'ArrowUp' && index >= 2) nextIndex = index - 2
-          if (event.key === 'ArrowDown' && index + 2 < array.values.length) {
+          if (event.key === 'ArrowDown' && index + 2 < values.length) {
             nextIndex = index + 2
           }
-        } else if (array.layout === 'vertical') {
+        } else if (array.kind === 'set') {
           if (event.key === 'ArrowUp' && index > 0) nextIndex = index - 1
-          if (event.key === 'ArrowDown' && index + 1 < array.values.length) nextIndex = index + 1
+          if (event.key === 'ArrowDown' && index + 1 < values.length) nextIndex = index + 1
         } else {
           if (event.key === 'ArrowLeft' && index > 0) nextIndex = index - 1
-          if (event.key === 'ArrowRight' && index + 1 < array.values.length) {
+          if (event.key === 'ArrowRight' && index + 1 < values.length) {
             nextIndex = index + 1
           }
         }
@@ -161,7 +169,7 @@ export const useSketchKeyboard = ({
           }
           setAppendCellsArrayId(null)
           setSelectedCell(selectedIndex)
-          setSelectedCellIds(new Set([array.element_ids[selectedIndex]]))
+          setSelectedCellIds(new Set([elementIds[selectedIndex]]))
         }
         return
       }
@@ -177,24 +185,26 @@ export const useSketchKeyboard = ({
         !/^[0-9.-]$/.test(event.key)
       ) {
         const array = elements.find(
-          (element): element is SketchArray =>
-            element.kind === 'array' && element.id === cellEdit.arrayId,
+          (element): element is SketchCollection =>
+            isSketchCollection(element) && element.id === cellEdit.arrayId,
         )
-        if (
-          array &&
-          (array.layout === undefined || array.layout === 'horizontal') &&
-          cellEdit.index === array.values.length - 1
-        ) {
+        const arrayValues = array ? getCollectionValues(array) : []
+        if (array && array.kind === 'array' && cellEdit.index === arrayValues.length - 1) {
           event.preventDefault()
-          const newIndex = array.values.length
+          const newIndex = arrayValues.length
           const newCellId = nextId
           setElements((current) =>
             current.map((element) => {
-              if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
+              if (
+                !isSketchCollection(element) ||
+                element.kind !== 'array' ||
+                element.id !== cellEdit.arrayId
+              )
+                return element
+              const values = getCollectionValues(element)
+              const elementIds = getCollectionElementIds(element)
               return {
-                ...element,
-                values: [...element.values, event.key],
-                element_ids: [...element.element_ids, newCellId],
+                ...withCollectionCells(element, [...values, event.key], [...elementIds, newCellId]),
               }
             }),
           )
@@ -215,18 +225,20 @@ export const useSketchKeyboard = ({
         event.preventDefault()
         if (isTypedCharacter && !/^[0-9.-]$/.test(event.key)) {
           const array = elements.find(
-            (element): element is SketchArray =>
-              element.kind === 'array' && element.id === cellEdit.arrayId,
+            (element): element is SketchCollection =>
+              isSketchCollection(element) && element.id === cellEdit.arrayId,
           )
           if (!array) {
             cellEditRef.current = null
             return
           }
 
+          const arrayValues = getCollectionValues(array)
+          const arrayElementIds = getCollectionElementIds(array)
           const nextIndex = cellEdit.index + 1
           const isAddingCell = event.key === ','
-          const isHorizontalArray = array.layout === undefined || array.layout === 'horizontal'
-          const isMap = array.layout === 'map'
+          const isHorizontalArray = array.kind === 'array'
+          const isMap = array.kind === 'map'
           const confirmed = isAddingCell ? confirmCellEditRef.current(cellEdit) : null
           const activeIndex =
             confirmed?.arrayId === array.id ? confirmed.adjustedIndex : cellEdit.index
@@ -235,21 +247,21 @@ export const useSketchKeyboard = ({
           if (isAddingCell) {
             setElements((current) =>
               current.map((element) => {
-                if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
-                const values = [...element.values]
-                const elementIds = [...element.element_ids]
+                if (!isSketchCollection(element) || element.id !== cellEdit.arrayId) return element
+                const values = getCollectionValues(element)
+                const elementIds = getCollectionElementIds(element)
                 values.splice(insertedIndex, 0, ...Array(insertedCellCount).fill(''))
                 elementIds.splice(
                   insertedIndex,
                   0,
                   ...Array.from({ length: insertedCellCount }, (_, index) => nextId + index),
                 )
-                return { ...element, values, element_ids: elementIds }
+                return withCollectionCells(element, values, elementIds)
               }),
             )
             setNextId((current) => current + insertedCellCount)
           } else {
-            const currentValue = array.values[cellEdit.index] ?? ''
+            const currentValue = arrayValues[cellEdit.index] ?? ''
             const nextValue = isHorizontalArray
               ? event.key
               : cellEdit.hasTyped
@@ -257,10 +269,10 @@ export const useSketchKeyboard = ({
                 : event.key
             setElements((current) =>
               current.map((element) => {
-                if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
-                const values = [...element.values]
+                if (!isSketchCollection(element) || element.id !== cellEdit.arrayId) return element
+                const values = getCollectionValues(element)
                 values[cellEdit.index] = nextValue
-                return { ...element, values }
+                return withCollectionCells(element, values, getCollectionElementIds(element))
               }),
             )
           }
@@ -268,14 +280,14 @@ export const useSketchKeyboard = ({
           const selectedIndex = isAddingCell
             ? insertedIndex
             : isHorizontalArray
-              ? Math.min(nextIndex, array.values.length - 1)
+              ? Math.min(nextIndex, arrayValues.length - 1)
               : (cellEditRef.current?.index ?? cellEdit.index)
           setAppendCellsArrayId(
             !isAddingCell &&
               isHorizontalArray &&
               !cellEdit.replaceOnly &&
               !/^[0-9.-]$/.test(event.key) &&
-              cellEdit.index === array.values.length - 1
+              cellEdit.index === arrayValues.length - 1
               ? array.id
               : null,
           )
@@ -289,38 +301,42 @@ export const useSketchKeyboard = ({
               isHorizontalArray &&
               !cellEdit.replaceOnly &&
               !/^[0-9.-]$/.test(event.key) &&
-              cellEdit.index === array.values.length - 1,
+              cellEdit.index === arrayValues.length - 1,
           }
           setSelectedCell(selectedIndex)
-          const selectedCellId = isAddingCell ? nextId : array.element_ids[selectedIndex]
+          const selectedCellId = isAddingCell ? nextId : arrayElementIds[selectedIndex]
           setSelectedCellIds(new Set([selectedCellId]))
           return
         }
 
-        const currentValue =
-          elements.find(
-            (element): element is SketchArray =>
-              element.kind === 'array' && element.id === cellEdit.arrayId,
-          )?.values[cellEdit.index] ?? ''
+        const currentCollection = elements.find(
+          (element): element is SketchCollection =>
+            isSketchCollection(element) && element.id === cellEdit.arrayId,
+        )
+        const currentValue = currentCollection
+          ? (getCollectionValues(currentCollection)[cellEdit.index] ?? '')
+          : ''
         if (event.key === 'Backspace' && currentValue === '') {
           const array = elements.find(
-            (element): element is SketchArray =>
-              element.kind === 'array' && element.id === cellEdit.arrayId,
+            (element): element is SketchCollection =>
+              isSketchCollection(element) && element.id === cellEdit.arrayId,
           )
-          const removedCellId = array?.element_ids[cellEdit.index]
+          const arrayElementIds = array ? getCollectionElementIds(array) : []
+          const arrayValues = array ? getCollectionValues(array) : []
+          const removedCellId = arrayElementIds[cellEdit.index]
           if (array && removedCellId !== undefined) {
             if (selectedCellIds.size > 0) {
               event.preventDefault()
               deleteSelection()
               return
             }
-            const isMap = array.layout === 'map'
+            const isMap = array.kind === 'map'
             const pairStart = isMap ? Math.floor(cellEdit.index / 2) * 2 : cellEdit.index
             const removeCount = isMap ? 2 : 1
-            const removedCellIds = array.element_ids.slice(pairStart, pairStart + removeCount)
-            const remainingCellCount = array.values.length - removedCellIds.length
+            const removedCellIds = arrayElementIds.slice(pairStart, pairStart + removeCount)
+            const remainingCellCount = arrayValues.length - removedCellIds.length
             if (remainingCellCount < (isMap ? 2 : 1)) {
-              const values = [...array.values]
+              const values = [...arrayValues]
               for (let index = pairStart; index < pairStart + removeCount; index += 1) {
                 if (index < values.length) values[index] = ''
               }
@@ -334,8 +350,8 @@ export const useSketchKeyboard = ({
               setAppendCellsArrayId(null)
               setElements((current) =>
                 current.map((element) =>
-                  element.kind === 'array' && element.id === cellEdit.arrayId
-                    ? { ...element, values }
+                  isSketchCollection(element) && element.id === cellEdit.arrayId
+                    ? withCollectionCells(element, values, getCollectionElementIds(element))
                     : element,
                 ),
               )
@@ -350,12 +366,13 @@ export const useSketchKeyboard = ({
                     !(element.kind === 'iterator' && removedCellIds.includes(element.hostId)),
                 )
                 .map((element) => {
-                  if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
-                  const values = [...element.values]
-                  const elementIds = [...element.element_ids]
+                  if (!isSketchCollection(element) || element.id !== cellEdit.arrayId)
+                    return element
+                  const values = getCollectionValues(element)
+                  const elementIds = getCollectionElementIds(element)
                   values.splice(pairStart, removeCount)
                   elementIds.splice(pairStart, removeCount)
-                  return { ...element, values, element_ids: elementIds }
+                  return withCollectionCells(element, values, elementIds)
                 }),
             )
             cellEditRef.current = {
@@ -380,16 +397,17 @@ export const useSketchKeyboard = ({
               : event.key
         if (isTypedCharacter && !cellEdit.hasTyped) {
           const array = elements.find(
-            (element): element is SketchArray =>
-              element.kind === 'array' && element.id === cellEdit.arrayId,
+            (element): element is SketchCollection =>
+              isSketchCollection(element) && element.id === cellEdit.arrayId,
           )
+          const arrayValues = array ? getCollectionValues(array) : []
           const startsAppendMode =
             isTypedCharacter &&
             event.key !== ',' &&
             !/^[0-9.-]$/.test(event.key) &&
             !cellEdit.replaceOnly &&
             array !== undefined &&
-            cellEdit.index === array.values.length - 1
+            cellEdit.index === arrayValues.length - 1
           cellEdit.appendMode = startsAppendMode
           setAppendCellsArrayId(startsAppendMode ? (array?.id ?? null) : null)
         } else if (isTypedCharacter && /^[0-9.-]$/.test(event.key)) {
@@ -400,15 +418,15 @@ export const useSketchKeyboard = ({
         setElements((current) =>
           current.map((element) => {
             if (
-              element.kind !== 'array' ||
+              !isSketchCollection(element) ||
               element.id !== cellEdit.arrayId ||
-              cellEdit.index >= element.values.length
+              cellEdit.index >= getCollectionValues(element).length
             ) {
               return element
             }
-            const values = [...element.values]
+            const values = getCollectionValues(element)
             values[cellEdit.index] = nextValue
-            return { ...element, values }
+            return withCollectionCells(element, values, getCollectionElementIds(element))
           }),
         )
         return
@@ -467,25 +485,22 @@ export const useSketchKeyboard = ({
           return
         }
         const deleteTarget = elements.find((element) => element.id === deleteTargetId)
-        if (
-          isArrayCell &&
-          cellEdit &&
-          deleteTarget?.kind === 'array' &&
-          deleteTarget.layout === 'map'
-        ) {
+        if (isArrayCell && cellEdit && deleteTarget?.kind === 'map') {
           event.preventDefault()
+          const deleteValues = getCollectionValues(deleteTarget)
+          const deleteElementIds = getCollectionElementIds(deleteTarget)
           const pairStart = Math.floor(cellEdit.index / 2) * 2
-          const removedCellIds = deleteTarget.element_ids.slice(pairStart, pairStart + 2)
-          const remainingCellCount = deleteTarget.values.length - removedCellIds.length
+          const removedCellIds = deleteElementIds.slice(pairStart, pairStart + 2)
+          const remainingCellCount = deleteValues.length - removedCellIds.length
           if (remainingCellCount < 2) {
-            const values = [...deleteTarget.values]
+            const values = [...deleteValues]
             for (let index = pairStart; index < pairStart + 2; index += 1) {
               if (index < values.length) values[index] = ''
             }
             setElements((current) =>
               current.map((element) =>
-                element.kind === 'array' && element.id === deleteTargetId
-                  ? { ...element, values }
+                isSketchCollection(element) && element.id === deleteTargetId
+                  ? withCollectionCells(element, values, getCollectionElementIds(element))
                   : element,
               ),
             )
@@ -506,12 +521,12 @@ export const useSketchKeyboard = ({
                     !(element.kind === 'iterator' && removedCellIds.includes(element.hostId)),
                 )
                 .map((element) => {
-                  if (element.kind !== 'array' || element.id !== deleteTargetId) return element
-                  const values = [...element.values]
-                  const elementIds = [...element.element_ids]
+                  if (!isSketchCollection(element) || element.id !== deleteTargetId) return element
+                  const values = getCollectionValues(element)
+                  const elementIds = getCollectionElementIds(element)
                   values.splice(pairStart, 2)
                   elementIds.splice(pairStart, 2)
-                  return { ...element, values, element_ids: elementIds }
+                  return withCollectionCells(element, values, elementIds)
                 }),
             )
             cellEditRef.current = {
@@ -526,12 +541,16 @@ export const useSketchKeyboard = ({
           setAppendCellsArrayId(null)
           return
         }
-        if (deleteTarget?.kind === 'array' && deleteTarget.values.length <= 1) {
+        if (
+          deleteTarget &&
+          isSketchCollection(deleteTarget) &&
+          getCollectionValues(deleteTarget).length <= 1
+        ) {
           event.preventDefault()
           setElements((current) =>
             current.map((element) =>
-              element.kind === 'array' && element.id === deleteTargetId
-                ? { ...element, values: [''] }
+              isSketchCollection(element) && element.id === deleteTargetId
+                ? withCollectionCells(element, [''], getCollectionElementIds(element).slice(0, 1))
                 : element,
             ),
           )

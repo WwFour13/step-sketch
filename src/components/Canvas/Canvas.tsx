@@ -99,11 +99,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             isPrimarySelected={selectedId === element.id}
             selectedCellIds={selectedCellIds}
             selectedCell={selectedCell}
-            isAppendingCells={
-              element.kind === 'array' &&
-              (element.layout === undefined || element.layout === 'horizontal') &&
-              element.id === appendCellsArrayId
-            }
+            isAppendingCells={element.kind === 'array' && element.id === appendCellsArrayId}
             onStartDrag={onStartDrag}
             onHostDoubleClick={onHostDoubleClick}
             onSelectCell={onSelectCell}

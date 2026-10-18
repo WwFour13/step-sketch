@@ -1,7 +1,13 @@
 import { useCallback, useState } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { CELL_SIZE } from '../constants/sketch'
-import type { CellEditState, SketchArray, SketchElement } from '../types/sketch'
+import type { CellEditState, SketchCollection, SketchElement } from '../types/sketch'
+import {
+  getCollectionElementIds,
+  getCollectionValues,
+  isSketchCollection,
+  withCollectionCells,
+} from '../utils/sketchCollections'
 
 export type CellEditConfirmation = {
   arrayId: number
@@ -33,18 +39,20 @@ export const useSketchSelection = ({
       if (!cellEdit) return null
 
       const array = elements.find(
-        (element): element is SketchArray =>
-          element.kind === 'array' && element.id === cellEdit.arrayId,
+        (element): element is SketchCollection =>
+          isSketchCollection(element) && element.id === cellEdit.arrayId,
       )
       if (!array) return null
 
-      const isSet = array.layout === 'vertical' && array.label === 'set'
-      const isMapKey = array.layout === 'map' && cellEdit.index % 2 === 0
+      const isSet = array.kind === 'set'
+      const isMapKey = array.kind === 'map' && cellEdit.index % 2 === 0
       if (!isSet && !isMapKey) return null
 
-      const value = array.values[cellEdit.index]
+      const values = getCollectionValues(array)
+      const elementIds = getCollectionElementIds(array)
+      const value = values[cellEdit.index]
       if (!value) return null
-      const duplicateIndex = array.values.findIndex(
+      const duplicateIndex = values.findIndex(
         (candidate, index) =>
           index !== cellEdit.index && (!isMapKey || index % 2 === 0) && candidate === value,
       )
@@ -52,7 +60,7 @@ export const useSketchSelection = ({
 
       const start = isMapKey ? Math.floor(duplicateIndex / 2) * 2 : duplicateIndex
       const count = isMapKey ? 2 : 1
-      const removedCellIds = array.element_ids.slice(start, start + count)
+      const removedCellIds = elementIds.slice(start, start + count)
       const adjustedIndex = cellEdit.index > start ? cellEdit.index - count : cellEdit.index
       const keepEditedCellPosition = cellEdit.index > start
 
@@ -67,18 +75,17 @@ export const useSketchSelection = ({
             (element) => !(element.kind === 'iterator' && removedCellIds.includes(element.hostId)),
           )
           .map((element) => {
-            if (element.kind !== 'array' || element.id !== cellEdit.arrayId) return element
-            const values = [...element.values]
-            const elementIds = [...element.element_ids]
-            values.splice(start, count)
-            elementIds.splice(start, count)
+            if (!isSketchCollection(element) || element.id !== cellEdit.arrayId) return element
+            const nextValues = [...getCollectionValues(element)]
+            const nextElementIds = [...getCollectionElementIds(element)]
+            nextValues.splice(start, count)
+            nextElementIds.splice(start, count)
+            const updated = withCollectionCells(element, nextValues, nextElementIds)
             return {
-              ...element,
-              values,
-              element_ids: elementIds,
+              ...updated,
               position: {
-                ...element.position,
-                y: element.position.y + (keepEditedCellPosition ? CELL_SIZE : 0),
+                ...updated.position,
+                y: updated.position.y + (keepEditedCellPosition ? CELL_SIZE : 0),
               },
             }
           }),
@@ -106,9 +113,10 @@ export const useSketchSelection = ({
       }
       cellEditRef.current = { arrayId, index: selectedIndex, hasTyped: false }
       const array = elements.find(
-        (element): element is SketchArray => element.kind === 'array' && element.id === arrayId,
+        (element): element is SketchCollection =>
+          isSketchCollection(element) && element.id === arrayId,
       )
-      const cellId = array?.element_ids[selectedIndex]
+      const cellId = array ? getCollectionElementIds(array)[selectedIndex] : undefined
       const preserveCellSelection =
         selectedIds.has(arrayId) &&
         cellId !== undefined &&

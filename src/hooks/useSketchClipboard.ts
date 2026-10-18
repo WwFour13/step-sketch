@@ -1,7 +1,14 @@
 import { useCallback } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { CELL_SIZE } from '../constants/sketch'
-import type { CellEditState, SketchArray, SketchElement, SketchNode } from '../types/sketch'
+import type { CellEditState, SketchCollection, SketchElement, SketchNode } from '../types/sketch'
+import {
+  createSketchArray,
+  getCollectionElementIds,
+  getCollectionValues,
+  isSketchCollection,
+  withCollectionCells,
+} from '../utils/sketchCollections'
 
 export type ClipboardArrayCategory =
   | 'array'
@@ -33,14 +40,14 @@ type NormalizedArrayValues = {
 }
 
 const normalizeCollectionValues = (
-  array: SketchArray,
+  array: SketchCollection,
   values: string[],
   elementIds: number[],
   preferredCellIds: Set<number>,
 ): NormalizedArrayValues => {
   const keepIndexes = new Set<number>()
   const keyIndexes = new Map<string, number[]>()
-  const step = array.layout === 'map' ? 2 : 1
+  const step = array.kind === 'map' ? 2 : 1
   for (let index = 0; index < values.length; index += step) {
     const key = values[index]
     if (!key) {
@@ -107,12 +114,14 @@ export const useSketchClipboard = ({
     if (selectedCellIds.size > 0) {
       if (selectedIds.size !== 1) return
       const array = elements.find(
-        (element): element is SketchArray =>
-          element.kind === 'array' && element.id === selectedIds.values().next().value,
+        (element): element is SketchCollection =>
+          isSketchCollection(element) && element.id === selectedIds.values().next().value,
       )
       if (!array) return
+      const values = getCollectionValues(array)
+      const elementIds = getCollectionElementIds(array)
       const indexes = [...selectedCellIds]
-        .map((cellId) => array.element_ids.indexOf(cellId))
+        .map((cellId) => elementIds.indexOf(cellId))
         .filter((index) => index >= 0)
         .sort((a, b) => a - b)
       if (indexes.length !== selectedCellIds.size) return
@@ -120,7 +129,7 @@ export const useSketchClipboard = ({
         clipboardRef.current = {
           kind: 'value',
           sourceKind: 'cell',
-          value: array.values[indexes[0]],
+          value: values[indexes[0]],
         }
         return
       }
@@ -130,17 +139,10 @@ export const useSketchClipboard = ({
       const contiguous = indexes.every(
         (index, position) => position === 0 || index === indexes[position - 1] + 1,
       )
-      if (indexes.length === array.values.length) {
-        category =
-          array.layout === 'map'
-            ? 'map'
-            : array.layout === 'matrix'
-              ? 'matrix'
-              : array.layout === 'vertical' && array.label === 'set'
-                ? 'set'
-                : 'array'
-        if (category === 'matrix') columns = Math.max(1, array.columns ?? 1)
-      } else if (array.layout === 'map') {
+      if (indexes.length === values.length) {
+        category = array.kind === 'matrix' ? 'matrix' : array.kind
+        if (category === 'matrix' && array.kind === 'matrix') columns = array.columns
+      } else if (array.kind === 'map') {
         const selected = new Set(indexes)
         const allKeys = indexes.every((index) => index % 2 === 0)
         const allValues = indexes.every((index) => index % 2 === 1)
@@ -154,25 +156,24 @@ export const useSketchClipboard = ({
         if (contiguousRows && allKeys) category = 'map-keys'
         else if (contiguousRows && allValues) category = 'map-values'
         else if (completePairs && contiguousRows) category = 'map-rows'
-      } else if (array.layout === 'matrix') {
-        const matrixColumns = Math.max(1, array.columns ?? 1)
+      } else if (array.kind === 'matrix') {
+        const matrixColumns = Math.max(1, array.columns)
         const rowIndexes = [...new Set(indexes.map((index) => Math.floor(index / matrixColumns)))]
         const columnIndexes = [...new Set(indexes.map((index) => index % matrixColumns))]
         const isOneFullRow =
           rowIndexes.length === 1 &&
-          indexes.length ===
-            Math.min(matrixColumns, array.values.length - rowIndexes[0] * matrixColumns)
+          indexes.length === Math.min(matrixColumns, values.length - rowIndexes[0] * matrixColumns)
         const isOneFullColumn =
           columnIndexes.length === 1 &&
-          rowIndexes.length === Math.ceil(array.values.length / matrixColumns) &&
+          rowIndexes.length === Math.ceil(values.length / matrixColumns) &&
           indexes.length === rowIndexes.length
         const isRectangle =
           indexes.length === rowIndexes.length * columnIndexes.length &&
           rowIndexes.every((row) =>
             columnIndexes.every(
               (column) =>
-                row * matrixColumns + column < array.values.length &&
-                selectedCellIds.has(array.element_ids[row * matrixColumns + column]),
+                row * matrixColumns + column < values.length &&
+                selectedCellIds.has(elementIds[row * matrixColumns + column]),
             ),
           )
         if (isOneFullRow) {
@@ -186,13 +187,13 @@ export const useSketchClipboard = ({
           columns = columnIndexes.length
         }
       } else if (contiguous) {
-        category = array.layout === 'vertical' && array.label === 'set' ? 'set' : 'array'
+        category = array.kind === 'set' ? 'set' : 'array'
       }
       if (!category) return
       clipboardRef.current = {
         kind: 'array',
         category,
-        values: indexes.map((index) => array.values[index]),
+        values: indexes.map((index) => values[index]),
         columns,
         label: array.label,
         requiresEmptyDestination: category === 'matrix' || category === 'map-rows',
@@ -219,33 +220,34 @@ export const useSketchClipboard = ({
     }
     if (selectedElements.length !== 1) return
     const element = selectedElements[0]
-    if (element.kind === 'array') {
-      if (element.layout === 'matrix') {
+    if (isSketchCollection(element)) {
+      const values = getCollectionValues(element)
+      if (element.kind === 'matrix') {
         clipboardRef.current = {
           kind: 'array',
           category: 'matrix',
-          values: [...element.values],
-          columns: Math.max(1, element.columns ?? 1),
+          values,
+          columns: Math.max(1, element.columns),
           label: element.label,
           requiresEmptyDestination: true,
         }
-      } else if (element.layout === 'map') {
+      } else if (element.kind === 'map') {
         clipboardRef.current = {
           kind: 'array',
           category: 'map',
-          values: [...element.values],
+          values,
           label: element.label,
           requiresEmptyDestination: true,
         }
       } else {
         clipboardRef.current = {
           kind: 'array',
-          category: element.layout === 'vertical' && element.label === 'set' ? 'set' : 'array',
-          values: [...element.values],
+          category: element.kind,
+          values,
           label: element.label,
         }
       }
-    } else {
+    } else if (element.kind === 'variable' || element.kind === 'node') {
       clipboardRef.current = {
         kind: 'value',
         sourceKind: element.kind,
@@ -306,7 +308,7 @@ export const useSketchClipboard = ({
 
       const id = nextId
       const values = [...clipboard.values]
-      let layout: SketchArray['layout'] = 'horizontal'
+      let collectionKind: SketchCollection['kind'] = 'array'
       let label = clipboard.label ?? 'array'
       let columns: number | undefined
       if (
@@ -315,14 +317,14 @@ export const useSketchClipboard = ({
         clipboard.category === 'map-values' ||
         clipboard.category === 'map-rows'
       ) {
-        layout = 'vertical'
+        collectionKind = 'set'
         label = 'set'
       } else if (clipboard.category === 'map') {
-        layout = 'map'
+        collectionKind = 'map'
         label = clipboard.label ?? 'map'
         if (values.length % 2 !== 0) values.push('')
       } else if (clipboard.category === 'matrix') {
-        layout = 'matrix'
+        collectionKind = 'matrix'
         columns = Math.max(1, clipboard.columns ?? 1)
         label = clipboard.label ?? 'matrix'
       } else if (clipboard.category === 'matrix-row' || clipboard.category === 'matrix-column') {
@@ -330,25 +332,25 @@ export const useSketchClipboard = ({
       }
       if (values.length === 0) values.push('')
       const elementIds = values.map((_, index) => id + index + 1)
-      const newArray: SketchArray = {
+      let newArray = createSketchArray(
+        collectionKind,
         id,
-        kind: 'array',
         label,
-        element_ids: elementIds,
         values,
-        position: { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 },
-        layout,
+        elementIds,
+        { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 },
         columns,
-      }
-      if (layout === 'map' || (layout === 'vertical' && label === 'set')) {
+      )
+      if (collectionKind === 'map' || collectionKind === 'set') {
+        const flatValues = getCollectionValues(newArray)
+        const flatIds = getCollectionElementIds(newArray)
         const normalized = normalizeCollectionValues(
           newArray,
-          newArray.values,
-          newArray.element_ids,
-          new Set(newArray.element_ids),
+          flatValues,
+          flatIds,
+          new Set(flatIds),
         )
-        newArray.values = normalized.values
-        newArray.element_ids = normalized.elementIds
+        newArray = withCollectionCells(newArray, normalized.values, normalized.elementIds)
       }
       setElements((current) => [...current, newArray])
       setNextId((current) => current + values.length + 1)
@@ -361,7 +363,7 @@ export const useSketchClipboard = ({
     if (clipboard.kind === 'nodes' || selectedIds.size !== 1) return
     const target = elements.find((element) => element.id === selectedIds.values().next().value)
     if (!target) return
-    if (clipboard.kind === 'array' && target.kind === 'array' && target.layout === 'map') return
+    if (clipboard.kind === 'array' && target.kind === 'map') return
     if (clipboard.kind === 'value') {
       if (target.kind === 'variable' || target.kind === 'node') {
         setElements((current) =>
@@ -375,34 +377,36 @@ export const useSketchClipboard = ({
           elementEditRef.current = { elementId: target.id, hasTyped: true }
         return
       }
-      if (target.kind !== 'array') return
+      if (!isSketchCollection(target)) return
+      const targetValues = getCollectionValues(target)
+      const targetElementIds = getCollectionElementIds(target)
       const cellId =
         selectedCellIds.size === 1
           ? selectedCellIds.values().next().value
           : cellEditRef.current?.arrayId === target.id
-            ? target.element_ids[cellEditRef.current.index]
+            ? targetElementIds[cellEditRef.current.index]
             : undefined
-      const index = cellId === undefined ? -1 : target.element_ids.indexOf(cellId)
+      const index = cellId === undefined ? -1 : targetElementIds.indexOf(cellId)
       if (index < 0 || selectedCellIds.size > 1) return
-      const nextValues = [...target.values]
+      const nextValues = [...targetValues]
       nextValues[index] = clipboard.value
-      const preferredIds = new Set([target.element_ids[index]])
+      const preferredIds = new Set([targetElementIds[index]])
       const normalized =
-        (target.layout === 'vertical' && target.label === 'set') || target.layout === 'map'
-          ? normalizeCollectionValues(target, nextValues, target.element_ids, preferredIds)
+        target.kind === 'set' || target.kind === 'map'
+          ? normalizeCollectionValues(target, nextValues, targetElementIds, preferredIds)
           : {
               values: nextValues,
-              elementIds: target.element_ids,
+              elementIds: targetElementIds,
               removedCellIds: new Set<number>(),
             }
-      const finalIndex = normalized.elementIds.indexOf(target.element_ids[index])
-      const removedBefore = target.element_ids
+      const finalIndex = normalized.elementIds.indexOf(targetElementIds[index])
+      const removedBefore = targetElementIds
         .slice(0, index)
         .filter((id) => normalized.removedCellIds.has(id)).length
       const positionShift =
-        target.layout === 'map'
+        target.kind === 'map'
           ? (removedBefore / 2) * CELL_SIZE
-          : target.layout === 'vertical'
+          : target.kind === 'set'
             ? removedBefore * CELL_SIZE
             : 0
       setElements((current) =>
@@ -412,11 +416,9 @@ export const useSketchClipboard = ({
               !(element.kind === 'iterator' && normalized.removedCellIds.has(element.hostId)),
           )
           .map((element) =>
-            element.kind === 'array' && element.id === target.id
+            isSketchCollection(element) && element.id === target.id
               ? {
-                  ...element,
-                  values: normalized.values,
-                  element_ids: normalized.elementIds,
+                  ...withCollectionCells(element, normalized.values, normalized.elementIds),
                   position: {
                     ...element.position,
                     y: element.position.y + positionShift,
@@ -425,7 +427,7 @@ export const useSketchClipboard = ({
               : element,
           ),
       )
-      setSelectedCellIds(new Set([target.element_ids[index]]))
+      setSelectedCellIds(new Set([targetElementIds[index]]))
       if (finalIndex >= 0) {
         cellEditRef.current = { arrayId: target.id, index: finalIndex, hasTyped: true }
         setSelectedCell(finalIndex)
@@ -433,14 +435,16 @@ export const useSketchClipboard = ({
       return
     }
 
-    if (target.kind !== 'array') return
+    if (!isSketchCollection(target)) return
+    const targetValues = getCollectionValues(target)
+    const targetElementIds = getCollectionElementIds(target)
     const startIndex =
       cellEditRef.current?.arrayId === target.id ? cellEditRef.current.index : (selectedCell ?? 0)
-    const start = target.layout === 'map' ? Math.floor(startIndex / 2) * 2 : Math.max(0, startIndex)
-    const values = [...target.values]
-    const elementIds = [...target.element_ids]
+    const start = target.kind === 'map' ? Math.floor(startIndex / 2) * 2 : Math.max(0, startIndex)
+    const values = [...targetValues]
+    const elementIds = [...targetElementIds]
     const pastedValues = [...clipboard.values]
-    if (target.layout === 'map' && pastedValues.length % 2 !== 0) pastedValues.push('')
+    if (target.kind === 'map' && pastedValues.length % 2 !== 0) pastedValues.push('')
     const addedCount = Math.max(0, start + pastedValues.length - values.length)
     for (let index = 0; index < addedCount; index += 1) {
       values.push('')
@@ -450,8 +454,7 @@ export const useSketchClipboard = ({
       values[start + offset] = value
     })
     const preferredIds = new Set(elementIds.slice(start, start + pastedValues.length))
-    const isUniqueCollection =
-      target.layout === 'map' || (target.layout === 'vertical' && target.label === 'set')
+    const isUniqueCollection = target.kind === 'map' || target.kind === 'set'
     const normalized = isUniqueCollection
       ? normalizeCollectionValues(target, values, elementIds, preferredIds)
       : { values, elementIds, removedCellIds: new Set<number>() }
@@ -465,9 +468,9 @@ export const useSketchClipboard = ({
             .slice(0, elementIds.indexOf(activeCellId))
             .filter((cellId) => normalized.removedCellIds.has(cellId)).length
     const positionShift =
-      target.layout === 'map'
+      target.kind === 'map'
         ? (removedBefore / 2) * CELL_SIZE
-        : target.layout === 'vertical'
+        : target.kind === 'set'
           ? removedBefore * CELL_SIZE
           : 0
     setElements((current) =>
@@ -477,11 +480,9 @@ export const useSketchClipboard = ({
             !(element.kind === 'iterator' && normalized.removedCellIds.has(element.hostId)),
         )
         .map((element) =>
-          element.kind === 'array' && element.id === target.id
+          isSketchCollection(element) && element.id === target.id
             ? {
-                ...element,
-                values: normalized.values,
-                element_ids: normalized.elementIds,
+                ...withCollectionCells(element, normalized.values, normalized.elementIds),
                 position: { ...element.position, y: element.position.y + positionShift },
               }
             : element,

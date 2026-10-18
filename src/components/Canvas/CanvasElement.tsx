@@ -1,6 +1,12 @@
 import React from 'react'
 import { CELL_SIZE } from '../../constants/sketch'
 import type { SketchElement, SketchIterator } from '../../types/sketch'
+import {
+  getCollectionElementIds,
+  getCollectionLayout,
+  getCollectionValues,
+  isSketchCollection,
+} from '../../utils/sketchCollections'
 
 /** Element data, selection state, and event callbacks for one canvas object. */
 export type CanvasElementProps = {
@@ -32,6 +38,12 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   onSelectCell,
   onResetCellTyping,
 }) => {
+  const collection = isSketchCollection(element) ? element : null
+  const values = collection ? getCollectionValues(collection) : []
+  const elementIds = collection ? getCollectionElementIds(collection) : []
+  const layout = collection ? getCollectionLayout(collection) : 'horizontal'
+  const columns = collection?.kind === 'matrix' ? collection.columns : undefined
+
   return (
     <div
       data-node-id={element.kind === 'node' ? element.id : undefined}
@@ -41,38 +53,36 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       onPointerDown={(event) => onStartDrag(event, element.id)}
       onDoubleClick={onHostDoubleClick}
     >
-      {element.kind === 'array' ? (
+      {collection ? (
         <>
-          <div className="element-label">{element.label}</div>
+          <div className="element-label">{collection.label}</div>
           <div className="array-cells-container">
             <div
-              className={`array-cells layout-${element.layout || 'horizontal'}`}
+              className={`array-cells layout-${layout}`}
               style={
-                element.layout === 'matrix'
-                  ? { gridTemplateColumns: `repeat(${element.columns ?? 1}, ${CELL_SIZE}px)` }
+                layout === 'matrix'
+                  ? { gridTemplateColumns: `repeat(${columns ?? 1}, ${CELL_SIZE}px)` }
                   : undefined
               }
             >
-              {element.values.map((value, index) => {
-                const cellId = element.element_ids[index]
-                const hasPartialCellSelection = element.element_ids.some((id) =>
-                  selectedCellIds.has(id),
-                )
+              {values.map((value, index) => {
+                const cellId = elementIds[index]
+                const hasPartialCellSelection = elementIds.some((id) => selectedCellIds.has(id))
                 const targetCellId =
-                  element.layout === 'map' && index % 2 !== 0
-                    ? element.element_ids[index - 1]
-                    : cellId
-                const columns = Math.max(1, element.columns ?? 1)
-                const row = Math.floor(index / columns)
-                const column = index % columns
-                const rowCount = Math.ceil(element.values.length / columns)
+                  collection.kind === 'map' && index % 2 !== 0 ? elementIds[index - 1] : cellId
+                const matrixColumns = Math.max(1, columns ?? 1)
+                const row = Math.floor(index / matrixColumns)
+                const column = index % matrixColumns
+                const rowCount = Math.ceil(values.length / matrixColumns)
                 const matrixCorners =
-                  element.layout === 'matrix'
+                  layout === 'matrix'
                     ? [
                         row === 0 && column === 0 && 'corner-top-left',
-                        row === 0 && column === columns - 1 && 'corner-top-right',
+                        row === 0 && column === matrixColumns - 1 && 'corner-top-right',
                         row === rowCount - 1 && column === 0 && 'corner-bottom-left',
-                        row === rowCount - 1 && column === columns - 1 && 'corner-bottom-right',
+                        row === rowCount - 1 &&
+                          column === matrixColumns - 1 &&
+                          'corner-bottom-right',
                       ]
                         .filter(Boolean)
                         .join(' ')
@@ -93,7 +103,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     }`}
                     onPointerDown={() => {
                       onResetCellTyping()
-                      onSelectCell(element.id, index)
+                      onSelectCell(collection.id, index)
                     }}
                     onMouseDown={() => {
                       onResetCellTyping()
@@ -124,7 +134,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             data-node-id={element.kind === 'node' ? element.id : undefined}
             data-host-id={element.id}
           >
-            <span className="variable-value">{element.value}</span>
+            <span className="variable-value">
+              {element.kind === 'node' || element.kind === 'variable' ? element.value : ''}
+            </span>
           </div>
         </>
       )}

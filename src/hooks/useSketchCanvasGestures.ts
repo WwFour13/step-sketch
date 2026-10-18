@@ -7,12 +7,18 @@ import type {
   PointerDraft,
   RelationshipDrag,
   SelectionBox,
-  SketchArray,
+  SketchCollection,
   SketchElement,
   SketchIterator,
 } from '../types/sketch'
 import { CELL_SIZE, iteratorColors } from '../constants/sketch'
 import { elementBounds, hostBounds, hostIdFromPoint } from '../utils/canvas'
+import {
+  getCollectionElementIds,
+  getCollectionLayout,
+  getCollectionValues,
+  isSketchCollection,
+} from '../utils/sketchCollections'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 
 type UseSketchCanvasGesturesOptions = {
@@ -83,26 +89,28 @@ export const useSketchCanvasGestures = ({
     const host =
       elements.find((element) => element.id === iterator.hostId && element.kind === 'node') ||
       elements.find(
-        (element) => element.kind === 'array' && element.element_ids.includes(iterator.hostId),
+        (element) =>
+          isSketchCollection(element) && getCollectionElementIds(element).includes(iterator.hostId),
       )
     let nextHostId: number | null = null
     if (host?.kind === 'node' && host.pointer_ids.length === 1) nextHostId = host.pointer_ids[0]
-    if (host?.kind === 'array') {
-      const index = host.element_ids.indexOf(iterator.hostId)
-      if (host.layout === 'matrix') {
-        const columns = Math.max(1, host.columns ?? 1)
+    if (host && isSketchCollection(host)) {
+      const elementIds = getCollectionElementIds(host)
+      const index = elementIds.indexOf(iterator.hostId)
+      if (host.kind === 'matrix') {
+        const columns = Math.max(1, host.columns)
         const column = index % columns
         const step = iterator.mode === 'left' ? columns : 1
         if (
           index >= 0 &&
-          (iterator.mode === 'left' ? index + step < host.element_ids.length : column + 1 < columns)
+          (iterator.mode === 'left' ? index + step < elementIds.length : column + 1 < columns)
         ) {
-          nextHostId = host.element_ids[index + step]
+          nextHostId = elementIds[index + step]
         }
       } else {
-        const step = host.layout === 'map' ? 2 : 1
-        if (index >= 0 && index + step < host.element_ids.length) {
-          nextHostId = host.element_ids[index + step]
+        const step = host.kind === 'map' ? 2 : 1
+        if (index >= 0 && index + step < elementIds.length) {
+          nextHostId = elementIds[index + step]
         }
       }
     }
@@ -177,10 +185,10 @@ export const useSketchCanvasGestures = ({
     const previouslyWholeSelectedArrayIds = new Set(
       elements
         .filter(
-          (element): element is SketchArray =>
-            element.kind === 'array' &&
+          (element): element is SketchCollection =>
+            isSketchCollection(element) &&
             selectedIds.has(element.id) &&
-            !element.element_ids.some((cellId) => selectedCellIds.has(cellId)),
+            !getCollectionElementIds(element).some((cellId) => selectedCellIds.has(cellId)),
         )
         .map((array) => array.id),
     )
@@ -188,7 +196,7 @@ export const useSketchCanvasGestures = ({
       if (element.kind === 'iterator') return
       const bounds = elementBounds(element)
       if (!intersects(bounds)) return
-      if (element.kind !== 'array') {
+      if (!isSketchCollection(element)) {
         selectedObjectIds.push(element.id)
         return
       }
@@ -204,22 +212,25 @@ export const useSketchCanvasGestures = ({
       }
 
       const selectedIndexes: number[] = []
-      element.values.forEach((_, index) => {
-        const columns = Math.max(1, element.columns ?? 1)
+      const layout = getCollectionLayout(element)
+      const values = getCollectionValues(element)
+      const elementIds = getCollectionElementIds(element)
+      const columns = element.kind === 'matrix' ? Math.max(1, element.columns) : 1
+      values.forEach((_, index) => {
         const column =
-          element.layout === 'vertical'
+          layout === 'vertical'
             ? 0
-            : element.layout === 'map'
+            : layout === 'map'
               ? index % 2
-              : element.layout === 'matrix'
+              : layout === 'matrix'
                 ? index % columns
                 : index
         const row =
-          element.layout === 'vertical'
+          layout === 'vertical'
             ? index
-            : element.layout === 'map'
+            : layout === 'map'
               ? Math.floor(index / 2)
-              : element.layout === 'matrix'
+              : layout === 'matrix'
                 ? Math.floor(index / columns)
                 : 0
         if (
@@ -233,16 +244,16 @@ export const useSketchCanvasGestures = ({
           selectedIndexes.push(index)
         }
       })
-      if (element.layout === 'map') {
+      if (layout === 'map') {
         for (const index of [...selectedIndexes]) {
           const pairedIndex = index % 2 === 0 ? index + 1 : index - 1
-          if (pairedIndex < element.element_ids.length) selectedIndexes.push(pairedIndex)
+          if (pairedIndex < elementIds.length) selectedIndexes.push(pairedIndex)
         }
       }
       if (selectedIndexes.length > 0) {
         selectedObjectIds.push(element.id)
         if (!marquee.additive || !previouslyWholeSelectedArrayIds.has(element.id)) {
-          selectedIndexes.forEach((index) => selectedCellIdsInBox.add(element.element_ids[index]))
+          selectedIndexes.forEach((index) => selectedCellIdsInBox.add(elementIds[index]))
         }
       }
     })
@@ -254,7 +265,7 @@ export const useSketchCanvasGestures = ({
     setSelectedCellIds((currentSelection) => {
       const next = marquee.additive ? new Set(currentSelection) : new Set<number>()
       elements.forEach((element) => {
-        if (element.kind !== 'array' || !selectedObjectIds.includes(element.id)) return
+        if (!isSketchCollection(element) || !selectedObjectIds.includes(element.id)) return
         const item = elementBounds(element)
         if (
           x <= item.x &&
@@ -262,7 +273,7 @@ export const useSketchCanvasGestures = ({
           x + width >= item.x + item.width &&
           y + height >= item.y + item.height
         ) {
-          element.element_ids.forEach((cellId) => next.delete(cellId))
+          getCollectionElementIds(element).forEach((cellId) => next.delete(cellId))
         }
       })
       selectedCellIdsInBox.forEach((cellId) => next.add(cellId))
@@ -297,11 +308,11 @@ export const useSketchCanvasGestures = ({
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur()
       }
-    } else if (element.kind === 'array') {
+    } else if (isSketchCollection(element)) {
       elementEditRef.current = null
     }
     const isArrayCellTarget =
-      element.kind === 'array' &&
+      isSketchCollection(element) &&
       event.target instanceof HTMLInputElement &&
       event.target.classList.contains('array-cell-input')
     let activeSelection = isArrayCellTarget
@@ -334,7 +345,7 @@ export const useSketchCanvasGestures = ({
       selectOne(id)
       activeSelection = new Set([id])
     }
-    if (element.kind === 'array' && !isArrayCellTarget) {
+    if (isSketchCollection(element) && !isArrayCellTarget) {
       setSelectedCell(null)
       setSelectedCellIds(new Set())
     }
@@ -354,8 +365,8 @@ export const useSketchCanvasGestures = ({
       const selectedElement = elements.find((item) => item.id === selectedElementId)
       if (!selectedElement) return
       draggedIds.add(selectedElement.id)
-      if (selectedElement.kind === 'array') {
-        selectedElement.element_ids.forEach((elementId) => draggedIds.add(elementId))
+      if (isSketchCollection(selectedElement)) {
+        getCollectionElementIds(selectedElement).forEach((elementId) => draggedIds.add(elementId))
       }
     })
     const primaryElement =
@@ -449,26 +460,25 @@ export const useSketchCanvasGestures = ({
         const hostId = hostIdFromPoint(elements, event.clientX, event.clientY)
         if (hostId !== null) {
           const hostArray = elements.find(
-            (el): el is SketchArray => el.kind === 'array' && el.element_ids.includes(hostId),
+            (el): el is SketchCollection =>
+              isSketchCollection(el) && getCollectionElementIds(el).includes(hostId),
           )
           let nextMode: 'top' | 'bottom' | 'left' | 'right' = 'bottom'
           let nextHostId = hostId
-          if (hostArray?.layout === 'vertical' || hostArray?.layout === 'map') {
+          if (hostArray?.kind === 'set' || hostArray?.kind === 'map') {
             nextMode = 'left'
-          } else if (hostArray?.layout === 'matrix') {
+          } else if (hostArray?.kind === 'matrix') {
             const currentIterator = elements.find(
               (element): element is SketchIterator =>
                 element.kind === 'iterator' && element.id === draggedIterator.id,
             )
             nextMode = currentIterator?.mode === 'left' ? 'left' : 'top'
-            const index = hostArray.element_ids.indexOf(hostId)
-            const columns = Math.max(1, hostArray.columns ?? 1)
+            const elementIds = getCollectionElementIds(hostArray)
+            const index = elementIds.indexOf(hostId)
+            const columns = Math.max(1, hostArray.columns)
             const row = Math.floor(index / columns)
             const column = index % columns
-            nextHostId =
-              nextMode === 'left'
-                ? hostArray.element_ids[row * columns]
-                : hostArray.element_ids[column]
+            nextHostId = nextMode === 'left' ? elementIds[row * columns] : elementIds[column]
           } else {
             const bounds = hostBounds(elements, hostId)
             const canvasRect = canvasRef.current?.getBoundingClientRect()
@@ -640,24 +650,25 @@ export const useSketchCanvasGestures = ({
   const addIterator = (hostId: number, preferredMode?: 'top' | 'bottom' | 'left' | 'right') => {
     let targetHostId = hostId
     const hostElement = elements.find((element) => element.id === hostId)
-    if (hostElement?.kind === 'array') {
-      if (selectedCell !== null && hostElement.element_ids[selectedCell] !== undefined) {
+    if (hostElement && isSketchCollection(hostElement)) {
+      const elementIds = getCollectionElementIds(hostElement)
+      if (selectedCell !== null && elementIds[selectedCell] !== undefined) {
         const cellIndex =
-          hostElement.layout === 'map' && selectedCell % 2 !== 0 ? selectedCell - 1 : selectedCell
-        targetHostId = hostElement.element_ids[cellIndex]
-      } else if (hostElement.element_ids.length > 0) {
-        targetHostId = hostElement.element_ids[0]
+          hostElement.kind === 'map' && selectedCell % 2 !== 0 ? selectedCell - 1 : selectedCell
+        targetHostId = elementIds[cellIndex]
+      } else if (elementIds.length > 0) {
+        targetHostId = elementIds[0]
       }
     }
     if (!hostBounds(elements, targetHostId)) return
     const id = nextId
     const count = elements.filter((element) => element.kind === 'iterator').length
     const hostArray = elements.find(
-      (element): element is SketchArray =>
-        element.kind === 'array' && element.element_ids.includes(targetHostId),
+      (element): element is SketchCollection =>
+        isSketchCollection(element) && getCollectionElementIds(element).includes(targetHostId),
     )
     let mode: 'top' | 'bottom' | 'left' | 'right' = hostArray ? 'top' : 'bottom'
-    if (hostArray?.layout === 'vertical' || hostArray?.layout === 'map') {
+    if (hostArray?.kind === 'set' || hostArray?.kind === 'map') {
       mode = 'left'
     } else if (!hostArray && (preferredMode === 'top' || preferredMode === 'bottom')) {
       mode = preferredMode
@@ -700,22 +711,21 @@ export const useSketchCanvasGestures = ({
     let hostId = Number(hostIdStr)
     const matrix = cellTarget
       ? elements.find(
-          (element): element is SketchArray =>
-            element.kind === 'array' &&
-            element.layout === 'matrix' &&
-            element.element_ids.includes(hostId),
+          (element): element is Extract<SketchCollection, { kind: 'matrix' }> =>
+            element.kind === 'matrix' && getCollectionElementIds(element).includes(hostId),
         )
       : undefined
     if (matrix) {
-      const index = matrix.element_ids.indexOf(hostId)
-      const columns = Math.max(1, matrix.columns ?? 1)
+      const elementIds = getCollectionElementIds(matrix)
+      const index = elementIds.indexOf(hostId)
+      const columns = Math.max(1, matrix.columns)
       const row = Math.floor(index / columns)
       const column = index % columns
       const iteratorCount = elements.filter((element) => element.kind === 'iterator').length
-      const topIterator = createIterator(nextId, matrix.element_ids[column], 'top', iteratorCount)
+      const topIterator = createIterator(nextId, elementIds[column], 'top', iteratorCount)
       const leftIterator = createIterator(
         nextId + 1,
-        matrix.element_ids[row * columns],
+        elementIds[row * columns],
         'left',
         iteratorCount + 1,
       )
@@ -728,20 +738,22 @@ export const useSketchCanvasGestures = ({
     }
 
     const hostElement = elements.find((el) => el.id === hostId)
-    if (hostElement?.kind === 'array') {
-      if (selectedCell !== null && hostElement.element_ids[selectedCell] !== undefined) {
+    if (hostElement && isSketchCollection(hostElement)) {
+      const elementIds = getCollectionElementIds(hostElement)
+      if (selectedCell !== null && elementIds[selectedCell] !== undefined) {
         const cellIndex =
-          hostElement.layout === 'map' && selectedCell % 2 !== 0 ? selectedCell - 1 : selectedCell
-        hostId = hostElement.element_ids[cellIndex]
-      } else if (hostElement.element_ids.length > 0) {
-        hostId = hostElement.element_ids[0]
+          hostElement.kind === 'map' && selectedCell % 2 !== 0 ? selectedCell - 1 : selectedCell
+        hostId = elementIds[cellIndex]
+      } else if (elementIds.length > 0) {
+        hostId = elementIds[0]
       }
     }
 
     let preferredMode: 'top' | 'bottom' | 'left' | 'right' | undefined
     if (
-      hostElement?.kind === 'array' &&
-      (hostElement.layout === 'vertical' || hostElement.layout === 'map')
+      hostElement &&
+      isSketchCollection(hostElement) &&
+      (hostElement.kind === 'set' || hostElement.kind === 'map')
     ) {
       preferredMode = 'left'
     } else {

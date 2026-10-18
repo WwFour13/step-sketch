@@ -13,17 +13,43 @@ export type SketchVariable = {
   position: Position
 }
 
-/** Collection whose cells have stable IDs for pointers and iterators. */
-export type SketchArray = {
+/** Shared metadata for cell-based collections. */
+type SketchCollectionBase = {
   id: number
-  kind: 'array'
   label: string
+  position: Position
+}
+
+/** One-dimensional array with stable cell IDs for pointers and iterators. */
+export type SketchArray = SketchCollectionBase & {
+  kind: 'array'
   element_ids: number[]
   values: string[]
-  position: Position
-  layout?: 'horizontal' | 'vertical' | 'map' | 'matrix'
-  columns?: number
 }
+
+/** Vertical one-dimensional collection with unique values. */
+export type SketchSet = SketchCollectionBase & {
+  kind: 'set'
+  element_ids: number[]
+  values: string[]
+}
+
+/** Key/value collection stored as alternating key and value cells. */
+export type SketchMap = SketchCollectionBase & {
+  kind: 'map'
+  element_ids: number[]
+  values: string[]
+}
+
+/** Two-dimensional matrix whose values and cell IDs retain row structure. */
+export type SketchMatrix = SketchCollectionBase & {
+  kind: 'matrix'
+  element_ids: number[][]
+  values: string[][]
+  columns: number
+}
+
+export type SketchCollection = SketchArray | SketchSet | SketchMap | SketchMatrix
 
 /** Pointer node with references to other node IDs and no user-facing label. */
 export type SketchNode = Omit<SketchVariable, 'kind' | 'label'> & {
@@ -50,7 +76,7 @@ export type SketchIterator = {
 }
 
 /** Discriminated union of every element stored on the sketch canvas. */
-export type SketchElement = SketchVariable | SketchArray | SketchNode | SketchIterator
+export type SketchElement = SketchVariable | SketchCollection | SketchNode | SketchIterator
 
 /** Snapshot of element positions and offsets captured at the start of a drag. */
 export type DragState = {

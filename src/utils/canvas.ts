@@ -1,5 +1,11 @@
 import { CELL_SIZE, MAP_CELL_WIDTH, NODE_RADIUS, NODE_SIZE } from '../constants/sketch'
-import type { Position, SketchArray, SketchElement, SketchIterator } from '../types/sketch'
+import type { Position, SketchCollection, SketchElement, SketchIterator } from '../types/sketch'
+import {
+  getCollectionElementIds,
+  getCollectionLayout,
+  getCollectionValues,
+  isSketchCollection,
+} from './sketchCollections'
 
 export { CELL_SIZE, MAP_CELL_WIDTH, NODE_SIZE }
 
@@ -7,33 +13,38 @@ export { CELL_SIZE, MAP_CELL_WIDTH, NODE_SIZE }
  * Returns the canvas-space rectangle occupied by an element. Array dimensions
  * depend on the array's layout, while iterators are positioned separately.
  */
-export const elementBounds = (element: SketchElement) => ({
-  x: element.kind === 'iterator' ? 0 : element.position.x,
-  y: element.kind === 'iterator' ? 0 : element.position.y,
-  width:
-    element.kind === 'iterator' ||
-    element.kind === 'node' ||
-    element.kind === 'variable' ||
-    element.layout === 'vertical'
-      ? NODE_SIZE
-      : element.layout === 'map'
-        ? MAP_CELL_WIDTH
-        : element.layout === 'matrix'
-          ? (element.columns ?? 1) * CELL_SIZE
-          : element.values.length * CELL_SIZE,
-  height:
-    element.kind === 'iterator' ||
-    element.kind === 'node' ||
-    element.kind === 'variable' ||
-    element.layout === 'horizontal' ||
-    !element.layout
-      ? NODE_SIZE
-      : element.layout === 'map'
-        ? Math.ceil(element.values.length / 2) * CELL_SIZE
-        : element.layout === 'matrix'
-          ? Math.ceil(element.values.length / Math.max(1, element.columns ?? 1)) * CELL_SIZE
-          : element.values.length * CELL_SIZE,
-})
+export const elementBounds = (element: SketchElement) => {
+  if (element.kind === 'iterator') {
+    return { x: 0, y: 0, width: 0, height: 0 }
+  }
+  if (!isSketchCollection(element)) {
+    return { x: element.position.x, y: element.position.y, width: NODE_SIZE, height: NODE_SIZE }
+  }
+
+  const layout = getCollectionLayout(element)
+  const values = getCollectionValues(element)
+  const columns = element.kind === 'matrix' ? element.columns : 1
+  return {
+    x: element.position.x,
+    y: element.position.y,
+    width:
+      layout === 'vertical'
+        ? NODE_SIZE
+        : layout === 'map'
+          ? MAP_CELL_WIDTH
+          : layout === 'matrix'
+            ? columns * CELL_SIZE
+            : values.length * CELL_SIZE,
+    height:
+      layout === 'horizontal'
+        ? NODE_SIZE
+        : layout === 'map'
+          ? Math.ceil(values.length / 2) * CELL_SIZE
+          : layout === 'matrix'
+            ? Math.ceil(values.length / columns) * CELL_SIZE
+            : values.length * CELL_SIZE,
+  }
+}
 
 /**
  * Resolves a node, array, or array-cell ID to its canvas-space bounds.
@@ -48,29 +59,32 @@ export const hostBounds = (
   const host = elements.find((element) => element.id === hostId)
   if (host?.kind === 'node' || host?.kind === 'variable')
     return { x: host.position.x, y: host.position.y, width: NODE_SIZE, height: NODE_SIZE }
-  if (host?.kind === 'array' && host.element_ids.length > 0) {
-    return hostBounds(elements, host.element_ids[0])
+  if (host && isSketchCollection(host)) {
+    const firstCellId = getCollectionElementIds(host)[0]
+    if (firstCellId !== undefined) return hostBounds(elements, firstCellId)
   }
   const array = elements.find(
-    (element): element is SketchArray =>
-      element.kind === 'array' && element.element_ids.includes(hostId),
+    (element): element is SketchCollection =>
+      isSketchCollection(element) && getCollectionElementIds(element).includes(hostId),
   )
   if (!array) return null
-  const index = array.element_ids.indexOf(hostId)
-  const effectiveIndex = array.layout === 'map' && index % 2 !== 0 ? index - 1 : index
-  const columns = Math.max(1, array.columns ?? 1)
+  const elementIds = getCollectionElementIds(array)
+  const index = elementIds.indexOf(hostId)
+  const layout = getCollectionLayout(array)
+  const effectiveIndex = layout === 'map' && index % 2 !== 0 ? index - 1 : index
+  const columns = array.kind === 'matrix' ? Math.max(1, array.columns) : 1
   const column =
-    array.layout === 'map' || array.layout === 'vertical'
+    layout === 'map' || layout === 'vertical'
       ? 0
-      : array.layout === 'matrix'
+      : layout === 'matrix'
         ? index % columns
         : effectiveIndex
   const row =
-    array.layout === 'map'
+    layout === 'map'
       ? Math.floor(effectiveIndex / 2)
-      : array.layout === 'vertical'
+      : layout === 'vertical'
         ? effectiveIndex
-        : array.layout === 'matrix'
+        : layout === 'matrix'
           ? Math.floor(index / columns)
           : 0
   return {
@@ -153,12 +167,14 @@ export const hostIdFromPoint = (elements: SketchElement[], clientX: number, clie
     if (cellId && hostBounds(elements, Number(cellId))) {
       const numCellId = Number(cellId)
       const hostArr = elements.find(
-        (el): el is SketchArray => el.kind === 'array' && el.element_ids.includes(numCellId),
+        (el): el is SketchCollection =>
+          isSketchCollection(el) && getCollectionElementIds(el).includes(numCellId),
       )
-      if (hostArr?.layout === 'map') {
-        const idx = hostArr.element_ids.indexOf(numCellId)
+      if (hostArr?.kind === 'map') {
+        const elementIds = getCollectionElementIds(hostArr)
+        const idx = elementIds.indexOf(numCellId)
         if (idx % 2 !== 0) {
-          return hostArr.element_ids[idx - 1]
+          return elementIds[idx - 1]
         }
       }
       return numCellId
@@ -167,8 +183,9 @@ export const hostIdFromPoint = (elements: SketchElement[], clientX: number, clie
     if (nodeId && hostBounds(elements, Number(nodeId))) {
       const numNodeId = Number(nodeId)
       const hostArr = elements.find((el) => el.id === numNodeId)
-      if (hostArr?.kind === 'array' && hostArr.element_ids.length > 0) {
-        return hostArr.element_ids[0]
+      if (hostArr && isSketchCollection(hostArr)) {
+        const firstCellId = getCollectionElementIds(hostArr)[0]
+        if (firstCellId !== undefined) return firstCellId
       }
       return numNodeId
     }
@@ -197,22 +214,21 @@ export const pointerEndpoints = (source: Position, target: Position) => {
  * Formats an array's values for the multiline inspector editor according to
  * its layout (map pairs, matrix rows, vertical items, or comma-separated items).
  */
-export const getArrayEditorValue = (array: SketchArray) => {
-  if (array.layout === 'map') {
+export const getArrayEditorValue = (array: SketchCollection) => {
+  const layout = getCollectionLayout(array)
+  const values = getCollectionValues(array)
+  if (layout === 'map') {
     const pairs: string[] = []
-    for (let index = 0; index < array.values.length; index += 2) {
-      pairs.push(`${array.values[index] || ''}: ${array.values[index + 1] || ''}`)
+    for (let index = 0; index < values.length; index += 2) {
+      pairs.push(`${values[index] || ''}: ${values[index + 1] || ''}`)
     }
     return pairs.join('\n')
   }
-  if (array.layout === 'matrix') {
-    const columns = Math.max(1, array.columns ?? 1)
-    return Array.from({ length: Math.ceil(array.values.length / columns) }, (_, row) =>
-      array.values.slice(row * columns, (row + 1) * columns).join(', '),
-    ).join('\n')
+  if (layout === 'matrix' && array.kind === 'matrix') {
+    return array.values.map((row) => row.join(', ')).join('\n')
   }
-  if (array.layout === 'vertical') return array.values.join('\n')
-  return array.values.join(', ')
+  if (layout === 'vertical') return values.join('\n')
+  return values.join(', ')
 }
 
 /**
@@ -220,7 +236,7 @@ export const getArrayEditorValue = (array: SketchArray) => {
  * Map entries use one key/value pair per line; other layouts split by line
  * or comma as appropriate.
  */
-export const parseArrayEditorValue = (value: string, layout: SketchArray['layout']) => {
+export const parseArrayEditorValue = (value: string, layout: 'horizontal' | 'vertical' | 'map') => {
   if (layout === 'map') {
     return value.split('\n').flatMap((line) => {
       const separator = line.indexOf(':')
@@ -243,6 +259,6 @@ export const parseMatrixEditorValue = (value: string) => {
   const columns = Math.max(1, ...rows.map((row) => row.length))
   return {
     columns,
-    values: rows.flatMap((row) => [...row, ...Array<string>(columns - row.length).fill('')]),
+    values: rows.map((row) => [...row, ...Array<string>(columns - row.length).fill('')]),
   }
 }

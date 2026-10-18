@@ -343,23 +343,24 @@ export const buildTestCaseElements = (
       ) {
         const rows = value as unknown[][]
         const columns = Math.max(1, ...rows.map((row) => row.length))
-        const matrixValues = rows.flatMap((row) => [
+        const matrixValues = rows.map((row) => [
           ...row.map(String),
           ...Array<string>(columns - row.length).fill(''),
         ])
         const matrixId = nextId
-        nextId += matrixValues.length + 1
+        nextId += matrixValues.flat().length + 1
         elements.push({
           id: matrixId,
-          kind: 'array',
+          kind: 'matrix',
           label,
-          element_ids: matrixValues.map((_, cellIndex) => matrixId + cellIndex + 1),
+          element_ids: matrixValues.map((row, rowIndex) =>
+            row.map((_, columnIndex) => matrixId + rowIndex * columns + columnIndex + 1),
+          ),
           values: matrixValues,
           position: { x: basePosition.x, y: currentY },
-          layout: 'matrix',
           columns,
         })
-        currentY += Math.max(90, rows.length * CELL_SIZE + 35)
+        currentY += Math.max(90, matrixValues.length * CELL_SIZE + 35)
         return
       }
 
