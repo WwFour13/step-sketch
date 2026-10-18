@@ -19,7 +19,7 @@ export type CanvasProps = {
   selectedCellIds: Set<number>
   selectedId: number
   selectedCell: number | null
-  appendCellsArrayId: number | null
+  isInsertBefore?: boolean
   pointerDraft: PointerDraft | null
   selectionBox: SelectionBox | null
   iteratorDrag: IteratorDragState | null
@@ -50,7 +50,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   selectedCellIds,
   selectedId,
   selectedCell,
-  appendCellsArrayId,
+  isInsertBefore,
   pointerDraft,
   selectionBox,
   iteratorDrag,
@@ -99,7 +99,7 @@ export const Canvas: React.FC<CanvasProps> = ({
             isPrimarySelected={selectedId === element.id}
             selectedCellIds={selectedCellIds}
             selectedCell={selectedCell}
-            isAppendingCells={element.kind === 'array' && element.id === appendCellsArrayId}
+            isInsertBefore={isInsertBefore}
             onStartDrag={onStartDrag}
             onHostDoubleClick={onHostDoubleClick}
             onSelectCell={onSelectCell}

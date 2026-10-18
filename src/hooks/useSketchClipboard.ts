@@ -1,7 +1,13 @@
 import { useCallback } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { CELL_SIZE } from '../constants/sketch'
-import type { CellEditState, SketchCollection, SketchElement, SketchNode } from '../types/sketch'
+import type {
+  CellEditState,
+  SketchArray,
+  SketchCollection,
+  SketchElement,
+  SketchNode,
+} from '../types/sketch'
 import {
   createSketchArray,
   getCollectionElementIds,
@@ -29,6 +35,7 @@ export type SketchClipboard =
       values: string[]
       columns?: number
       label?: string
+      input_type?: SketchArray['input_type']
       requiresEmptyDestination?: boolean
     }
   | { kind: 'nodes'; nodes: SketchNode[] }
@@ -196,6 +203,7 @@ export const useSketchClipboard = ({
         values: indexes.map((index) => values[index]),
         columns,
         label: array.label,
+        input_type: array.kind === 'array' ? array.input_type : undefined,
         requiresEmptyDestination: category === 'matrix' || category === 'map-rows',
       }
       return
@@ -245,6 +253,7 @@ export const useSketchClipboard = ({
           category: element.kind,
           values,
           label: element.label,
+          input_type: element.kind === 'array' ? element.input_type : undefined,
         }
       }
     } else if (element.kind === 'variable' || element.kind === 'node') {
@@ -340,6 +349,7 @@ export const useSketchClipboard = ({
         elementIds,
         { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 },
         columns,
+        clipboard.input_type,
       )
       if (collectionKind === 'map' || collectionKind === 'set') {
         const flatValues = getCollectionValues(newArray)

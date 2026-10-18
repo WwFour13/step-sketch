@@ -83,6 +83,7 @@ export const buildTestCaseElements = (
           id: nextId,
           kind: 'array',
           label,
+          input_type: 'number',
           element_ids: [],
           values: [],
           position: { x: basePosition.x, y: currentY },
@@ -269,6 +270,7 @@ export const buildTestCaseElements = (
         id,
         kind: 'array',
         label,
+        input_type: 'character',
         element_ids: characters.map((_, characterIndex) => id + characterIndex + 1),
         values: characters,
         position: { x: basePosition.x, y: currentY },
@@ -291,6 +293,7 @@ export const buildTestCaseElements = (
             id,
             kind: 'array',
             label,
+            input_type: 'number',
             element_ids: [],
             values: [],
             position: { x: basePosition.x, y: currentY },
@@ -304,10 +307,14 @@ export const buildTestCaseElements = (
           const rowId = nextId
           const rowValues = row.map(String)
           nextId += rowValues.length + 1
+          const isCharacterRow =
+            rowValues.length > 0 &&
+            rowValues.some((v) => !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(v))
           elements.push({
             id: rowId,
             kind: 'array',
             label: `${label}[${rowIndex}]`,
+            input_type: isCharacterRow ? 'character' : 'number',
             element_ids: rowValues.map((_, valueIndex) => rowId + valueIndex + 1),
             values: rowValues,
             position: { x: basePosition.x, y: currentY },
@@ -318,7 +325,12 @@ export const buildTestCaseElements = (
       }
 
       // Array of strings: e.g. ["flower", "flow", "flight"]
-      if (value.length > 0 && value.every((item) => typeof item === 'string')) {
+      if (
+        value.length > 0 &&
+        value.every((item) => typeof item === 'string') &&
+        (input.shape === 'array_of_strings' ||
+          (input.shape !== 'array' && value.some((item) => (item as string).length > 1)))
+      ) {
         value.forEach((item, stringIndex) => {
           const stringId = nextId
           const characters = Array.from(item as string)
@@ -327,6 +339,7 @@ export const buildTestCaseElements = (
             id: stringId,
             kind: 'array',
             label: `${label}[${stringIndex}]`,
+            input_type: 'character',
             element_ids: characters.map((_, characterIndex) => stringId + characterIndex + 1),
             values: characters,
             position: { x: basePosition.x, y: currentY },
@@ -365,11 +378,18 @@ export const buildTestCaseElements = (
       }
 
       // Standard 1D array
+      const isCharacterArray =
+        input.shape === 'string' ||
+        (value.length > 0 &&
+          value.some(
+            (item) => typeof item === 'string' && !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(item),
+          ))
       nextId += value.length + 1
       elements.push({
         id,
         kind: 'array',
         label,
+        input_type: isCharacterArray ? 'character' : 'number',
         element_ids: value.map((_, valueIndex) => id + valueIndex + 1),
         values: value.map(String),
         position: { x: basePosition.x, y: currentY },

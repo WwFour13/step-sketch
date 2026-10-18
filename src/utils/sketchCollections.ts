@@ -5,6 +5,7 @@ import type {
   SketchMap,
   SketchMatrix,
   SketchSet,
+  SketchArrayInputType,
 } from '../types/sketch'
 
 export const isSketchCollection = (element: SketchElement): element is SketchCollection =>
@@ -27,10 +28,10 @@ export const getCollectionLayout = (collection: SketchCollection) => {
 }
 
 export const getCollectionValues = (collection: SketchCollection): string[] =>
-  collection.kind === 'matrix' ? collection.values.flat() : collection.values
+  collection.kind === 'matrix' ? collection.values.flat() : [...collection.values]
 
 export const getCollectionElementIds = (collection: SketchCollection): number[] =>
-  collection.kind === 'matrix' ? collection.element_ids.flat() : collection.element_ids
+  collection.kind === 'matrix' ? collection.element_ids.flat() : [...collection.element_ids]
 
 export const getCollectionColumns = (collection: SketchMatrix): number =>
   Math.max(1, collection.columns)
@@ -66,6 +67,7 @@ export const createSketchArray = (
   elementIds: number[],
   position: SketchCollection['position'],
   columns?: number,
+  inputType?: SketchArrayInputType,
 ): SketchCollection => {
   if (kind === 'matrix') {
     const matrixColumns = Math.max(1, columns ?? 1)
@@ -84,6 +86,17 @@ export const createSketchArray = (
       position,
       columns: matrixColumns,
     }
+  }
+  if (kind === 'array') {
+    const resolvedInputType: SketchArrayInputType =
+      inputType ??
+      (label.toLowerCase() === 'text' ||
+      label.toLowerCase().includes('str') ||
+      label.toLowerCase().includes('word') ||
+      (values.length > 0 && values.some((val) => !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(val)))
+        ? 'character'
+        : 'number')
+    return { id, kind, label, values, element_ids: elementIds, position, input_type: resolvedInputType }
   }
   return { id, kind, label, values, element_ids: elementIds, position }
 }

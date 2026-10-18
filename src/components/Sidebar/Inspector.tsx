@@ -32,7 +32,6 @@ export const Inspector: React.FC<InspectorProps> = ({
 
   return (
     <div className="inspector">
-      <div className="section-label">SELECTED ELEMENT</div>
       {(selected.kind === 'variable' || isCollection) && (
         <div className="field-row">
           <label htmlFor="label">Label</label>

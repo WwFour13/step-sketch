@@ -20,9 +20,12 @@ type SketchCollectionBase = {
   position: Position
 }
 
+export type SketchArrayInputType = 'number' | 'character'
+
 /** One-dimensional array with stable cell IDs for pointers and iterators. */
 export type SketchArray = SketchCollectionBase & {
   kind: 'array'
+  input_type: SketchArrayInputType
   element_ids: number[]
   values: string[]
 }
@@ -114,8 +117,7 @@ export type CellEditState = {
   arrayId: number
   index: number
   hasTyped: boolean
-  replaceOnly?: boolean
-  appendMode?: boolean
+  insertBefore?: boolean
 }
 
 /** Origin and additive-selection mode for an active marquee gesture. */

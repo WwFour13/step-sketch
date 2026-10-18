@@ -15,7 +15,7 @@ export type CanvasElementProps = {
   isPrimarySelected: boolean
   selectedCellIds: Set<number>
   selectedCell: number | null
-  isAppendingCells: boolean
+  isInsertBefore?: boolean
   onStartDrag: (event: React.PointerEvent, id: number) => void
   onHostDoubleClick: (event: React.MouseEvent) => void
   onSelectCell: (arrayId: number, index: number) => void
@@ -32,7 +32,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   isPrimarySelected,
   selectedCellIds,
   selectedCell,
-  isAppendingCells,
+  isInsertBefore,
   onStartDrag,
   onHostDoubleClick,
   onSelectCell,
@@ -43,6 +43,12 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   const elementIds = collection ? getCollectionElementIds(collection) : []
   const layout = collection ? getCollectionLayout(collection) : 'horizontal'
   const columns = collection?.kind === 'matrix' ? collection.columns : undefined
+  const isInsertBeforeActive =
+    Boolean(isInsertBefore) &&
+    isPrimarySelected &&
+    selectedCell === 0 &&
+    collection?.kind === 'array' &&
+    collection?.input_type === 'character'
 
   return (
     <div
@@ -65,6 +71,14 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                   : undefined
               }
             >
+              {isInsertBeforeActive && (
+                <div
+                  className="array-cell-fake-insert"
+                  aria-hidden="true"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onMouseDown={(event) => event.stopPropagation()}
+                />
+              )}
               {values.map((value, index) => {
                 const cellId = elementIds[index]
                 const hasPartialCellSelection = elementIds.some((id) => selectedCellIds.has(id))
@@ -87,6 +101,11 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                         .filter(Boolean)
                         .join(' ')
                     : ''
+                const isCellActive =
+                  !(index === 0 && isInsertBeforeActive) &&
+                  (selectedCellIds.has(cellId) ||
+                    (isPrimarySelected && selectedCell === index) ||
+                    (isSelected && selectedCell === null && !hasPartialCellSelection))
                 return (
                   <input
                     key={cellId}
@@ -94,13 +113,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     value={value}
                     readOnly
                     draggable={false}
-                    className={`array-cell-input ${matrixCorners} ${
-                      selectedCellIds.has(cellId) ||
-                      (isPrimarySelected && selectedCell === index) ||
-                      (isSelected && selectedCell === null && !hasPartialCellSelection)
-                        ? 'cell-active'
-                        : ''
-                    }`}
+                    className={`array-cell-input ${matrixCorners} ${isCellActive ? 'cell-active' : ''}`}
                     onPointerDown={() => {
                       onResetCellTyping()
                       onSelectCell(collection.id, index)
@@ -121,7 +134,6 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                 )
               })}
             </div>
-            {isAppendingCells && <span className="array-append-indicator">+</span>}
           </div>
         </>
       ) : (

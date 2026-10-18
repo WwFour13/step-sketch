@@ -19,7 +19,6 @@ type UseSketchDeletionOptions = {
   setSelectedCell: Dispatch<SetStateAction<number | null>>
   cellEditRef: MutableRefObject<CellEditState | null>
   elementEditRef: MutableRefObject<{ elementId: number; hasTyped: boolean } | null>
-  setAppendCellsArrayId: Dispatch<SetStateAction<number | null>>
 }
 
 export const useSketchDeletion = ({
@@ -33,7 +32,6 @@ export const useSketchDeletion = ({
   setSelectedCell,
   cellEditRef,
   elementEditRef,
-  setAppendCellsArrayId,
 }: UseSketchDeletionOptions) => {
   /**
    * Deletes the requested element, or the full current selection when it
@@ -237,7 +235,6 @@ export const useSketchDeletion = ({
         arrayId: primaryArray.id,
         index: primaryCellIndex,
         hasTyped: false,
-        replaceOnly: true,
       }
       setSelectedCell(primaryCellIndex)
     } else {
@@ -245,14 +242,12 @@ export const useSketchDeletion = ({
       setSelectedCell(null)
     }
     elementEditRef.current = null
-    setAppendCellsArrayId(null)
   }, [
     elements,
     cellEditRef,
     elementEditRef,
     selectedCellIds,
     selectedIds,
-    setAppendCellsArrayId,
     setElements,
     setSelectedCell,
     setSelectedCellIds,

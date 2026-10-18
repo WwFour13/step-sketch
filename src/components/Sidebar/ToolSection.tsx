@@ -1,9 +1,10 @@
 import React from 'react'
+import type { SketchArrayInputType } from '../../types/sketch'
 
 /** Element-creation callbacks and import status consumed by the tool palette. */
 export type ToolSectionProps = {
   onAddVariable: (kind: 'variable' | 'node') => void
-  onAddArray: (values: string[], label: string) => void
+  onAddArray: (values: string[], label: string, inputType?: SketchArrayInputType) => void
   onAddLinkedList: () => void
   onAddSet: () => void
   onAddMap: () => void
@@ -46,7 +47,7 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
         <button
           className="template-button"
           title="[ 1, 4, 9, 16 ]"
-          onClick={() => onAddArray(['1', '4', '9', '16'], 'array')}
+          onClick={() => onAddArray(['1', '4', '9', '16'], 'array', 'number')}
         >
           <span className="template-icon">[]</span>
           <span className="template-copy">
@@ -86,7 +87,7 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
         <button
           className="template-button"
           title='"algo" as cells'
-          onClick={() => onAddArray(['a', 'l', 'g', 'o'], 'text')}
+          onClick={() => onAddArray(['a', 'l', 'g', 'o'], 'text', 'character')}
         >
           <span className="template-icon">Aa</span>
           <span className="template-copy">

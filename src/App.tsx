@@ -27,7 +27,6 @@ function App() {
   const [nextId, setNextId] = useState(15)
   const [isLeetCodeModalOpen, setIsLeetCodeModalOpen] = useState(false)
   const [problemStatus, setProblemStatus] = useState('')
-  const [appendCellsArrayId, setAppendCellsArrayId] = useState<number | null>(null)
 
   const canvasRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<DragState | null>(null)
@@ -56,6 +55,8 @@ function App() {
     setSelectedCellIds,
     selectedCell,
     setSelectedCell,
+    isInsertBefore,
+    setIsInsertBefore,
     selectCell,
     selectOne,
     confirmCellEdit,
@@ -63,7 +64,6 @@ function App() {
     elements,
     setElements,
     cellEditRef,
-    setAppendCellsArrayId,
   })
   useEffect(() => {
     confirmCellEditRef.current = confirmCellEdit
@@ -92,10 +92,13 @@ function App() {
     cells?.[cellEdit.index]?.focus()
   }, [elements, selectedCell])
 
-  /** Lets the next typed character replace the selected cell's current value. */
+  /** Resets the selected cell's numeric replacement state before editing. */
   const resetCellTyping = () => {
-    if (cellEditRef.current) cellEditRef.current.hasTyped = false
-    setAppendCellsArrayId(null)
+    if (cellEditRef.current) {
+      cellEditRef.current.hasTyped = false
+      cellEditRef.current.insertBefore = false
+    }
+    setIsInsertBefore(false)
   }
 
   const { deleteElement, deleteSelection } = useSketchDeletion({
@@ -109,7 +112,6 @@ function App() {
     setSelectedCell,
     cellEditRef,
     elementEditRef,
-    setAppendCellsArrayId,
   })
   const { copySelection, pasteClipboard } = useSketchClipboard({
     elements,
@@ -145,8 +147,8 @@ function App() {
     selectedIds,
     setSelectedCell,
     setSelectedCellIds,
-    setAppendCellsArrayId,
     resetCellTyping,
+    setIsInsertBefore,
   })
   const {
     addVariable,
@@ -239,6 +241,7 @@ function App() {
           selectedCellIds={selectedCellIds}
           selectedId={selectedId}
           selectedCell={selectedCell}
+          isInsertBefore={isInsertBefore}
           pointerDraft={pointerDraft}
           selectionBox={selectionBox}
           iteratorDrag={iteratorDrag}
@@ -250,7 +253,6 @@ function App() {
           onHostDoubleClick={handleHostDoubleClick}
           onSelectCell={selectCell}
           onResetCellTyping={resetCellTyping}
-          appendCellsArrayId={appendCellsArrayId}
           onStartIteratorDrag={startIteratorDrag}
           onRelationshipStart={handleRelationshipStart}
           onRelationshipFinish={finishPointer}

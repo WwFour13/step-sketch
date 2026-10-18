@@ -20,19 +20,18 @@ type UseSketchSelectionOptions = {
   elements: SketchElement[]
   setElements: Dispatch<SetStateAction<SketchElement[]>>
   cellEditRef: MutableRefObject<CellEditState | null>
-  setAppendCellsArrayId: Dispatch<SetStateAction<number | null>>
 }
 
 export const useSketchSelection = ({
   elements,
   setElements,
   cellEditRef,
-  setAppendCellsArrayId,
 }: UseSketchSelectionOptions) => {
   const [selectedId, setSelectedId] = useState(1)
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set([1]))
   const [selectedCellIds, setSelectedCellIds] = useState<Set<number>>(new Set())
   const [selectedCell, setSelectedCell] = useState<number | null>(null)
+  const [isInsertBefore, setIsInsertBefore] = useState(false)
 
   const confirmCellEdit = useCallback(
     (cellEdit: CellEditState | null): CellEditConfirmation | null => {
@@ -43,6 +42,23 @@ export const useSketchSelection = ({
           isSketchCollection(element) && element.id === cellEdit.arrayId,
       )
       if (!array) return null
+
+      if (array.kind === 'array' && array.input_type === 'number') {
+        const value = getCollectionValues(array)[cellEdit.index] ?? ''
+        const isValidNumber = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value)
+        if (value && !isValidNumber) {
+          setElements((current) =>
+            current.map((element) => {
+              if (element.kind !== 'array' || element.id !== array.id) return element
+              const values = [...getCollectionValues(element)]
+              if (cellEdit.index >= values.length) return element
+              values[cellEdit.index] = ''
+              return withCollectionCells(element, values, getCollectionElementIds(element))
+            }),
+          )
+        }
+        return null
+      }
 
       const isSet = array.kind === 'set'
       const isMapKey = array.kind === 'map' && cellEdit.index % 2 === 0
@@ -90,10 +106,9 @@ export const useSketchSelection = ({
             }
           }),
       )
-      setAppendCellsArrayId(null)
       return { arrayId: array.id, start, count, adjustedIndex }
     },
-    [elements, setAppendCellsArrayId, setElements, setSelectedCellIds],
+    [elements, setElements, setSelectedCellIds],
   )
 
   const selectCell = useCallback(
@@ -125,14 +140,15 @@ export const useSketchSelection = ({
       if (!preserveCellSelection) {
         setSelectedCellIds(cellId === undefined ? new Set() : new Set([cellId]))
       }
-      setAppendCellsArrayId(null)
+      setIsInsertBefore(false)
       setSelectedCell(selectedIndex)
     },
-    [cellEditRef, confirmCellEdit, elements, selectedCellIds, selectedIds, setAppendCellsArrayId],
+    [cellEditRef, confirmCellEdit, elements, selectedCellIds, selectedIds],
   )
 
   const selectOne = useCallback(
     (id: number, additive = false) => {
+      setIsInsertBefore(false)
       if (cellEditRef.current && (id !== selectedId || !selectedIds.has(id))) {
         confirmCellEdit(cellEditRef.current)
         cellEditRef.current = null
@@ -161,6 +177,8 @@ export const useSketchSelection = ({
     setSelectedCellIds,
     selectedCell,
     setSelectedCell,
+    isInsertBefore,
+    setIsInsertBefore,
     selectCell,
     selectOne,
     confirmCellEdit,

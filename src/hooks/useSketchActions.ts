@@ -4,6 +4,7 @@ import { buildCanvasElementsFromTestCases } from '../services/leetcodeSketch'
 import type { CellEditConfirmation } from './useSketchSelection'
 import type {
   CellEditState,
+  SketchArrayInputType,
   SketchCollection,
   SketchElement,
   SketchIterator,
@@ -62,15 +63,28 @@ export const useSketchActions = ({
     selectOne(id)
   }
 
-  const addArray = (values: string[], label: string) => {
+  const addArray = (
+    values: string[],
+    label: string,
+    inputType?: SketchArrayInputType,
+  ) => {
     const id = nextId
     const elementIds = values.map((_, index) => id + index + 1)
+    const resolvedInputType: SketchArrayInputType =
+      inputType ??
+      (label.toLowerCase() === 'text' ||
+      label.toLowerCase().includes('str') ||
+      label.toLowerCase().includes('word') ||
+      (values.length > 0 && values.some((val) => !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(val)))
+        ? 'character'
+        : 'number')
     setElements((current) => [
       ...current,
       {
         id,
         kind: 'array',
         label,
+        input_type: resolvedInputType,
         element_ids: elementIds,
         values,
         position: { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 },
@@ -226,6 +240,24 @@ export const useSketchActions = ({
   }
 
   const updateSelected = (patch: Partial<SketchElement>) => {
+    if (
+      selected?.kind === 'array' &&
+      'input_type' in patch &&
+      (patch.input_type === 'number' || patch.input_type === 'character')
+    ) {
+      const inputType = patch.input_type
+      confirmCellEdit(cellEditRef.current)
+      cellEditRef.current = null
+      setSelectedCell(null)
+      setElements((current) =>
+        current.map((element) =>
+          element.kind === 'array' && element.id === selectedId
+            ? { ...element, input_type: inputType }
+            : element,
+        ),
+      )
+      return
+    }
     if (
       selected &&
       isSketchCollection(selected) &&
