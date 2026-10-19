@@ -9,13 +9,14 @@ import { useSketchSelection, type CellEditConfirmation } from './hooks/useSketch
 import { useSketchClipboard, type SketchClipboard } from './hooks/useSketchClipboard'
 import { useSketchActions } from './hooks/useSketchActions'
 import { useSketchKeyboard } from './hooks/useSketchKeyboard'
-import { useSketchCanvasGestures } from './hooks/useSketchCanvasGestures'
+import { useSketchCanvasGestures, type MatrixResizeDrag } from './hooks/useSketchCanvasGestures'
 import { useSketchDeletion } from './hooks/useSketchDeletion'
 import type {
   CellEditState,
   DragState,
   IteratorDragState,
   MarqueeDrag,
+  MatrixResizeState,
   PointerDraft,
   RelationshipDrag,
   SelectionBox,
@@ -41,10 +42,12 @@ function App() {
   >(() => null)
   const elementEditRef = useRef<{ elementId: number; hasTyped: boolean } | null>(null)
   const marqueeRef = useRef<MarqueeDrag | null>(null)
+  const matrixResizeRef = useRef<MatrixResizeDrag | null>(null)
 
   const [pointerDraft, setPointerDraft] = useState<PointerDraft | null>(null)
   const [selectionBox, setSelectionBox] = useState<SelectionBox | null>(null)
   const [iteratorDrag, setIteratorDrag] = useState<IteratorDragState | null>(null)
+  const [matrixResize, setMatrixResize] = useState<MatrixResizeState | null>(null)
 
   const {
     selectedId,
@@ -180,6 +183,7 @@ function App() {
   })
   const {
     startIteratorDrag,
+    startMatrixResize,
     startDrag,
     finishPointer,
     handleRelationshipStart,
@@ -199,6 +203,9 @@ function App() {
     iteratorDragRef,
     iteratorClickRef,
     marqueeRef,
+    matrixResizeRef,
+    matrixResize,
+    setMatrixResize,
     setPointerDraft,
     setSelectionBox,
     setIteratorDrag,
@@ -245,11 +252,13 @@ function App() {
           pointerDraft={pointerDraft}
           selectionBox={selectionBox}
           iteratorDrag={iteratorDrag}
+          matrixResize={matrixResize}
           canvasRef={canvasRef}
           onCanvasPointerDown={handleCanvasPointerDown}
           onCanvasPointerMove={handleCanvasPointerMove}
           onCanvasPointerUp={finishPointer}
           onStartDrag={startDrag}
+          onStartMatrixResize={startMatrixResize}
           onHostDoubleClick={handleHostDoubleClick}
           onSelectCell={selectCell}
           onResetCellTyping={resetCellTyping}

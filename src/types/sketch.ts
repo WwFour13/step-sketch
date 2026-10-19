@@ -134,3 +134,10 @@ export type SelectionBox = {
   width: number
   height: number
 }
+
+/** Active matrix resize gesture state showing target dimensions. */
+export type MatrixResizeState = {
+  id: number
+  targetColumns: number
+  targetRows: number
+}

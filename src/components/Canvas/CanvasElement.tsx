@@ -1,6 +1,6 @@
 import React from 'react'
 import { CELL_SIZE } from '../../constants/sketch'
-import type { SketchElement, SketchIterator } from '../../types/sketch'
+import type { MatrixResizeState, SketchElement, SketchIterator } from '../../types/sketch'
 import {
   getCollectionElementIds,
   getCollectionLayout,
@@ -16,7 +16,9 @@ export type CanvasElementProps = {
   selectedCellIds: Set<number>
   selectedCell: number | null
   isInsertBefore?: boolean
+  matrixResize?: MatrixResizeState | null
   onStartDrag: (event: React.PointerEvent, id: number) => void
+  onStartMatrixResize?: (event: React.PointerEvent, id: number) => void
   onHostDoubleClick: (event: React.MouseEvent) => void
   onSelectCell: (arrayId: number, index: number, additive?: boolean) => void
   onResetCellTyping: () => void
@@ -33,7 +35,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   selectedCellIds,
   selectedCell,
   isInsertBefore,
+  matrixResize,
   onStartDrag,
+  onStartMatrixResize,
   onHostDoubleClick,
   onSelectCell,
   onResetCellTyping,
@@ -49,6 +53,12 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     selectedCell === 0 &&
     collection?.kind === 'array' &&
     collection?.input_type === 'character'
+
+  const isResizingThis = matrixResize?.id === element.id
+  const activeCols = isResizingThis ? matrixResize.targetColumns : Math.max(1, columns ?? 1)
+  const activeRows = isResizingThis
+    ? matrixResize.targetRows
+    : Math.ceil(values.length / Math.max(1, columns ?? 1))
 
   return (
     <div
@@ -102,11 +112,41 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                       .filter(Boolean)
                       .join(' ')
                   : ''
-                const isCellActive =
-                  !(index === 0 && isInsertBeforeActive) &&
-                  (selectedCellIds.has(cellId) ||
-                    (isPrimarySelected && selectedCell === index) ||
-                    (isSelected && selectedCell === null && !hasPartialCellSelection))
+
+                const isFutureCell = !isResizingThis || (row < activeRows && column < activeCols)
+
+                const activeGridClasses = isResizingThis
+                  ? [
+                      row === 0 && column === 0 && 'corner-top-left',
+                      row === 0 &&
+                        column === activeCols - 1 &&
+                        'corner-top-right active-corner-top-right',
+                      row === activeRows - 1 &&
+                        column === 0 &&
+                        'corner-bottom-left active-corner-bottom-left',
+                      row === activeRows - 1 &&
+                        column === activeCols - 1 &&
+                        'corner-bottom-right active-corner-bottom-right',
+                      column === activeCols - 1 && 'edge-right active-edge-right',
+                      row === activeRows - 1 && 'edge-bottom active-edge-bottom',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')
+                  : gridClasses
+
+                const isCellActive = isResizingThis
+                  ? isFutureCell
+                  : !(index === 0 && isInsertBeforeActive) &&
+                    (selectedCellIds.has(cellId) ||
+                      (isPrimarySelected && selectedCell === index) ||
+                      (isSelected && selectedCell === null && !hasPartialCellSelection))
+
+                const resolvedGridClasses = isResizingThis
+                  ? isFutureCell
+                    ? activeGridClasses
+                    : `${gridClasses} cell-contracting`
+                  : gridClasses
+
                 return (
                   <input
                     key={cellId}
@@ -114,7 +154,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     value={value}
                     readOnly
                     draggable={false}
-                    className={`array-cell-input ${gridClasses} ${isCellActive ? 'cell-active' : ''}`}
+                    className={`array-cell-input ${resolvedGridClasses} ${isCellActive ? 'cell-active' : ''}`}
                     onPointerDown={(event) => {
                       onResetCellTyping()
                       onSelectCell(collection.id, index, event.shiftKey)
@@ -134,6 +174,27 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                   />
                 )
               })}
+              {collection.kind === 'matrix' && onStartMatrixResize && (
+                <div
+                  className={`matrix-resize-handle ${isResizingThis ? 'active' : ''}`}
+                  title="Drag to expand or contract matrix"
+                  style={
+                    isResizingThis
+                      ? {
+                          left: activeCols * CELL_SIZE - 4,
+                          top: activeRows * CELL_SIZE - 4,
+                          right: 'auto',
+                          bottom: 'auto',
+                        }
+                      : undefined
+                  }
+                  onPointerDown={(event) => {
+                    event.stopPropagation()
+                    event.preventDefault()
+                    onStartMatrixResize(event, collection.id)
+                  }}
+                />
+              )}
             </div>
           </div>
         </>

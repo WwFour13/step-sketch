@@ -412,6 +412,10 @@ export const useSketchKeyboard = ({
             return
           }
 
+          if (array.kind === 'matrix' && event.key === ',') {
+            return
+          }
+
           const arrayValues = getCollectionValues(array)
           const arrayElementIds = getCollectionElementIds(array)
           const isAddingCell = event.key === ','

@@ -4,6 +4,7 @@ import type {
   DragState,
   IteratorDragState,
   MarqueeDrag,
+  MatrixResizeState,
   PointerDraft,
   RelationshipDrag,
   SelectionBox,
@@ -21,6 +22,17 @@ import {
 } from '../utils/sketchCollections'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 
+export type MatrixResizeDrag = {
+  id: number
+  startPointerX: number
+  startPointerY: number
+  initialColumns: number
+  initialRows: number
+  initialValues: string[][]
+  initialElementIds: number[][]
+  allocatedIds: Map<string, number>
+}
+
 type UseSketchCanvasGesturesOptions = {
   elements: SketchElement[]
   setElements: Dispatch<SetStateAction<SketchElement[]>>
@@ -34,6 +46,9 @@ type UseSketchCanvasGesturesOptions = {
   iteratorDragRef: MutableRefObject<{ id: number; startX: number; startY: number } | null>
   iteratorClickRef: MutableRefObject<{ id: number; time: number } | null>
   marqueeRef: MutableRefObject<MarqueeDrag | null>
+  matrixResizeRef: MutableRefObject<MatrixResizeDrag | null>
+  matrixResize: MatrixResizeState | null
+  setMatrixResize: Dispatch<SetStateAction<MatrixResizeState | null>>
   setPointerDraft: Dispatch<SetStateAction<PointerDraft | null>>
   setSelectionBox: Dispatch<SetStateAction<SelectionBox | null>>
   setIteratorDrag: Dispatch<SetStateAction<IteratorDragState | null>>
@@ -64,6 +79,9 @@ export const useSketchCanvasGestures = ({
   iteratorDragRef,
   iteratorClickRef,
   marqueeRef,
+  matrixResizeRef,
+  matrixResize,
+  setMatrixResize,
   setPointerDraft,
   setSelectionBox,
   setIteratorDrag,
@@ -403,6 +421,130 @@ export const useSketchCanvasGestures = ({
   }
 
   /**
+   * Starts a resize drag from the matrix's bottom-right handle.
+   * @param event Pointer-down event on the resize handle.
+   * @param matrixId ID of the matrix being resized.
+   */
+  const startMatrixResize = (event: ReactPointerEvent, matrixId: number) => {
+    window.getSelection()?.removeAllRanges()
+    const matrix = elements.find(
+      (item): item is Extract<SketchCollection, { kind: 'matrix' }> =>
+        item.id === matrixId && item.kind === 'matrix',
+    )
+    if (!matrix) return
+
+    if (cellEditRef.current) {
+      confirmCellEdit(cellEditRef.current)
+      cellEditRef.current = null
+    }
+    elementEditRef.current = null
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+    resetCellTyping()
+
+    selectOne(matrixId)
+    setSelectedCell(null)
+    setSelectedCellIds(new Set())
+
+    const currentColumns = Math.max(1, matrix.columns)
+    const currentRows = Math.max(1, matrix.values.length)
+
+    matrixResizeRef.current = {
+      id: matrixId,
+      startPointerX: event.clientX,
+      startPointerY: event.clientY,
+      initialColumns: currentColumns,
+      initialRows: currentRows,
+      initialValues: matrix.values.map((row) => [...row]),
+      initialElementIds: matrix.element_ids.map((row) => [...row]),
+      allocatedIds: new Map<string, number>(),
+    }
+    setMatrixResize({
+      id: matrixId,
+      targetColumns: currentColumns,
+      targetRows: currentRows,
+    })
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  /**
+   * Updates matrix dimensions or contracting future-state highlight as the handle is dragged.
+   * Only cells present in the initial matrix before drag are shown greyed-out when contracting.
+   * @param event Pointer-move event carrying current cursor position.
+   */
+  const updateMatrixResize = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!matrixResizeRef.current) return
+    const resize = matrixResizeRef.current
+    const matrix = elements.find(
+      (item): item is Extract<SketchCollection, { kind: 'matrix' }> =>
+        item.id === resize.id && item.kind === 'matrix',
+    )
+    if (!matrix) return
+
+    const deltaX = event.clientX - resize.startPointerX
+    const deltaY = event.clientY - resize.startPointerY
+
+    const colDiff = Math.floor((deltaX + 0.5 * CELL_SIZE) / CELL_SIZE)
+    const rowDiff = Math.floor((deltaY + 0.5 * CELL_SIZE) / CELL_SIZE)
+
+    const desiredColumns = Math.max(1, resize.initialColumns + colDiff)
+    const desiredRows = Math.max(1, resize.initialRows + rowDiff)
+
+    const displayedColumns = Math.max(resize.initialColumns, desiredColumns)
+    const displayedRows = Math.max(resize.initialRows, desiredRows)
+
+    if (displayedColumns !== matrix.columns || displayedRows !== matrix.values.length) {
+      let currentNextId = nextId
+      const nextValues: string[][] = []
+      const nextElementIds: number[][] = []
+
+      for (let r = 0; r < displayedRows; r++) {
+        const rowValues: string[] = []
+        const rowIds: number[] = []
+        for (let c = 0; c < displayedColumns; c++) {
+          if (r < resize.initialRows && c < resize.initialColumns) {
+            rowValues.push(resize.initialValues[r][c])
+            rowIds.push(resize.initialElementIds[r][c])
+          } else {
+            rowValues.push('')
+            const key = `${r},${c}`
+            let cellId = resize.allocatedIds.get(key)
+            if (cellId === undefined) {
+              cellId = currentNextId++
+              resize.allocatedIds.set(key, cellId)
+            }
+            rowIds.push(cellId)
+          }
+        }
+        nextValues.push(rowValues)
+        nextElementIds.push(rowIds)
+      }
+
+      if (currentNextId !== nextId) {
+        setNextId(currentNextId)
+      }
+      setElements((current) =>
+        current.map((el) => {
+          if (el.id !== matrix.id || el.kind !== 'matrix') return el
+          return {
+            ...el,
+            columns: displayedColumns,
+            values: nextValues,
+            element_ids: nextElementIds,
+          }
+        }),
+      )
+    }
+
+    setMatrixResize({
+      id: matrix.id,
+      targetColumns: desiredColumns,
+      targetRows: desiredRows,
+    })
+  }
+
+  /**
    * Updates the active iterator drag, pointer-connection draft, or element
    * group drag from the current pointer position.
    * @param event Pointer-move event over the canvas.
@@ -461,6 +603,51 @@ export const useSketchCanvasGestures = ({
    * @param event Pointer-up event containing the release position and target.
    */
   const finishPointer = (event: ReactPointerEvent<HTMLDivElement | SVGLineElement>) => {
+    if (matrixResizeRef.current) {
+      const resize = matrixResizeRef.current
+      const matrix = elements.find(
+        (el): el is Extract<SketchCollection, { kind: 'matrix' }> =>
+          el.id === resize.id && el.kind === 'matrix',
+      )
+      if (matrix && matrixResize) {
+        const { targetColumns, targetRows } = matrixResize
+        if (targetColumns < matrix.columns || targetRows < matrix.values.length) {
+          const deletedCellIds = new Set<number>()
+          for (let r = 0; r < matrix.values.length; r++) {
+            for (let c = 0; c < matrix.columns; c++) {
+              if (r >= targetRows || c >= targetColumns) {
+                const cellId = matrix.element_ids[r]?.[c]
+                if (cellId !== undefined) deletedCellIds.add(cellId)
+              }
+            }
+          }
+          const nextValues = matrix.values
+            .slice(0, targetRows)
+            .map((row) => row.slice(0, targetColumns))
+          const nextElementIds = matrix.element_ids
+            .slice(0, targetRows)
+            .map((row) => row.slice(0, targetColumns))
+
+          setElements((current) =>
+            current
+              .filter((el) => !(el.kind === 'iterator' && deletedCellIds.has(el.hostId)))
+              .map((el) => {
+                if (el.id !== matrix.id || el.kind !== 'matrix') return el
+                return {
+                  ...el,
+                  columns: targetColumns,
+                  values: nextValues,
+                  element_ids: nextElementIds,
+                }
+              }),
+          )
+        }
+      }
+      matrixResizeRef.current = null
+      setMatrixResize(null)
+      return
+    }
+
     if (iteratorDragRef.current) {
       const draggedIterator = iteratorDragRef.current
       const moved =
@@ -627,7 +814,8 @@ export const useSketchCanvasGestures = ({
    * @param event Pointer-move event on the canvas container.
    */
   const handleCanvasPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (marqueeRef.current) updateMarquee(event)
+    if (matrixResizeRef.current) updateMatrixResize(event)
+    else if (marqueeRef.current) updateMarquee(event)
     else moveElement(event)
   }
 
@@ -783,6 +971,7 @@ export const useSketchCanvasGestures = ({
   return {
     advanceIterator,
     startIteratorDrag,
+    startMatrixResize,
     updateMarquee,
     startDrag,
     moveElement,

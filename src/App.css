@@ -736,6 +736,70 @@
 .array-cells.layout-map input.cell-active.edge-bottom {
   border-bottom-color: #e88a75;
 }
+.matrix-resize-handle {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  background: #182035;
+  border: 1px solid #0f172a;
+  border-radius: 1px;
+  cursor: nwse-resize;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s ease, background-color 0.15s ease;
+}
+.matrix-resize-handle::before {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  left: -6px;
+  top: -6px;
+}
+.matrix-resize-handle:hover,
+.matrix-resize-handle.active {
+  background: #080c14;
+  border-color: #000;
+  transform: scale(1.25);
+}
+.array-cells.layout-matrix input.cell-contracting {
+  opacity: 0.38;
+  background: #f8fafc;
+  color: #94a3b8;
+  border-style: dashed;
+}
+.array-cells.layout-matrix input.cell-contracting.edge-right {
+  border-right: 1px dashed #cbd4e0;
+}
+.array-cells.layout-matrix input.cell-contracting.edge-bottom {
+  border-bottom: 1px dashed #cbd4e0;
+}
+.array-cells.layout-matrix input.cell-active.active-edge-right {
+  border-right: 1px solid #e88a75 !important;
+}
+.array-cells.layout-matrix input.cell-active.active-edge-bottom {
+  border-bottom: 1px solid #e88a75 !important;
+}
+.array-cells.layout-matrix input.cell-active.active-corner-top-right {
+  border-top-right-radius: 4px;
+}
+.array-cells.layout-matrix input.cell-active.active-corner-bottom-left {
+  border-bottom-left-radius: 4px;
+}
+.array-cells.layout-matrix input.cell-active.active-corner-bottom-right {
+  border-bottom-right-radius: 4px;
+}
+.array-cells.layout-matrix input.cell-active.active-edge-right:not(.active-edge-bottom) {
+  box-shadow: 0 1px 0 0 #e88a75;
+}
+.array-cells.layout-matrix input.cell-active.active-edge-bottom:not(.active-edge-right) {
+  box-shadow: 1px 0 0 0 #e88a75;
+}
+.array-cells.layout-matrix input.cell-active.active-edge-right.active-edge-bottom {
+  box-shadow: none;
+}
 .array-cell-fake-insert {
   width: 14px;
   height: 42px;

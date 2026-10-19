@@ -1,6 +1,7 @@
 import React from 'react'
 import type {
   IteratorDragState,
+  MatrixResizeState,
   PointerDraft,
   SelectionBox,
   SketchElement,
@@ -23,11 +24,13 @@ export type CanvasProps = {
   pointerDraft: PointerDraft | null
   selectionBox: SelectionBox | null
   iteratorDrag: IteratorDragState | null
+  matrixResize?: MatrixResizeState | null
   canvasRef: React.RefObject<HTMLDivElement | null>
   onCanvasPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void
   onCanvasPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void
   onCanvasPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void
   onStartDrag: (event: React.PointerEvent, id: number) => void
+  onStartMatrixResize?: (event: React.PointerEvent, id: number) => void
   onHostDoubleClick: (event: React.MouseEvent) => void
   onSelectCell: (arrayId: number, index: number, additive?: boolean) => void
   onResetCellTyping: () => void
@@ -54,11 +57,13 @@ export const Canvas: React.FC<CanvasProps> = ({
   pointerDraft,
   selectionBox,
   iteratorDrag,
+  matrixResize,
   canvasRef,
   onCanvasPointerDown,
   onCanvasPointerMove,
   onCanvasPointerUp,
   onStartDrag,
+  onStartMatrixResize,
   onHostDoubleClick,
   onSelectCell,
   onResetCellTyping,
@@ -100,7 +105,9 @@ export const Canvas: React.FC<CanvasProps> = ({
             selectedCellIds={selectedCellIds}
             selectedCell={selectedCell}
             isInsertBefore={isInsertBefore}
+            matrixResize={matrixResize}
             onStartDrag={onStartDrag}
+            onStartMatrixResize={onStartMatrixResize}
             onHostDoubleClick={onHostDoubleClick}
             onSelectCell={onSelectCell}
             onResetCellTyping={onResetCellTyping}
