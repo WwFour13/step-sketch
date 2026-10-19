@@ -613,49 +613,22 @@
   flex-direction: column;
 }
 .array-cells.layout-vertical input {
-  border-right: 1px solid #cbd4e0;
   border-bottom: 0;
 }
-.array-cells.layout-vertical input + input {
-  border-top: 0;
+.array-cells.layout-vertical input:last-child {
+  border-bottom: 1px solid #cbd4e0;
 }
 .array-cells.layout-vertical input:first-child {
   border-radius: 4px 4px 0 0;
 }
 .array-cells.layout-vertical input:last-child {
   border-radius: 0 0 4px 4px;
-  border-bottom: 1px solid #cbd4e0;
 }
-.array-cells.layout-map {
-  display: grid;
-  grid-template-columns: repeat(2, 42px);
+.array-cells.layout-vertical input:only-child {
+  border-radius: 4px;
 }
-.array-cells.layout-map input {
-  border-right: 1px solid #cbd4e0;
-}
-.array-cells.layout-map input:nth-child(even) {
-  border-left: 0;
-}
-.array-cells.layout-map input:nth-child(n + 3) {
-  border-top: 0;
-}
-.array-cells.layout-map input:first-child {
-  border-radius: 4px 0 0 0;
-}
-.array-cells.layout-map input:nth-child(2) {
-  border-radius: 0 4px 0 0;
-}
-.array-cells.layout-map input:nth-last-child(-n + 2) {
-  border-bottom: 1px solid #cbd4e0;
-}
-.array-cells.layout-map input:nth-last-child(2) {
-  border-radius: 0 0 0 4px;
-}
-.array-cells.layout-map input:last-child {
-  border-radius: 0 0 4px 0;
-}
-.array-cells.layout-vertical input.cell-active {
-  border-bottom: 1px solid #e48670;
+.array-cells.layout-vertical input.cell-active:not(:last-child) {
+  box-shadow: 0 1px 0 0 #e88a75;
 }
 .array-cells input {
   width: 42px;
@@ -688,18 +661,77 @@
 .array-cells input:last-child {
   border-radius: 0 4px 4px 0;
 }
-.array-cells.layout-matrix input {
-  border-radius: 0;
-}
-.array-cells.layout-matrix input:last-child {
-  border-right: 0;
+.array-cells input:only-child {
+  border-radius: 4px;
 }
 .array-cells input.cell-active {
   position: relative;
   z-index: 1;
   border-color: #e88a75;
-  border-right: 1px solid #e88a75;
   background: inherit;
+}
+.array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input.cell-active:not(:last-child) {
+  box-shadow: 1px 0 0 0 #e88a75;
+}
+.array-cells.layout-matrix,
+.array-cells.layout-map {
+  display: grid;
+}
+.array-cells.layout-map {
+  grid-template-columns: repeat(2, 42px);
+}
+.array-cells.layout-matrix input,
+.array-cells.layout-map input {
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0;
+}
+.array-cells.layout-matrix input.edge-right,
+.array-cells.layout-map input.edge-right {
+  border-right: 1px solid #cbd4e0;
+}
+.array-cells.layout-matrix input.edge-bottom,
+.array-cells.layout-map input.edge-bottom {
+  border-bottom: 1px solid #cbd4e0;
+}
+.array-cells.layout-matrix input.corner-top-left,
+.array-cells.layout-map input.corner-top-left {
+  border-top-left-radius: 4px;
+}
+.array-cells.layout-matrix input.corner-top-right,
+.array-cells.layout-map input.corner-top-right {
+  border-top-right-radius: 4px;
+}
+.array-cells.layout-matrix input.corner-bottom-left,
+.array-cells.layout-map input.corner-bottom-left {
+  border-bottom-left-radius: 4px;
+}
+.array-cells.layout-matrix input.corner-bottom-right,
+.array-cells.layout-map input.corner-bottom-right {
+  border-bottom-right-radius: 4px;
+}
+.array-cells.layout-matrix input.cell-active:not(.edge-right):not(.edge-bottom),
+.array-cells.layout-map input.cell-active:not(.edge-right):not(.edge-bottom) {
+  box-shadow:
+    1px 0 0 0 #e88a75,
+    0 1px 0 0 #e88a75,
+    1px 1px 0 0 #e88a75;
+}
+.array-cells.layout-matrix input.cell-active:not(.edge-right).edge-bottom,
+.array-cells.layout-map input.cell-active:not(.edge-right).edge-bottom {
+  box-shadow: 1px 0 0 0 #e88a75;
+}
+.array-cells.layout-matrix input.cell-active.edge-right:not(.edge-bottom),
+.array-cells.layout-map input.cell-active.edge-right:not(.edge-bottom) {
+  box-shadow: 0 1px 0 0 #e88a75;
+}
+.array-cells.layout-matrix input.cell-active.edge-right,
+.array-cells.layout-map input.cell-active.edge-right {
+  border-right-color: #e88a75;
+}
+.array-cells.layout-matrix input.cell-active.edge-bottom,
+.array-cells.layout-map input.cell-active.edge-bottom {
+  border-bottom-color: #e88a75;
 }
 .array-cell-fake-insert {
   width: 14px;
@@ -715,34 +747,6 @@
   z-index: 2;
   flex-shrink: 0;
   cursor: default;
-}
-.array-cells.layout-matrix {
-  display: grid;
-  gap: 1px;
-  padding: 1px;
-  border-radius: 4px;
-  overflow: hidden;
-  background: #cbd4e0;
-}
-.array-cells.layout-matrix input {
-  border: 0;
-  border-radius: 0;
-}
-.array-cells.layout-matrix input.corner-top-left {
-  border-top-left-radius: 3px;
-}
-.array-cells.layout-matrix input.corner-top-right {
-  border-top-right-radius: 3px;
-}
-.array-cells.layout-matrix input.corner-bottom-left {
-  border-bottom-left-radius: 3px;
-}
-.array-cells.layout-matrix input.corner-bottom-right {
-  border-bottom-right-radius: 3px;
-}
-.array-cells.layout-matrix input.cell-active {
-  border: 0;
-  box-shadow: inset 0 0 0 1px #e88a75;
 }
 /* SVG overlay for stored pointer relationships and active pointer drafts. */
 .pointer-layer {
@@ -1088,39 +1092,57 @@
   background: #202e3e;
   color: #dce7f4;
 }
-.array-cells.layout-matrix {
-  background: #52677f;
-}
 .array-cells input:last-child {
   border-right-color: #52677f;
 }
-.array-cells.layout-vertical input,
-.array-cells.layout-map input {
+.array-cells.layout-vertical input:last-child {
+  border-bottom-color: #52677f;
+}
+.array-cells.layout-matrix input.edge-right,
+.array-cells.layout-map input.edge-right {
   border-right-color: #52677f;
 }
-.array-cells.layout-vertical input:last-child,
-.array-cells.layout-map input:nth-last-child(-n + 2) {
+.array-cells.layout-matrix input.edge-bottom,
+.array-cells.layout-map input.edge-bottom {
   border-bottom-color: #52677f;
 }
 .array-cells input.cell-active {
   border-color: #e48670;
-  border-right-color: #e48670;
   background: #202e3e;
+}
+.array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input.cell-active:not(:last-child) {
+  box-shadow: 1px 0 0 0 #e48670;
+}
+.array-cells.layout-vertical input.cell-active:not(:last-child) {
+  box-shadow: 0 1px 0 0 #e48670;
+}
+.array-cells.layout-matrix input.cell-active:not(.edge-right):not(.edge-bottom),
+.array-cells.layout-map input.cell-active:not(.edge-right):not(.edge-bottom) {
+  box-shadow:
+    1px 0 0 0 #e48670,
+    0 1px 0 0 #e48670,
+    1px 1px 0 0 #e48670;
+}
+.array-cells.layout-matrix input.cell-active:not(.edge-right).edge-bottom,
+.array-cells.layout-map input.cell-active:not(.edge-right).edge-bottom {
+  box-shadow: 1px 0 0 0 #e48670;
+}
+.array-cells.layout-matrix input.cell-active.edge-right:not(.edge-bottom),
+.array-cells.layout-map input.cell-active.edge-right:not(.edge-bottom) {
+  box-shadow: 0 1px 0 0 #e48670;
+}
+.array-cells.layout-matrix input.cell-active.edge-right,
+.array-cells.layout-map input.cell-active.edge-right {
+  border-right-color: #e48670;
+}
+.array-cells.layout-matrix input.cell-active.edge-bottom,
+.array-cells.layout-map input.cell-active.edge-bottom {
+  border-bottom-color: #e48670;
 }
 .array-cell-fake-insert {
   border-color: #e48670;
   border-right-color: #e48670;
   background: #202e3e;
-}
-.array-cells.layout-vertical input.cell-active {
-  border: 1px solid #e48670;
-}
-.array-cells.layout-map input.cell-active {
-  border: 1px solid #e48670;
-}
-.array-cells.layout-matrix input.cell-active {
-  border: 0;
-  box-shadow: inset 0 0 0 1px #e48670;
 }
 .canvas-footer {
   color: #8494aa;

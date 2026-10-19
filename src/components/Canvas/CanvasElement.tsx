@@ -84,23 +84,24 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                 const hasPartialCellSelection = elementIds.some((id) => selectedCellIds.has(id))
                 const targetCellId =
                   collection.kind === 'map' && index % 2 !== 0 ? elementIds[index - 1] : cellId
-                const matrixColumns = Math.max(1, columns ?? 1)
-                const row = Math.floor(index / matrixColumns)
-                const column = index % matrixColumns
-                const rowCount = Math.ceil(values.length / matrixColumns)
-                const matrixCorners =
-                  layout === 'matrix'
-                    ? [
-                        row === 0 && column === 0 && 'corner-top-left',
-                        row === 0 && column === matrixColumns - 1 && 'corner-top-right',
-                        row === rowCount - 1 && column === 0 && 'corner-bottom-left',
-                        row === rowCount - 1 &&
-                          column === matrixColumns - 1 &&
-                          'corner-bottom-right',
-                      ]
-                        .filter(Boolean)
-                        .join(' ')
-                    : ''
+                const numCols =
+                  layout === 'matrix' ? Math.max(1, columns ?? 1) : layout === 'map' ? 2 : 1
+                const row = Math.floor(index / numCols)
+                const column = index % numCols
+                const rowCount = Math.ceil(values.length / numCols)
+                const is2D = layout === 'matrix' || layout === 'map'
+                const gridClasses = is2D
+                  ? [
+                      row === 0 && column === 0 && 'corner-top-left',
+                      row === 0 && column === numCols - 1 && 'corner-top-right',
+                      row === rowCount - 1 && column === 0 && 'corner-bottom-left',
+                      row === rowCount - 1 && column === numCols - 1 && 'corner-bottom-right',
+                      column === numCols - 1 && 'edge-right',
+                      row === rowCount - 1 && 'edge-bottom',
+                    ]
+                      .filter(Boolean)
+                      .join(' ')
+                  : ''
                 const isCellActive =
                   !(index === 0 && isInsertBeforeActive) &&
                   (selectedCellIds.has(cellId) ||
@@ -113,7 +114,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     value={value}
                     readOnly
                     draggable={false}
-                    className={`array-cell-input ${matrixCorners} ${isCellActive ? 'cell-active' : ''}`}
+                    className={`array-cell-input ${gridClasses} ${isCellActive ? 'cell-active' : ''}`}
                     onPointerDown={(event) => {
                       onResetCellTyping()
                       onSelectCell(collection.id, index, event.shiftKey)
