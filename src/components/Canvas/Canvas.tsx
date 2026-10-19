@@ -29,7 +29,7 @@ export type CanvasProps = {
   onCanvasPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void
   onStartDrag: (event: React.PointerEvent, id: number) => void
   onHostDoubleClick: (event: React.MouseEvent) => void
-  onSelectCell: (arrayId: number, index: number) => void
+  onSelectCell: (arrayId: number, index: number, additive?: boolean) => void
   onResetCellTyping: () => void
   onStartIteratorDrag: (event: React.PointerEvent<HTMLDivElement>, iterator: SketchIterator) => void
   onRelationshipStart: (

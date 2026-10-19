@@ -607,8 +607,13 @@ export const useSketchKeyboard = ({
         )
         return
       }
-      const deleteTargetId = isArrayCell && cellEdit ? cellEdit.arrayId : selectedId
-      if (event.key === 'Delete' && deleteTargetId) {
+      const deleteTargetId =
+        isArrayCell && cellEdit ? cellEdit.arrayId : selectedId || [...selectedIds][0] || 0
+      if (
+        (event.key === 'Delete' ||
+          (!cellEdit && !elementEdit && !isEditing && event.key === 'Backspace')) &&
+        deleteTargetId
+      ) {
         if (selectedCellIds.size > 0) {
           event.preventDefault()
           deleteSelection()
@@ -667,6 +672,7 @@ export const useSketchKeyboard = ({
           return
         }
         if (
+          selectedIds.size <= 1 &&
           deleteTarget &&
           isSketchCollection(deleteTarget) &&
           getCollectionValues(deleteTarget).length <= 1
@@ -683,6 +689,7 @@ export const useSketchKeyboard = ({
           setSelectedCell(0)
           return
         }
+        event.preventDefault()
         deleteElement(deleteTargetId)
       }
     }

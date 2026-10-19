@@ -112,7 +112,7 @@ export const useSketchSelection = ({
   )
 
   const selectCell = useCallback(
-    (arrayId: number, index: number) => {
+    (arrayId: number, index: number, additive = false) => {
       const currentEdit = cellEditRef.current
       let selectedIndex = index
       if (!currentEdit || currentEdit.arrayId !== arrayId || currentEdit.index !== index) {
@@ -126,22 +126,45 @@ export const useSketchSelection = ({
                 : index
         }
       }
-      cellEditRef.current = { arrayId, index: selectedIndex, hasTyped: false }
+      cellEditRef.current = additive
+        ? null
+        : { arrayId, index: selectedIndex, hasTyped: false }
       const array = elements.find(
         (element): element is SketchCollection =>
           isSketchCollection(element) && element.id === arrayId,
       )
       const cellId = array ? getCollectionElementIds(array)[selectedIndex] : undefined
-      const preserveCellSelection =
-        selectedIds.has(arrayId) &&
-        cellId !== undefined &&
-        selectedCellIds.has(cellId) &&
-        selectedCellIds.size > 1
-      if (!preserveCellSelection) {
-        setSelectedCellIds(cellId === undefined ? new Set() : new Set([cellId]))
+      if (additive) {
+        if (cellId !== undefined) {
+          setSelectedCellIds((current) => {
+            const next = new Set(current)
+            if (next.has(cellId)) {
+              next.delete(cellId)
+            } else {
+              next.add(cellId)
+            }
+            return next
+          })
+          setSelectedIds((current) => {
+            const next = new Set(current)
+            next.add(arrayId)
+            return next
+          })
+          setSelectedId(arrayId)
+        }
+        setSelectedCell(null)
+      } else {
+        const preserveCellSelection =
+          selectedIds.has(arrayId) &&
+          cellId !== undefined &&
+          selectedCellIds.has(cellId) &&
+          selectedCellIds.size > 1
+        if (!preserveCellSelection) {
+          setSelectedCellIds(cellId === undefined ? new Set() : new Set([cellId]))
+        }
+        setSelectedCell(selectedIndex)
       }
       setIsInsertBefore(false)
-      setSelectedCell(selectedIndex)
     },
     [cellEditRef, confirmCellEdit, elements, selectedCellIds, selectedIds],
   )

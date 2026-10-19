@@ -257,12 +257,17 @@ export const useSketchCanvasGestures = ({
         }
       }
     })
+    const isMultipleElements = !marquee.additive && selectedObjectIds.length > 1
+
     setSelectedIds((currentSelection) => {
       const next = marquee.additive ? new Set(currentSelection) : new Set<number>()
       selectedObjectIds.forEach((id) => next.add(id))
       return next
     })
     setSelectedCellIds((currentSelection) => {
+      if (isMultipleElements) {
+        return new Set<number>()
+      }
       const next = marquee.additive ? new Set(currentSelection) : new Set<number>()
       elements.forEach((element) => {
         if (!isSketchCollection(element) || !selectedObjectIds.includes(element.id)) return
@@ -296,8 +301,13 @@ export const useSketchCanvasGestures = ({
     const element = elements.find((item) => item.id === id)
     const bounds = canvasRef.current?.getBoundingClientRect()
     if (!element || !bounds) return
-    if (event.button === 0 && event.shiftKey) return
     const targetCell = event.target instanceof Element && event.target.closest('.array-cell-input')
+    if (event.button === 0 && event.shiftKey) {
+      if (!targetCell) {
+        selectOne(id, true)
+      }
+      return
+    }
     if (cellEditRef.current && !targetCell) {
       confirmCellEdit(cellEditRef.current)
       cellEditRef.current = null

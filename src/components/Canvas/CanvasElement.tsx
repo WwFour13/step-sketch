@@ -18,7 +18,7 @@ export type CanvasElementProps = {
   isInsertBefore?: boolean
   onStartDrag: (event: React.PointerEvent, id: number) => void
   onHostDoubleClick: (event: React.MouseEvent) => void
-  onSelectCell: (arrayId: number, index: number) => void
+  onSelectCell: (arrayId: number, index: number, additive?: boolean) => void
   onResetCellTyping: () => void
 }
 
@@ -114,9 +114,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     readOnly
                     draggable={false}
                     className={`array-cell-input ${matrixCorners} ${isCellActive ? 'cell-active' : ''}`}
-                    onPointerDown={() => {
+                    onPointerDown={(event) => {
                       onResetCellTyping()
-                      onSelectCell(collection.id, index)
+                      onSelectCell(collection.id, index, event.shiftKey)
                     }}
                     onMouseDown={() => {
                       onResetCellTyping()
