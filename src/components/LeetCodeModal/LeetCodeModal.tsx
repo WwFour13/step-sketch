@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   loadLeetCodeSketchProblemDetails,
   type LeetCodeSketchProblemDetail,
@@ -43,17 +43,34 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
     }
   }, [isOpen])
 
-  // Allow Escape to close the modal while it is open; clean up on state changes.
+  const canConfirm = Boolean(problemDetail) && selectedIndices.size > 0 && !isLoading
+
+  /** Imports the selected cases and closes the modal when at least one is selected. */
+  const handleConfirm = useCallback(() => {
+    if (!problemDetail) return
+    const selectedCases = problemDetail.testCases.filter((_, index) => selectedIndices.has(index))
+    if (selectedCases.length === 0) return
+    onImport(selectedCases, problemDetail.title)
+    onClose()
+  }, [problemDetail, selectedIndices, onImport, onClose])
+
+  // Allow Escape to close the modal and Enter (when not focused on input) to confirm.
   useEffect(() => {
     const handleGlobalKeyDown = (event: KeyboardEvent) => {
       if (!isOpen) return
       if (event.key === 'Escape') {
         onClose()
+      } else if (event.key === 'Enter') {
+        if (document.activeElement === inputRef.current) return
+        if (canConfirm) {
+          event.preventDefault()
+          handleConfirm()
+        }
       }
     }
     window.addEventListener('keydown', handleGlobalKeyDown)
     return () => window.removeEventListener('keydown', handleGlobalKeyDown)
-  }, [isOpen, onClose])
+  }, [isOpen, onClose, canConfirm, handleConfirm])
 
   if (!isOpen) return null
 
@@ -116,14 +133,6 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
     setSelectedIndices(new Set())
   }
 
-  /** Imports the selected cases and closes the modal when at least one is selected. */
-  const handleConfirm = () => {
-    if (!problemDetail) return
-    const selectedCases = problemDetail.testCases.filter((_, index) => selectedIndices.has(index))
-    if (selectedCases.length === 0) return
-    onImport(selectedCases, problemDetail.title)
-    onClose()
-  }
 
   return (
     <div
@@ -248,7 +257,7 @@ export const LeetCodeModal: React.FC<LeetCodeModalProps> = ({
               type="button"
               className="modal-ok-btn"
               onClick={handleConfirm}
-              disabled={selectedIndices.size === 0}
+              disabled={!canConfirm}
             >
               OK
             </button>

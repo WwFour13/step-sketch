@@ -56,7 +56,7 @@ export const TestCasePreview: React.FC<TestCasePreviewProps> = ({
       className={`testcase-card ${isSelected ? 'selected' : ''}`}
       onClick={onToggle}
       onKeyDown={(event) => {
-        if (event.key === ' ' || event.key === 'Enter') {
+        if (event.key === ' ') {
           event.preventDefault()
           onToggle()
         }
