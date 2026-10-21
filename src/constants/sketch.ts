@@ -1,10 +1,34 @@
-import type { IteratorColor, IteratorMode, PointerLimit, SketchElement } from '../types/sketch'
+import type {
+  CanvasDimensions,
+  CanvasDocument,
+  CanvasState,
+  CanvasViewport,
+  IteratorColor,
+  IteratorMode,
+  PointerLimit,
+  SketchElement,
+} from '../types/sketch'
 
 /** Shared canvas dimensions used by bounds, layout, and rendering helpers. */
 export const NODE_RADIUS = 27
 export const NODE_SIZE = 54
 export const CELL_SIZE = 42
 export const MAP_CELL_WIDTH = CELL_SIZE * 2
+
+/** Default logical canvas boundaries (world space). */
+export const DEFAULT_CANVAS_DIMENSIONS: CanvasDimensions = {
+  width: 2400,
+  height: 1600,
+}
+
+/** Default viewport camera values. */
+export const DEFAULT_CANVAS_VIEWPORT: CanvasViewport = {
+  zoom: 1,
+  pan: { x: 0, y: 0 },
+}
+
+export const MIN_CANVAS_ZOOM = 0.25
+export const MAX_CANVAS_ZOOM = 2.5
 
 /** Palette and placement sides cycled through when creating iterators. */
 export const iteratorColors: IteratorColor[] = ['red', 'green', 'blue', 'yellow']
@@ -32,3 +56,16 @@ export const initialElements: SketchElement[] = [
     position: { x: 388, y: 338 },
   },
 ]
+
+export const initialCanvasDocument: CanvasDocument = {
+  version: 1,
+  dimensions: DEFAULT_CANVAS_DIMENSIONS,
+  nextId: 15,
+  elements: initialElements,
+}
+
+export const initialCanvasState: CanvasState = {
+  document: initialCanvasDocument,
+  viewport: DEFAULT_CANVAS_VIEWPORT,
+}
+

@@ -141,3 +141,73 @@ export type MatrixResizeState = {
   targetColumns: number
   targetRows: number
 }
+
+/** Logical canvas boundaries measured in canvas coordinate space. */
+export type CanvasDimensions = {
+  width: number
+  height: number
+}
+
+/** Viewport camera transform: zoom factor and pan offset. */
+export type CanvasViewport = {
+  zoom: number
+  pan: Position
+}
+
+/**
+ * Core document model representing the persistent sketch board.
+ * - Stored in the undo/redo history stack as atomic snapshots
+ * - Serialized to/from JSON for saving and sharing
+ * - Element array order represents stacking order (index 0 is bottom-most)
+ */
+export type CanvasDocument = {
+  version: 1
+  dimensions: CanvasDimensions
+  nextId: number
+  elements: SketchElement[]
+}
+
+/** Full runtime canvas state pairing document content with viewport camera. */
+export type CanvasState = {
+  document: CanvasDocument
+  viewport: CanvasViewport
+}
+
+/** Element-level diff for transitions and step-by-step animations. */
+export type ElementDiff =
+  | { type: 'added'; element: SketchElement }
+  | { type: 'removed'; elementId: number }
+  | {
+      type: 'modified'
+      elementId: number
+      positionChange?: { from: Position; to: Position }
+      valueChanged?: boolean
+      pointerChange?: { addedPointers: number[]; removedPointers: number[] }
+      iteratorMove?: {
+        fromHostId: number
+        toHostId: number
+      }
+    }
+
+/** Diff between two CanvasState snapshots used to drive step animations. */
+export type CanvasDiff = {
+  elements: ElementDiff[]
+  viewportChange?: { from: CanvasViewport; to: CanvasViewport }
+  dimensionsChange?: { from: CanvasDimensions; to: CanvasDimensions }
+  layerReorders?: { fromOrder: number[]; toOrder: number[] }
+}
+
+/** Result of smart element placement acknowledging obstacles and canvas walls. */
+export type SpawnPlacementResult = {
+  position: Position
+  adjustedViewport?: CanvasViewport
+  adjustedDimensions?: CanvasDimensions
+}
+
+/** History container for undo/redo stack. */
+export type CanvasHistory = {
+  past: CanvasDocument[]
+  present: CanvasDocument
+  future: CanvasDocument[]
+}
+
