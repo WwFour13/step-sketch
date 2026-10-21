@@ -4,7 +4,7 @@ import { Canvas } from './components/Canvas/Canvas'
 import { Header } from './components/Header/Header'
 import { LeetCodeModal } from './components/LeetCodeModal/LeetCodeModal'
 import { Sidebar } from './components/Sidebar/Sidebar'
-import { initialElements } from './constants/sketch'
+import { useCanvasState } from './hooks/useCanvasState'
 import { useSketchSelection, type CellEditConfirmation } from './hooks/useSketchSelection'
 import { useSketchClipboard, type SketchClipboard } from './hooks/useSketchClipboard'
 import { useSketchActions } from './hooks/useSketchActions'
@@ -20,12 +20,29 @@ import type {
   PointerDraft,
   RelationshipDrag,
   SelectionBox,
-  SketchElement,
 } from './types/sketch'
 
 function App() {
-  const [elements, setElements] = useState<SketchElement[]>(initialElements)
-  const [nextId, setNextId] = useState(15)
+  const {
+    elements,
+    nextId,
+    setElements,
+    setNextId,
+    loadCanvasState,
+    loadDocument,
+    resetBoard,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    commitSnapshot,
+    canvasState,
+    setZoom,
+    setPan,
+    resetViewport,
+    reorder,
+    lastSnapshotTime,
+  } = useCanvasState()
   const [isLeetCodeModalOpen, setIsLeetCodeModalOpen] = useState(false)
   const [problemStatus, setProblemStatus] = useState('')
 
@@ -69,8 +86,14 @@ function App() {
     cellEditRef,
   })
   useEffect(() => {
-    confirmCellEditRef.current = confirmCellEdit
-  }, [confirmCellEdit])
+    confirmCellEditRef.current = (cellEdit) => {
+      const res = confirmCellEdit(cellEdit)
+      if (res) {
+        commitSnapshot()
+      }
+      return res
+    }
+  }, [confirmCellEdit, commitSnapshot])
 
   const selected = elements.find((element) => element.id === selectedId)
 
@@ -104,19 +127,28 @@ function App() {
     setIsInsertBefore(false)
   }
 
-  const { deleteElement, deleteSelection } = useSketchDeletion({
-    elements,
-    setElements,
-    selectedIds,
-    setSelectedIds,
-    selectedCellIds,
-    setSelectedCellIds,
-    setSelectedId,
-    setSelectedCell,
-    cellEditRef,
-    elementEditRef,
-  })
-  const { copySelection, pasteClipboard } = useSketchClipboard({
+  const { deleteElement: rawDeleteElement, deleteSelection: rawDeleteSelection } =
+    useSketchDeletion({
+      elements,
+      setElements,
+      selectedIds,
+      setSelectedIds,
+      selectedCellIds,
+      setSelectedCellIds,
+      setSelectedId,
+      setSelectedCell,
+      cellEditRef,
+      elementEditRef,
+    })
+  const deleteElement = (id: number) => {
+    commitSnapshot()
+    rawDeleteElement(id)
+  }
+  const deleteSelection = () => {
+    commitSnapshot()
+    rawDeleteSelection()
+  }
+  const { copySelection, pasteClipboard: rawPasteClipboard } = useSketchClipboard({
     elements,
     setElements,
     nextId,
@@ -132,6 +164,10 @@ function App() {
     elementEditRef,
     clipboardRef,
   })
+  const pasteClipboard = () => {
+    commitSnapshot()
+    rawPasteClipboard()
+  }
   useSketchKeyboard({
     elements,
     setElements,
@@ -152,6 +188,9 @@ function App() {
     setSelectedCellIds,
     resetCellTyping,
     setIsInsertBefore,
+    undo,
+    redo,
+    commitSnapshot,
   })
   const {
     addVariable,
@@ -221,24 +260,88 @@ function App() {
     selectOne,
     deleteElement,
     resetCellTyping,
+    commitSnapshot,
   })
+  // Expose canvasState API for external scripting, testing, and debugging
+  useEffect(() => {
+    ;(window as unknown as { __canvasStateApi?: unknown }).__canvasStateApi = {
+      canvasState,
+      loadCanvasState,
+      loadDocument,
+      resetBoard,
+      undo,
+      redo,
+      setZoom,
+      setPan,
+      resetViewport,
+      reorder,
+    }
+  }, [
+    canvasState,
+    loadCanvasState,
+    loadDocument,
+    resetBoard,
+    undo,
+    redo,
+    setZoom,
+    setPan,
+    resetViewport,
+    reorder,
+  ])
+
   return (
     <main className="app-shell">
-      <Header />
+      <Header
+        onUndo={undo}
+        onRedo={redo}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onResetBoard={resetBoard}
+        lastSnapshotTime={lastSnapshotTime}
+      />
       <div className="workspace">
         <Sidebar
           selected={selected}
-          onUpdateSelected={updateSelected}
-          onDeleteElement={(id) =>
-            selectedCellIds.size > 0 ? deleteSelection() : deleteElement(id)
-          }
-          onAddVariable={addVariable}
-          onAddArray={addArray}
-          onAddLinkedList={addLinkedList}
-          onAddSet={addSet}
-          onAddMap={addMap}
-          onAddBinaryTree={addBinaryTree}
-          onAddMatrix={addMatrix}
+          onUpdateSelected={(patch) => {
+            commitSnapshot()
+            updateSelected(patch)
+          }}
+          onDeleteElement={(id) => {
+            commitSnapshot()
+            if (selectedCellIds.size > 0) {
+              deleteSelection()
+            } else {
+              deleteElement(id)
+            }
+          }}
+          onAddVariable={(kind) => {
+            commitSnapshot()
+            addVariable(kind)
+          }}
+          onAddArray={(values, label, inputType) => {
+            commitSnapshot()
+            addArray(values, label, inputType)
+          }}
+          onAddLinkedList={() => {
+            commitSnapshot()
+            addLinkedList()
+          }}
+          onAddSet={() => {
+            commitSnapshot()
+            addSet()
+          }}
+          onAddMap={() => {
+            commitSnapshot()
+            addMap()
+          }}
+          onAddBinaryTree={() => {
+            commitSnapshot()
+            addBinaryTree()
+          }}
+          onAddMatrix={() => {
+            commitSnapshot()
+            addMatrix()
+          }}
           onOpenLeetCodeModal={openLeetCodeModal}
           problemStatus={problemStatus}
         />
@@ -256,21 +359,36 @@ function App() {
           canvasRef={canvasRef}
           onCanvasPointerDown={handleCanvasPointerDown}
           onCanvasPointerMove={handleCanvasPointerMove}
-          onCanvasPointerUp={finishPointer}
-          onStartDrag={startDrag}
-          onStartMatrixResize={startMatrixResize}
+          onCanvasPointerUp={(event) => {
+            finishPointer(event)
+          }}
+          onStartDrag={(event, id) => {
+            startDrag(event, id)
+          }}
+          onStartMatrixResize={(event, id) => {
+            startMatrixResize(event, id)
+          }}
           onHostDoubleClick={handleHostDoubleClick}
           onSelectCell={selectCell}
           onResetCellTyping={resetCellTyping}
-          onStartIteratorDrag={startIteratorDrag}
-          onRelationshipStart={handleRelationshipStart}
-          onRelationshipFinish={finishPointer}
+          onStartIteratorDrag={(event, iterator) => {
+            startIteratorDrag(event, iterator)
+          }}
+          onRelationshipStart={(event, sourceId, targetId) => {
+            handleRelationshipStart(event, sourceId, targetId)
+          }}
+          onRelationshipFinish={(event) => {
+            finishPointer(event)
+          }}
         />
       </div>
       <LeetCodeModal
         isOpen={isLeetCodeModalOpen}
         onClose={closeLeetCodeModal}
-        onImport={handleImportTestCases}
+        onImport={(importedElements, newNextId) => {
+          commitSnapshot()
+          handleImportTestCases(importedElements, newNextId)
+        }}
         initialProblemNumber="1"
       />
     </main>

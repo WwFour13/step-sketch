@@ -11,9 +11,10 @@ import {
 
 export type CellEditConfirmation = {
   arrayId: number
-  start: number
-  count: number
-  adjustedIndex: number
+  start?: number
+  count?: number
+  adjustedIndex?: number
+  valueChanged?: boolean
 }
 
 type UseSketchSelectionOptions = {
@@ -43,36 +44,46 @@ export const useSketchSelection = ({
       )
       if (!array) return null
 
+      const values = getCollectionValues(array)
+      const elementIds = getCollectionElementIds(array)
+      const currentValue = values[cellEdit.index] ?? ''
+      const initialValue = cellEdit.initialValue ?? ''
+      let valueChanged = cellEdit.hasTyped && currentValue !== initialValue
+
       if (array.kind === 'array' && array.input_type === 'number') {
-        const value = getCollectionValues(array)[cellEdit.index] ?? ''
-        const isValidNumber = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(value)
-        if (value && !isValidNumber) {
+        const isValidNumber = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(currentValue)
+        if (currentValue && !isValidNumber) {
           setElements((current) =>
             current.map((element) => {
               if (element.kind !== 'array' || element.id !== array.id) return element
-              const values = [...getCollectionValues(element)]
-              if (cellEdit.index >= values.length) return element
-              values[cellEdit.index] = ''
-              return withCollectionCells(element, values, getCollectionElementIds(element))
+              const nextValues = [...getCollectionValues(element)]
+              if (cellEdit.index >= nextValues.length) return element
+              nextValues[cellEdit.index] = ''
+              return withCollectionCells(element, nextValues, getCollectionElementIds(element))
             }),
           )
+          valueChanged = true
         }
-        return null
+        return valueChanged ? { arrayId: array.id, valueChanged: true } : null
       }
 
       const isSet = array.kind === 'set'
       const isMapKey = array.kind === 'map' && cellEdit.index % 2 === 0
-      if (!isSet && !isMapKey) return null
+      if (!isSet && !isMapKey) {
+        return valueChanged ? { arrayId: array.id, valueChanged: true } : null
+      }
 
-      const values = getCollectionValues(array)
-      const elementIds = getCollectionElementIds(array)
-      const value = values[cellEdit.index]
-      if (!value) return null
+      if (!currentValue) {
+        return valueChanged ? { arrayId: array.id, valueChanged: true } : null
+      }
+
       const duplicateIndex = values.findIndex(
         (candidate, index) =>
-          index !== cellEdit.index && (!isMapKey || index % 2 === 0) && candidate === value,
+          index !== cellEdit.index && (!isMapKey || index % 2 === 0) && candidate === currentValue,
       )
-      if (duplicateIndex < 0) return null
+      if (duplicateIndex < 0) {
+        return valueChanged ? { arrayId: array.id, valueChanged: true } : null
+      }
 
       const start = isMapKey ? Math.floor(duplicateIndex / 2) * 2 : duplicateIndex
       const count = isMapKey ? 2 : 1
@@ -106,7 +117,7 @@ export const useSketchSelection = ({
             }
           }),
       )
-      return { arrayId: array.id, start, count, adjustedIndex }
+      return { arrayId: array.id, start, count, adjustedIndex, valueChanged: true }
     },
     [elements, setElements, setSelectedCellIds],
   )
@@ -117,22 +128,29 @@ export const useSketchSelection = ({
       let selectedIndex = index
       if (!currentEdit || currentEdit.arrayId !== arrayId || currentEdit.index !== index) {
         const confirmed = confirmCellEdit(cellEditRef.current)
-        if (confirmed?.arrayId === arrayId) {
+        if (
+          confirmed?.start !== undefined &&
+          confirmed?.count !== undefined &&
+          confirmed?.arrayId === arrayId
+        ) {
           selectedIndex =
             index >= confirmed.start + confirmed.count
               ? index - confirmed.count
               : index >= confirmed.start
-                ? confirmed.adjustedIndex
+                ? (confirmed.adjustedIndex ?? index)
                 : index
         }
       }
-      cellEditRef.current = additive
-        ? null
-        : { arrayId, index: selectedIndex, hasTyped: false }
       const array = elements.find(
         (element): element is SketchCollection =>
           isSketchCollection(element) && element.id === arrayId,
       )
+      const currentValues = array ? getCollectionValues(array) : []
+      const initialValue = currentValues[selectedIndex] ?? ''
+
+      cellEditRef.current = additive
+        ? null
+        : { arrayId, index: selectedIndex, hasTyped: false, initialValue }
       const cellId = array ? getCollectionElementIds(array)[selectedIndex] : undefined
       if (additive) {
         if (cellId !== undefined) {

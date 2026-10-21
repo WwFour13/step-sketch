@@ -64,6 +64,7 @@ type UseSketchCanvasGesturesOptions = {
   selectOne: (id: number, additive?: boolean) => void
   deleteElement: (id: number) => void
   resetCellTyping: () => void
+  commitSnapshot?: () => void
 }
 
 export const useSketchCanvasGestures = ({
@@ -97,6 +98,7 @@ export const useSketchCanvasGestures = ({
   selectOne,
   deleteElement,
   resetCellTyping,
+  commitSnapshot,
 }: UseSketchCanvasGesturesOptions) => {
   /**
    * Advances an iterator one linked node or collection cell in its current
@@ -611,6 +613,8 @@ export const useSketchCanvasGestures = ({
       )
       if (matrix && matrixResize) {
         const { targetColumns, targetRows } = matrixResize
+        const dimensionsChanged =
+          targetColumns !== resize.initialColumns || targetRows !== resize.initialRows
         if (targetColumns < matrix.columns || targetRows < matrix.values.length) {
           const deletedCellIds = new Set<number>()
           for (let r = 0; r < matrix.values.length; r++) {
@@ -642,6 +646,9 @@ export const useSketchCanvasGestures = ({
               }),
           )
         }
+        if (dimensionsChanged) {
+          commitSnapshot?.()
+        }
       }
       matrixResizeRef.current = null
       setMatrixResize(null)
@@ -662,13 +669,13 @@ export const useSketchCanvasGestures = ({
           )
           let nextMode: 'top' | 'bottom' | 'left' | 'right' = 'bottom'
           let nextHostId = hostId
+          const currentIterator = elements.find(
+            (element): element is SketchIterator =>
+              element.kind === 'iterator' && element.id === draggedIterator.id,
+          )
           if (hostArray?.kind === 'set' || hostArray?.kind === 'map') {
             nextMode = 'left'
           } else if (hostArray?.kind === 'matrix') {
-            const currentIterator = elements.find(
-              (element): element is SketchIterator =>
-                element.kind === 'iterator' && element.id === draggedIterator.id,
-            )
             nextMode = currentIterator?.mode === 'left' ? 'left' : 'top'
             const elementIds = getCollectionElementIds(hostArray)
             const index = elementIds.indexOf(hostId)
@@ -685,17 +692,25 @@ export const useSketchCanvasGestures = ({
               nextMode = event.clientY < centerY ? 'top' : 'bottom'
             }
           }
-          setElements((current) =>
-            current.map((element) =>
-              element.kind === 'iterator' && element.id === draggedIterator.id
-                ? {
-                    ...element,
-                    hostId: nextHostId,
-                    mode: nextMode,
-                  }
-                : element,
-            ),
-          )
+
+          const hostChanged =
+            Boolean(currentIterator) &&
+            (nextHostId !== currentIterator?.hostId || nextMode !== currentIterator?.mode)
+
+          if (hostChanged) {
+            setElements((current) =>
+              current.map((element) =>
+                element.kind === 'iterator' && element.id === draggedIterator.id
+                  ? {
+                      ...element,
+                      hostId: nextHostId,
+                      mode: nextMode,
+                    }
+                  : element,
+              ),
+            )
+            commitSnapshot?.()
+          }
         }
       }
       iteratorDragRef.current = null
@@ -716,6 +731,7 @@ export const useSketchCanvasGestures = ({
             return { ...element, pointer_ids: remainingPointers }
           }),
         )
+        commitSnapshot?.()
       }
       relationshipRef.current = null
       return
@@ -725,36 +741,93 @@ export const useSketchCanvasGestures = ({
       setSelectionBox(null)
       return
     }
-    if (!pointerRef.current) {
+    if (dragRef.current) {
+      const { id, initialPositions, draggedIds } = dragRef.current
+      const primaryElement = elements.find(
+        (el): el is Exclude<SketchElement, SketchIterator> =>
+          el.id === id && el.kind !== 'iterator',
+      )
+      const initialPos = initialPositions.get(id)
+      let maxDist = 0
+      if (primaryElement && initialPos) {
+        maxDist = Math.hypot(
+          primaryElement.position.x - initialPos.x,
+          primaryElement.position.y - initialPos.y,
+        )
+      } else {
+        for (const [draggedId, initPos] of initialPositions.entries()) {
+          const el = elements.find(
+            (e): e is Exclude<SketchElement, SketchIterator> =>
+              e.id === draggedId && e.kind !== 'iterator',
+          )
+          if (el) {
+            const dist = Math.hypot(el.position.x - initPos.x, el.position.y - initPos.y)
+            if (dist > maxDist) maxDist = dist
+          }
+        }
+      }
+
+      if (maxDist > 5) {
+        commitSnapshot?.()
+      } else if (maxDist > 0) {
+        setElements((current) =>
+          current.map((element) => {
+            const initPos = initialPositions.get(element.id)
+            if (!initPos || !draggedIds.has(element.id) || element.kind === 'iterator') {
+              return element
+            }
+            return {
+              ...element,
+              position: { ...initPos },
+            }
+          }),
+        )
+      }
       dragRef.current = null
       return
     }
-    const target = document
-      .elementFromPoint(event.clientX, event.clientY)
-      ?.closest<HTMLElement>('[data-node-id]')
-    const targetId = target ? Number(target.dataset.nodeId) : null
-    const sourceId = pointerRef.current.sourceId
-    setElements((current) =>
-      current.map((element) => {
-        if (element.id !== sourceId || element.kind !== 'node') return element
+    if (pointerRef.current) {
+      const target = document
+        .elementFromPoint(event.clientX, event.clientY)
+        ?.closest<HTMLElement>('[data-node-id]')
+      const targetId = target ? Number(target.dataset.nodeId) : null
+      const sourceId = pointerRef.current.sourceId
+      const sourceNode = elements.find(
+        (element): element is Extract<SketchElement, { kind: 'node' }> =>
+          element.id === sourceId && element.kind === 'node',
+      )
+      if (sourceNode) {
+        let nextPointerIds: number[]
         if (!targetId || targetId === sourceId) {
-          return { ...element, pointer_ids: [] }
+          nextPointerIds = []
+        } else if (sourceNode.pointer_ids.includes(targetId)) {
+          nextPointerIds = sourceNode.pointer_ids.filter((pId) => pId !== targetId)
+        } else if (sourceNode.pointer_limit === 1) {
+          nextPointerIds = [targetId]
+        } else if (sourceNode.pointer_limit === 2 && sourceNode.pointer_ids.length >= 2) {
+          nextPointerIds = sourceNode.pointer_ids
+        } else {
+          nextPointerIds = [...sourceNode.pointer_ids, targetId]
         }
-        if (element.pointer_ids.includes(targetId)) {
-          return {
-            ...element,
-            pointer_ids: element.pointer_ids.filter((pointerId) => pointerId !== targetId),
-          }
+
+        const changed =
+          nextPointerIds.length !== sourceNode.pointer_ids.length ||
+          nextPointerIds.some((pId, i) => pId !== sourceNode.pointer_ids[i])
+
+        if (changed) {
+          setElements((current) =>
+            current.map((element) =>
+              element.id === sourceId && element.kind === 'node'
+                ? { ...element, pointer_ids: nextPointerIds }
+                : element,
+            ),
+          )
+          commitSnapshot?.()
         }
-        if (element.pointer_limit === 1) {
-          return { ...element, pointer_ids: [targetId] }
-        }
-        if (element.pointer_limit === 2 && element.pointer_ids.length >= 2) return element
-        return { ...element, pointer_ids: [...element.pointer_ids, targetId] }
-      }),
-    )
-    pointerRef.current = null
-    setPointerDraft(null)
+      }
+      pointerRef.current = null
+      setPointerDraft(null)
+    }
   }
 
   /**

@@ -31,6 +31,9 @@ type UseSketchKeyboardOptions = {
   setSelectedCellIds: Dispatch<SetStateAction<Set<number>>>
   resetCellTyping: () => void
   setIsInsertBefore: Dispatch<SetStateAction<boolean>>
+  undo?: () => void
+  redo?: () => void
+  commitSnapshot?: () => void
 }
 
 export const useSketchKeyboard = ({
@@ -53,6 +56,9 @@ export const useSketchKeyboard = ({
   setSelectedCellIds,
   resetCellTyping,
   setIsInsertBefore,
+  undo,
+  redo,
+  commitSnapshot,
 }: UseSketchKeyboardOptions) => {
   useEffect(() => {
     /**
@@ -76,6 +82,21 @@ export const useSketchKeyboard = ({
       const isTypedCharacter =
         event.key.length === 1 &&
         ((!event.ctrlKey && !event.metaKey && !event.altKey) || event.getModifierState('AltGraph'))
+
+      const isUndoShortcut =
+        (event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z'
+      const isRedoShortcut =
+        (event.ctrlKey || event.metaKey) &&
+        (event.key.toLowerCase() === 'y' || (event.shiftKey && event.key.toLowerCase() === 'z'))
+      if (isUndoShortcut || isRedoShortcut) {
+        if (isLeetCodeModalOpen || (isEditing && !isArrayCell && !isCanvasCellEdit)) {
+          return
+        }
+        event.preventDefault()
+        if (isUndoShortcut) undo?.()
+        else redo?.()
+        return
+      }
 
       const isClipboardShortcut =
         (event.ctrlKey || event.metaKey) &&
@@ -182,22 +203,83 @@ export const useSketchKeyboard = ({
         if (nextIndex !== index) {
           const confirmed = confirmCellEditRef.current(cellEdit)
           const selectedIndex =
-            confirmed?.arrayId === array.id && nextIndex >= confirmed.start + confirmed.count
+            confirmed?.start !== undefined &&
+            confirmed?.count !== undefined &&
+            confirmed?.arrayId === array.id &&
+            nextIndex >= confirmed.start + confirmed.count
               ? nextIndex - confirmed.count
-              : confirmed?.arrayId === array.id && nextIndex >= confirmed.start
-                ? confirmed.adjustedIndex
+              : confirmed?.start !== undefined &&
+                  confirmed?.arrayId === array.id &&
+                  nextIndex >= confirmed.start
+                ? (confirmed.adjustedIndex ?? nextIndex)
                 : nextIndex
+          const currentValues = getCollectionValues(array)
           cellEditRef.current = {
             arrayId: array.id,
             index: selectedIndex,
             hasTyped: false,
             insertBefore: false,
+            initialValue: currentValues[selectedIndex] ?? '',
           }
           setIsInsertBefore(false)
           setSelectedCell(selectedIndex)
           setSelectedCellIds(new Set([elementIds[selectedIndex]]))
         }
         return
+      }
+
+      if (cellEdit && isCanvasCellEdit) {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          confirmCellEditRef.current(cellEdit)
+          cellEditRef.current = null
+          setSelectedCell(null)
+          return
+        }
+        if (event.key === 'Escape') {
+          event.preventDefault()
+          if (cellEdit.insertBefore) {
+            cellEditRef.current = { ...cellEdit, insertBefore: false }
+            setIsInsertBefore(false)
+            return
+          }
+          confirmCellEditRef.current(cellEdit)
+          cellEditRef.current = null
+          setSelectedCell(null)
+          return
+        }
+        if (event.key === 'Tab') {
+          event.preventDefault()
+          const confirmed = confirmCellEditRef.current(cellEdit)
+          const targetArray = elements.find(
+            (el): el is SketchCollection =>
+              isSketchCollection(el) && el.id === cellEdit.arrayId,
+          )
+          if (targetArray) {
+            const vals = getCollectionValues(targetArray)
+            const ids = getCollectionElementIds(targetArray)
+            const activeIdx =
+              confirmed?.start !== undefined &&
+              confirmed?.adjustedIndex !== undefined &&
+              confirmed?.arrayId === targetArray.id
+                ? confirmed.adjustedIndex
+                : cellEdit.index
+            const step = event.shiftKey ? -1 : 1
+            const nextIdx = Math.max(0, Math.min(vals.length - 1, activeIdx + step))
+            if (nextIdx !== cellEdit.index && ids[nextIdx] !== undefined) {
+              cellEditRef.current = {
+                arrayId: targetArray.id,
+                index: nextIdx,
+                hasTyped: false,
+                insertBefore: false,
+                initialValue: vals[nextIdx] ?? '',
+              }
+              setSelectedCell(nextIdx)
+              setSelectedCellIds(new Set([ids[nextIdx]]))
+            }
+          }
+          return
+        }
       }
 
       if (cellEdit && isCanvasCellEdit && editingArray && selectedIds.has(editingArray.id)) {
@@ -218,10 +300,20 @@ export const useSketchKeyboard = ({
           cellIds = elementIds,
         ) => {
           const nextCellId = cellIds[nextIndex]
+          const nextInitialVal = values[nextIndex] ?? ''
           cellEditRef.current =
             nextCellId === undefined
               ? null
-              : { arrayId: editingArray.id, index: nextIndex, hasTyped, insertBefore }
+              : {
+                  arrayId: editingArray.id,
+                  index: nextIndex,
+                  hasTyped,
+                  insertBefore,
+                  initialValue:
+                    cellEdit?.initialValue !== undefined && nextIndex === cellEdit.index
+                      ? cellEdit.initialValue
+                      : nextInitialVal,
+                }
           setIsInsertBefore(nextCellId === undefined ? false : insertBefore)
           setSelectedCell(nextCellId === undefined ? null : nextIndex)
           setSelectedCellIds(nextCellId === undefined ? new Set() : new Set([nextCellId]))
@@ -247,6 +339,7 @@ export const useSketchKeyboard = ({
                 return { ...element, values: nextValues, element_ids: nextElementIds }
               }),
           )
+          commitSnapshot?.()
           const nextIndex = Math.min(Math.max(0, preferredIndex), nextElementIds.length - 1)
           setActiveCell(nextIndex, false, insertBefore && nextElementIds.length > 0, nextElementIds)
         }
@@ -270,6 +363,7 @@ export const useSketchKeyboard = ({
               }),
             )
             setNextId((current) => current + 1)
+            commitSnapshot?.()
             setActiveCell(insertedIndex, false, false, nextElementIds)
             return
           }
@@ -290,6 +384,7 @@ export const useSketchKeyboard = ({
               ),
             )
             setNextId((current) => current + 1)
+            commitSnapshot?.()
             setActiveCell(0, true, false, [newCellId])
             return
           }
@@ -319,6 +414,7 @@ export const useSketchKeyboard = ({
             ),
           )
           setNextId((current) => current + 1)
+          commitSnapshot?.()
           setActiveCell(insertIndex, true, false, elementIds)
           return
         }
@@ -388,7 +484,13 @@ export const useSketchKeyboard = ({
             ),
           )
           setNextId((current) => current + 1)
-          cellEditRef.current = { arrayId: selectedArray.id, index: 0, hasTyped: true }
+          commitSnapshot?.()
+          cellEditRef.current = {
+            arrayId: selectedArray.id,
+            index: 0,
+            hasTyped: true,
+            initialValue: '',
+          }
           setSelectedCell(0)
           setSelectedCellIds(new Set([cellId]))
           return
@@ -422,7 +524,11 @@ export const useSketchKeyboard = ({
           const isMap = array.kind === 'map'
           const confirmed = isAddingCell ? confirmCellEditRef.current(cellEdit) : null
           const activeIndex =
-            confirmed?.arrayId === array.id ? confirmed.adjustedIndex : cellEdit.index
+            confirmed?.start !== undefined &&
+            confirmed?.adjustedIndex !== undefined &&
+            confirmed?.arrayId === array.id
+              ? confirmed.adjustedIndex
+              : cellEdit.index
           const insertedIndex = isMap ? (Math.floor(activeIndex / 2) + 1) * 2 : activeIndex + 1
           const insertedCellCount = isMap ? 2 : 1
           if (isAddingCell) {
@@ -441,6 +547,7 @@ export const useSketchKeyboard = ({
               }),
             )
             setNextId((current) => current + insertedCellCount)
+            commitSnapshot?.()
           } else {
             const currentValue = arrayValues[cellEdit.index] ?? ''
             const nextValue = cellEdit.hasTyped ? currentValue + event.key : event.key
@@ -461,6 +568,7 @@ export const useSketchKeyboard = ({
             arrayId: cellEdit.arrayId,
             index: selectedIndex,
             hasTyped: !isAddingCell && selectedIndex === cellEdit.index,
+            initialValue: isAddingCell ? '' : (cellEdit.initialValue ?? (arrayValues[cellEdit.index] ?? '')),
           }
           setSelectedCell(selectedIndex)
           const selectedCellId = isAddingCell ? nextId : arrayElementIds[selectedIndex]
@@ -503,6 +611,7 @@ export const useSketchKeyboard = ({
                 ...cellEdit,
                 index: pairStart,
                 hasTyped: false,
+                initialValue: '',
               }
               setElements((current) =>
                 current.map((element) =>
@@ -511,6 +620,7 @@ export const useSketchKeyboard = ({
                     : element,
                 ),
               )
+              commitSnapshot?.()
               return
             }
 
@@ -531,10 +641,13 @@ export const useSketchKeyboard = ({
                   return withCollectionCells(element, values, elementIds)
                 }),
             )
+            commitSnapshot?.()
+            const nextVals = arrayValues.filter((_, i) => i < pairStart || i >= pairStart + removeCount)
             cellEditRef.current = {
               arrayId: cellEdit.arrayId,
               index: nextIndex,
               hasTyped: false,
+              initialValue: nextVals[nextIndex] ?? '',
             }
             setSelectedCell(nextIndex)
           }
@@ -548,6 +661,9 @@ export const useSketchKeyboard = ({
             : cellEdit.hasTyped
               ? currentValue + event.key
               : event.key
+        if (cellEdit.initialValue === undefined) {
+          cellEdit.initialValue = currentValue
+        }
         cellEdit.hasTyped = true
         setElements((current) =>
           current.map((element) => {
@@ -643,6 +759,7 @@ export const useSketchKeyboard = ({
                   : element,
               ),
             )
+            commitSnapshot?.()
             cellEditRef.current = {
               ...cellEdit,
               index: pairStart,
@@ -666,6 +783,7 @@ export const useSketchKeyboard = ({
                   return withCollectionCells(element, values, elementIds)
                 }),
             )
+            commitSnapshot?.()
             cellEditRef.current = {
               arrayId: deleteTargetId,
               index: nextIndex,
@@ -741,5 +859,8 @@ export const useSketchKeyboard = ({
     setElements,
     setNextId,
     pasteClipboard,
+    undo,
+    redo,
+    commitSnapshot,
   ])
 }

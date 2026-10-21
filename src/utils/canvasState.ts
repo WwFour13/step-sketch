@@ -298,6 +298,33 @@ export const findNonOverlappingSpawnPosition = (
   }
 }
 
+/** Formats elapsed time since last snapshot into readable status text. */
+export const formatSaveStatus = (lastSnapshotTime: number, now: number): string => {
+  const elapsedMs = Math.max(0, now - lastSnapshotTime)
+  const elapsedSec = Math.floor(elapsedMs / 1000)
+
+  if (elapsedSec < 5) {
+    return `Saved just now (${elapsedSec}s)`
+  }
+  if (elapsedSec < 60) {
+    return 'Saved < 1m ago'
+  }
+
+  const elapsedMin = Math.floor(elapsedSec / 60)
+  if (elapsedMin === 1) {
+    return 'Saved 1m ago'
+  }
+  if (elapsedMin < 60) {
+    return `Saved ${elapsedMin}m ago`
+  }
+
+  const elapsedHour = Math.floor(elapsedMin / 60)
+  if (elapsedHour === 1) {
+    return 'Saved 1h ago'
+  }
+  return `Saved ${elapsedHour}h ago`
+}
+
 /** Serializes a CanvasDocument to a formatted JSON string for saving or sharing. */
 export const serializeCanvasDocument = (doc: CanvasDocument): string => {
   return JSON.stringify(doc, null, 2)

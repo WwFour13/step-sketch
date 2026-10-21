@@ -118,6 +118,7 @@ export type CellEditState = {
   index: number
   hasTyped: boolean
   insertBefore?: boolean
+  initialValue?: string
 }
 
 /** Origin and additive-selection mode for an active marquee gesture. */
