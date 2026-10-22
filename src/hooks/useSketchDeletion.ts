@@ -73,6 +73,9 @@ export const useSketchDeletion = ({
       setSelectedId(0)
       setSelectedCell(null)
       setSelectedCellIds(new Set())
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+      }
     },
     [setElements, setSelectedCell, setSelectedCellIds, setSelectedId, setSelectedIds],
   )
@@ -240,6 +243,9 @@ export const useSketchDeletion = ({
     } else {
       cellEditRef.current = null
       setSelectedCell(null)
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+      }
     }
     elementEditRef.current = null
   }, [

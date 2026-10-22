@@ -112,7 +112,6 @@ export const Canvas: React.FC<CanvasProps> = ({
       <div
         ref={canvasRef}
         className="canvas"
-        tabIndex={-1}
         onPointerMove={onCanvasPointerMove}
         onPointerUp={onCanvasPointerUp}
         onContextMenu={(event) => event.preventDefault()}
@@ -233,10 +232,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           aria-hidden="true"
         />
 
-        <div className="canvas-hint">
-          <span>+</span>
-          <span>Drag to arrange; Shift-drag to select cells</span>
-        </div>
+        
       </div>
 
       <CanvasFooter dimensions={screenDimensions ?? dimensions} zoom={zoom} />

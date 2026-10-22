@@ -11,7 +11,6 @@ export type ToolSectionProps = {
   onAddBinaryTree: () => void
   onAddMatrix: () => void
   onOpenLeetCodeModal: () => void
-  problemStatus: string
 }
 
 /**
@@ -27,7 +26,6 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
   onAddBinaryTree,
   onAddMatrix,
   onOpenLeetCodeModal,
-  problemStatus,
 }) => {
   return (
     <div className="tool-section">
@@ -117,7 +115,6 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
           </span>
         </button>
       </div>
-      {problemStatus && <div className="problem-status">{problemStatus}</div>}
     </div>
   )
 }

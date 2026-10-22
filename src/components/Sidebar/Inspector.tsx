@@ -15,6 +15,35 @@ export type InspectorProps = {
   onDeleteElement: (id: number) => void
 }
 
+const getElementKindMeta = (element: SketchElement) => {
+  if (element.kind === 'variable') {
+    return { name: 'Variable', icon: '□' }
+  }
+  if (element.kind === 'node') {
+    return { name: 'Node', icon: '○' }
+  }
+  if (element.kind === 'iterator') {
+    return { name: 'Iterator', icon: '▲' }
+  }
+  if (isSketchCollection(element)) {
+    const layout = getCollectionLayout(element)
+    switch (layout) {
+      case 'matrix':
+        return { name: 'Matrix', icon: '▦' }
+      case 'map':
+        return { name: 'Map', icon: '↔' }
+      case 'vertical':
+        return { name: element.kind === 'set' ? 'Set' : 'Vertical Array', icon: '∪' }
+      default:
+        return {
+          name: 'input_type' in element && element.input_type === 'character' ? 'String' : 'Array',
+          icon: '[ ]',
+        }
+    }
+  }
+  return { name: 'Element', icon: '◇' }
+}
+
 /**
  * Displays editable fields tailored to the selected element kind, including
  * layout-aware array text and iterator color controls.
@@ -25,23 +54,61 @@ export const Inspector: React.FC<InspectorProps> = ({
   onDeleteElement,
 }) => {
   if (!selected) {
-    return <div className="empty-inspector">Select an element to edit it</div>
+    return (
+      <div className="inspector empty-inspector-container">
+        <div className="section-label">INSPECTOR</div>
+        <div className="empty-inspector-card">
+          <div className="empty-inspector-icon">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M3 12h3m12 0h3M12 3v3m0 12v3" />
+            </svg>
+          </div>
+          <div className="empty-inspector-text">
+            <strong>No element selected</strong>
+            <span>Click any item or cell on the canvas to inspect & edit</span>
+          </div>
+        </div>
+      </div>
+    )
   }
+
   const isCollection = isSketchCollection(selected)
   const layout = isCollection ? getCollectionLayout(selected) : null
+  const meta = getElementKindMeta(selected)
 
   return (
     <div className="inspector">
+      <div className="inspector-header">
+        <span className="section-label">INSPECTOR</span>
+        <span className="inspector-badge">
+          <span className="badge-icon">{meta.icon}</span>
+          <span className="badge-name">{meta.name}</span>
+        </span>
+      </div>
+
       {(selected.kind === 'variable' || isCollection) && (
         <div className="field-row">
           <label htmlFor="label">Label</label>
           <input
             id="label"
+            placeholder="element label"
             value={selected.label || ''}
             onChange={(event) => onUpdateSelected({ label: event.target.value })}
           />
         </div>
       )}
+
       {selected.kind === 'node' && (
         <div className="field-row pointer-limit-field">
           <label>Pointer limit</label>
@@ -69,11 +136,13 @@ export const Inspector: React.FC<InspectorProps> = ({
           </div>
         </div>
       )}
+
       {selected.kind === 'variable' || selected.kind === 'node' || isCollection ? (
         <div className="field-row">
           <label htmlFor="value">Value</label>
           <textarea
             id="value"
+            rows={layout === 'matrix' || layout === 'map' ? 4 : 2}
             value={
               isCollection
                 ? getArrayEditorValue(selected)
@@ -93,17 +162,22 @@ export const Inspector: React.FC<InspectorProps> = ({
           />
         </div>
       ) : null}
+
       {isCollection && (
-        <p className="field-help">
-          {layout === 'map'
-            ? 'One key: value pair per line'
-            : layout === 'vertical'
-              ? 'One value per line'
-              : layout === 'matrix'
-                ? 'Comma-separated values per row'
-                : 'Separate values with commas'}
-        </p>
+        <div className="field-help-pill">
+          <span className="help-icon">ℹ</span>
+          <span>
+            {layout === 'map'
+              ? 'One key: value pair per line'
+              : layout === 'vertical'
+                ? 'One value per line'
+                : layout === 'matrix'
+                  ? 'Comma-separated values per row'
+                  : 'Separate values with commas'}
+          </span>
+        </div>
       )}
+
       {selected.kind === 'iterator' && (
         <div className="field-row iterator-color-field">
           <label>Iterator color</label>
@@ -123,8 +197,14 @@ export const Inspector: React.FC<InspectorProps> = ({
           </div>
         </div>
       )}
-      <button className="delete-button" onClick={() => onDeleteElement(selected.id)}>
-        Delete element <span>⌫</span>
+
+      <button
+        type="button"
+        className="delete-button"
+        onClick={() => onDeleteElement(selected.id)}
+      >
+        <span>Delete element</span>
+        <kbd>⌫</kbd>
       </button>
     </div>
   )

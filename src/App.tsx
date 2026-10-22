@@ -49,7 +49,6 @@ function App() {
     lastSnapshotTime,
   } = useCanvasState()
   const [isLeetCodeModalOpen, setIsLeetCodeModalOpen] = useState(false)
-  const [problemStatus, setProblemStatus] = useState('')
   const [screenDimensions, setScreenDimensions] = useState<{ width: number; height: number }>({
     width: 1420,
     height: 850,
@@ -314,7 +313,6 @@ function App() {
     confirmCellEdit: (cellEdit) => confirmCellEditRef.current(cellEdit),
     setSelectedCell,
     setIsLeetCodeModalOpen,
-    setProblemStatus,
   })
   const {
     startIteratorDrag,
@@ -451,7 +449,6 @@ function App() {
             addMatrix()
           }}
           onOpenLeetCodeModal={openLeetCodeModal}
-          problemStatus={problemStatus}
         />
         <Canvas
           elements={elements}

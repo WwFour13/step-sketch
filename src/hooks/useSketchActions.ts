@@ -31,7 +31,6 @@ type UseSketchActionsOptions = {
   confirmCellEdit: (cellEdit: CellEditState | null) => CellEditConfirmation | null
   setSelectedCell: Dispatch<SetStateAction<number | null>>
   setIsLeetCodeModalOpen: Dispatch<SetStateAction<boolean>>
-  setProblemStatus: Dispatch<SetStateAction<string>>
 }
 
 export const useSketchActions = ({
@@ -48,7 +47,6 @@ export const useSketchActions = ({
   confirmCellEdit,
   setSelectedCell,
   setIsLeetCodeModalOpen,
-  setProblemStatus,
 }: UseSketchActionsOptions) => {
   const addVariable = (kind: 'variable' | 'node') => {
     const id = nextId
@@ -218,7 +216,7 @@ export const useSketchActions = ({
     setIsLeetCodeModalOpen(false)
   }
 
-  const handleImportTestCases = (selectedCases: ParsedTestCase[], problemTitle: string) => {
+  const handleImportTestCases = (selectedCases: ParsedTestCase[], _problemTitle?: string) => {
     const maxY = elements.reduce((acc, element) => {
       if (element.kind === 'iterator') return acc
       return Math.max(acc, element.position.y + 110)
@@ -233,10 +231,6 @@ export const useSketchActions = ({
       setSelectedIds(new Set(result.elements.map((element) => element.id)))
       setSelectedId(firstElement.id)
     }
-
-    setProblemStatus(
-      `${problemTitle} (${selectedCases.length} ${selectedCases.length === 1 ? 'case' : 'cases'} imported)`,
-    )
   }
 
   const updateSelected = (patch: Partial<SketchElement>) => {
