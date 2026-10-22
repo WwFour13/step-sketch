@@ -15,7 +15,12 @@ import type {
   SketchIterator,
 } from '../types/sketch'
 import { CELL_SIZE, iteratorColors } from '../constants/sketch'
-import { elementBounds, hostBounds, hostIdFromPoint } from '../utils/canvas'
+import {
+  elementBounds,
+  getRecursiveChildNodeIds,
+  hostBounds,
+  hostIdFromPoint,
+} from '../utils/canvas'
 import {
   getCollectionElementIds,
   getCollectionLayout,
@@ -334,8 +339,9 @@ export const useSketchCanvasGestures = ({
 
   /**
    * Begins a canvas gesture on an element. A left-button press starts moving
-   * the selected group; Shift-dragging a node includes its reachable nodes;
-   * right-button dragging a node starts or edits its pointer connection.
+   * the selected group; Ctrl/Cmd-clicking a node recursively selects the node
+   * and all its descendant child nodes; right-button dragging a node starts
+   * or edits its pointer connection.
    * @param event React pointer event carrying the button, modifiers, cursor
    *   coordinates, and capture target for the gesture.
    * @param id ID of the element that received the pointer event.
@@ -347,6 +353,51 @@ export const useSketchCanvasGestures = ({
     const bounds = canvasRef.current?.getBoundingClientRect()
     if (!element || !bounds) return
     const targetCell = event.target instanceof Element && event.target.closest('.array-cell-input')
+
+    const isRecursiveNodeSelect =
+      event.button === 0 && (event.ctrlKey || event.metaKey) && element.kind === 'node'
+
+    if (isRecursiveNodeSelect) {
+      if (cellEditRef.current) {
+        confirmCellEdit(cellEditRef.current)
+        cellEditRef.current = null
+      }
+      elementEditRef.current = { elementId: id, hasTyped: false }
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+      }
+
+      const subtreeIds = getRecursiveChildNodeIds(id, elements)
+      const activeSelection = event.shiftKey
+        ? new Set([...selectedIds, ...subtreeIds])
+        : subtreeIds
+
+      setSelectedIds(activeSelection)
+      setSelectedId(id)
+      setSelectedCell(null)
+      setSelectedCellIds(new Set())
+
+      const pt = getCanvasPoint(event.clientX, event.clientY)
+      const draggedIds = new Set<number>(activeSelection)
+      dragRef.current = {
+        id,
+        offsetX: pt.x - element.position.x,
+        offsetY: pt.y - element.position.y,
+        draggedIds,
+        initialPositions: new Map(
+          elements
+            .filter(
+              (item): item is Exclude<SketchElement, SketchIterator> =>
+                item.kind !== 'iterator' && draggedIds.has(item.id),
+            )
+            .map((item) => [item.id, item.position]),
+        ),
+        isRecursiveNodeSelect: true,
+      }
+      event.currentTarget.setPointerCapture(event.pointerId)
+      return
+    }
+
     if (event.button === 0 && event.shiftKey) {
       if (!targetCell) {
         selectOne(id, true)
@@ -379,22 +430,6 @@ export const useSketchCanvasGestures = ({
         : new Set([id])
     if (isArrayCellTarget) {
       if (!selectedIds.has(id)) setSelectedIds(activeSelection)
-      setSelectedId(id)
-    } else if (event.shiftKey && element.kind === 'node') {
-      const visited = new Set<number>(activeSelection)
-      const pendingIds = [id]
-      while (pendingIds.length > 0) {
-        const currentId = pendingIds.shift()!
-        const currentElement = elements.find((item) => item.id === currentId)
-        if (currentElement?.kind !== 'node') continue
-        currentElement.pointer_ids.forEach((pointerId) => {
-          if (visited.has(pointerId)) return
-          visited.add(pointerId)
-          pendingIds.push(pointerId)
-        })
-      }
-      activeSelection = visited
-      setSelectedIds(visited)
       setSelectedId(id)
     } else if (!selectedIds.has(id)) {
       selectOne(id)
@@ -861,7 +896,13 @@ export const useSketchCanvasGestures = ({
             }),
           )
         }
-        if (!event.shiftKey && selectedIds.size > 1) {
+        if (
+          !event.shiftKey &&
+          !event.ctrlKey &&
+          !event.metaKey &&
+          !dragRef.current.isRecursiveNodeSelect &&
+          selectedIds.size > 1
+        ) {
           selectOne(id)
         }
       }

@@ -88,6 +88,7 @@ export type DragState = {
   offsetY: number
   draggedIds: Set<number>
   initialPositions: Map<number, Position>
+  isRecursiveNodeSelect?: boolean
 }
 
 /** Live draft for a pointer being drawn from a source node to the cursor. */

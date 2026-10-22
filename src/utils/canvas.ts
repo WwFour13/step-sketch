@@ -262,3 +262,41 @@ export const parseMatrixEditorValue = (value: string) => {
     values: rows.map((row) => [...row, ...Array<string>(columns - row.length).fill('')]),
   }
 }
+
+/**
+ * Recursively collects the given node ID and all descendant node IDs reachable
+ * through outgoing pointer_ids. Traversal is cycle-safe and only includes nodes
+ * that exist in the provided elements list.
+ *
+ * @param nodeId Starting root node ID
+ * @param elements Complete list of sketch elements
+ * @returns Set of node IDs containing nodeId and all reachable descendant nodes
+ */
+export const getRecursiveChildNodeIds = (
+  nodeId: number,
+  elements: SketchElement[],
+): Set<number> => {
+  const root = elements.find((item) => item.id === nodeId)
+  if (root?.kind !== 'node') {
+    return new Set<number>()
+  }
+
+  const result = new Set<number>([nodeId])
+  const queue = [nodeId]
+
+  while (queue.length > 0) {
+    const currentId = queue.shift()!
+    const currentElement = elements.find((item) => item.id === currentId)
+    if (currentElement?.kind !== 'node') continue
+
+    for (const pointerId of currentElement.pointer_ids) {
+      const child = elements.find((item) => item.id === pointerId)
+      if (child?.kind === 'node' && !result.has(pointerId)) {
+        result.add(pointerId)
+        queue.push(pointerId)
+      }
+    }
+  }
+
+  return result
+}
