@@ -1,11 +1,13 @@
 import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from 'react'
 import type {
+  CanvasDimensions,
   CellEditState,
   DragState,
   IteratorDragState,
   MarqueeDrag,
   MatrixResizeState,
   PointerDraft,
+  Position,
   RelationshipDrag,
   SelectionBox,
   SketchCollection,
@@ -58,6 +60,7 @@ type UseSketchCanvasGesturesOptions = {
   setSelectedCellIds: Dispatch<SetStateAction<Set<number>>>
   setSelectedId: Dispatch<SetStateAction<number>>
   setSelectedCell: Dispatch<SetStateAction<number | null>>
+  setIsInsertBefore?: Dispatch<SetStateAction<boolean>>
   cellEditRef: MutableRefObject<CellEditState | null>
   confirmCellEdit: (cellEdit: CellEditState | null) => unknown
   elementEditRef: MutableRefObject<{ elementId: number; hasTyped: boolean } | null>
@@ -65,6 +68,9 @@ type UseSketchCanvasGesturesOptions = {
   deleteElement: (id: number) => void
   resetCellTyping: () => void
   commitSnapshot?: () => void
+  zoom?: number
+  pan?: Position
+  dimensions?: CanvasDimensions
 }
 
 export const useSketchCanvasGestures = ({
@@ -92,6 +98,7 @@ export const useSketchCanvasGestures = ({
   setSelectedCellIds,
   setSelectedId,
   setSelectedCell,
+  setIsInsertBefore,
   cellEditRef,
   confirmCellEdit,
   elementEditRef,
@@ -99,7 +106,23 @@ export const useSketchCanvasGestures = ({
   deleteElement,
   resetCellTyping,
   commitSnapshot,
+  zoom = 1,
+  pan = { x: 0, y: 0 },
+  dimensions,
 }: UseSketchCanvasGesturesOptions) => {
+  const currentZoom = zoom > 0 ? zoom : 1
+  const panX = pan?.x ?? 0
+  const panY = pan?.y ?? 0
+
+  /** Converts screen client coordinates to canvas world coordinates. */
+  const getCanvasPoint = (clientX: number, clientY: number) => {
+    const bounds = canvasRef.current?.getBoundingClientRect()
+    if (!bounds) return { x: 0, y: 0 }
+    return {
+      x: (clientX - bounds.left - panX) / currentZoom,
+      y: (clientY - bounds.top - panY) / currentZoom,
+    }
+  }
   /**
    * Advances an iterator one linked node or collection cell in its current
    * direction. Does nothing when the host has no valid next item.
@@ -169,11 +192,12 @@ export const useSketchCanvasGestures = ({
     } else {
       iteratorClickRef.current = { id: iterator.id, time: now }
     }
-    const bounds = canvasRef.current?.getBoundingClientRect()
-    const relX = bounds ? event.clientX - bounds.left - 6 : event.clientX
-    const relY = bounds ? event.clientY - bounds.top - 4 : event.clientY
+    const pt = getCanvasPoint(event.clientX, event.clientY)
+    const relX = pt.x - 6
+    const relY = pt.y - 4
     iteratorDragRef.current = { id: iterator.id, startX: event.clientX, startY: event.clientY }
     setIteratorDrag({ id: iterator.id, x: relX, y: relY })
+    setIsInsertBefore?.(false)
     selectOne(iterator.id)
     event.stopPropagation()
     event.currentTarget.setPointerCapture(event.pointerId)
@@ -185,11 +209,11 @@ export const useSketchCanvasGestures = ({
    * @param event Pointer event providing the current cursor position.
    */
   const updateMarquee = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const bounds = canvasRef.current?.getBoundingClientRect()
     const marquee = marqueeRef.current
-    if (!bounds || !marquee) return
-    const currentX = event.clientX - bounds.left
-    const currentY = event.clientY - bounds.top
+    if (!marquee) return
+    const pt = getCanvasPoint(event.clientX, event.clientY)
+    const currentX = pt.x
+    const currentY = pt.y
     const x = Math.min(marquee.startX, currentX)
     const y = Math.min(marquee.startY, currentY)
     const width = Math.abs(currentX - marquee.startX)
@@ -318,6 +342,7 @@ export const useSketchCanvasGestures = ({
    */
   const startDrag = (event: ReactPointerEvent, id: number) => {
     window.getSelection()?.removeAllRanges()
+    setIsInsertBefore?.(false)
     const element = elements.find((item) => item.id === id)
     const bounds = canvasRef.current?.getBoundingClientRect()
     if (!element || !bounds) return
@@ -380,10 +405,11 @@ export const useSketchCanvasGestures = ({
       setSelectedCellIds(new Set())
     }
     if (event.button === 2 && element.kind === 'node') {
+      const pt = getCanvasPoint(event.clientX, event.clientY)
       pointerRef.current = {
         sourceId: id,
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top,
+        x: pt.x,
+        y: pt.y,
       }
       setPointerDraft(pointerRef.current)
       event.currentTarget.setPointerCapture(event.pointerId)
@@ -405,10 +431,11 @@ export const useSketchCanvasGestures = ({
           item.id === id && item.kind !== 'iterator',
       ) ?? (element.kind === 'iterator' ? null : element)
     if (!primaryElement) return
+    const pt = getCanvasPoint(event.clientX, event.clientY)
     dragRef.current = {
       id,
-      offsetX: event.clientX - bounds.left - primaryElement.position.x,
-      offsetY: event.clientY - bounds.top - primaryElement.position.y,
+      offsetX: pt.x - primaryElement.position.x,
+      offsetY: pt.y - primaryElement.position.y,
       draggedIds,
       initialPositions: new Map(
         elements
@@ -429,6 +456,7 @@ export const useSketchCanvasGestures = ({
    */
   const startMatrixResize = (event: ReactPointerEvent, matrixId: number) => {
     window.getSelection()?.removeAllRanges()
+    setIsInsertBefore?.(false)
     const matrix = elements.find(
       (item): item is Extract<SketchCollection, { kind: 'matrix' }> =>
         item.id === matrixId && item.kind === 'matrix',
@@ -484,8 +512,8 @@ export const useSketchCanvasGestures = ({
     )
     if (!matrix) return
 
-    const deltaX = event.clientX - resize.startPointerX
-    const deltaY = event.clientY - resize.startPointerY
+    const deltaX = (event.clientX - resize.startPointerX) / currentZoom
+    const deltaY = (event.clientY - resize.startPointerY) / currentZoom
 
     const colDiff = Math.floor((deltaX + 0.5 * CELL_SIZE) / CELL_SIZE)
     const rowDiff = Math.floor((deltaY + 0.5 * CELL_SIZE) / CELL_SIZE)
@@ -553,34 +581,83 @@ export const useSketchCanvasGestures = ({
    */
   const moveElement = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (iteratorDragRef.current) {
-      const bounds = canvasRef.current?.getBoundingClientRect()
-      const relX = bounds ? event.clientX - bounds.left - 6 : event.clientX
-      const relY = bounds ? event.clientY - bounds.top - 4 : event.clientY
-      setIteratorDrag({ id: iteratorDragRef.current.id, x: relX, y: relY })
+      const pt = getCanvasPoint(event.clientX, event.clientY)
+      setIteratorDrag({ id: iteratorDragRef.current.id, x: pt.x - 6, y: pt.y - 4 })
       return
     }
     if (pointerRef.current) {
-      const bounds = canvasRef.current?.getBoundingClientRect()
-      if (!bounds) return
+      const pt = getCanvasPoint(event.clientX, event.clientY)
       const draft = {
         ...pointerRef.current,
-        x: event.clientX - bounds.left,
-        y: event.clientY - bounds.top,
+        x: pt.x,
+        y: pt.y,
       }
       pointerRef.current = draft
       setPointerDraft(draft)
       return
     }
     if (!dragRef.current) return
-    const bounds = canvasRef.current?.getBoundingClientRect()
-    if (!bounds) return
     const { id, offsetX, offsetY, draggedIds, initialPositions } = dragRef.current
     const primaryPosition = initialPositions.get(id)
     if (!primaryPosition) return
-    const x = Math.max(12, event.clientX - bounds.left - offsetX)
-    const y = Math.max(24, event.clientY - bounds.top - offsetY)
-    const deltaX = x - primaryPosition.x
-    const deltaY = y - primaryPosition.y
+
+    const pt = getCanvasPoint(event.clientX, event.clientY)
+    const rawTargetX = pt.x - offsetX
+    const rawTargetY = pt.y - offsetY
+    const rawDeltaX = rawTargetX - primaryPosition.x
+    const rawDeltaY = rawTargetY - primaryPosition.y
+
+    const bounds = canvasRef.current?.getBoundingClientRect()
+    const screenWidth = bounds?.width ?? dimensions?.width ?? 1200
+    const screenHeight = bounds?.height ?? dimensions?.height ?? 800
+
+    // Visible canvas boundaries in world coordinates at current zoom and pan
+    const minVisibleX = (-panX + 16) / currentZoom
+    const maxVisibleX = (screenWidth - panX - 16) / currentZoom
+    const minVisibleY = (-panY + 24) / currentZoom
+    const maxVisibleY = (screenHeight - panY - 24) / currentZoom
+
+    let minDeltaX = -Infinity
+    let maxDeltaX = Infinity
+    let minDeltaY = -Infinity
+    let maxDeltaY = Infinity
+
+    draggedIds.forEach((draggedId) => {
+      const initPos = initialPositions.get(draggedId)
+      const el = elements.find((e) => e.id === draggedId)
+      if (!initPos || !el || el.kind === 'iterator') return
+      const b = elementBounds(el)
+      const elWidth = b.width || 42
+      const elHeight = b.height || 42
+
+      minDeltaX = Math.max(minDeltaX, minVisibleX - initPos.x)
+      maxDeltaX = Math.min(maxDeltaX, maxVisibleX - elWidth - initPos.x)
+      minDeltaY = Math.max(minDeltaY, minVisibleY - initPos.y)
+      maxDeltaY = Math.min(maxDeltaY, maxVisibleY - elHeight - initPos.y)
+    })
+
+    let clampedDeltaX = rawDeltaX
+    if (minDeltaX <= maxDeltaX) {
+      clampedDeltaX = Math.max(minDeltaX, Math.min(maxDeltaX, rawDeltaX))
+    } else {
+      const primaryEl = elements.find((e) => e.id === id)
+      const primaryB = primaryEl ? elementBounds(primaryEl) : { width: 42, height: 42 }
+      const pMin = minVisibleX - primaryPosition.x
+      const pMax = maxVisibleX - (primaryB.width || 42) - primaryPosition.x
+      clampedDeltaX = Math.max(pMin, Math.min(pMax, rawDeltaX))
+    }
+
+    let clampedDeltaY = rawDeltaY
+    if (minDeltaY <= maxDeltaY) {
+      clampedDeltaY = Math.max(minDeltaY, Math.min(maxDeltaY, rawDeltaY))
+    } else {
+      const primaryEl = elements.find((e) => e.id === id)
+      const primaryB = primaryEl ? elementBounds(primaryEl) : { width: 42, height: 42 }
+      const pMin = minVisibleY - primaryPosition.y
+      const pMax = maxVisibleY - (primaryB.height || 42) - primaryPosition.y
+      clampedDeltaY = Math.max(pMin, Math.min(pMax, rawDeltaY))
+    }
+
     setElements((current) =>
       current.map((element) => {
         const initialPosition = initialPositions.get(element.id)
@@ -590,8 +667,8 @@ export const useSketchCanvasGestures = ({
         return {
           ...element,
           position: {
-            x: Math.max(12, initialPosition.x + deltaX),
-            y: Math.max(24, initialPosition.y + deltaY),
+            x: Math.round(initialPosition.x + clampedDeltaX),
+            y: Math.round(initialPosition.y + clampedDeltaY),
           },
         }
       }),
@@ -687,8 +764,8 @@ export const useSketchCanvasGestures = ({
             const bounds = hostBounds(elements, hostId)
             const canvasRect = canvasRef.current?.getBoundingClientRect()
             if (bounds && canvasRect) {
-              const hostScreenY = canvasRect.top + bounds.y
-              const centerY = hostScreenY + bounds.height / 2
+              const hostScreenY = canvasRect.top + panY + bounds.y * currentZoom
+              const centerY = hostScreenY + (bounds.height * currentZoom) / 2
               nextMode = event.clientY < centerY ? 'top' : 'bottom'
             }
           }
@@ -769,19 +846,24 @@ export const useSketchCanvasGestures = ({
 
       if (maxDist > 5) {
         commitSnapshot?.()
-      } else if (maxDist > 0) {
-        setElements((current) =>
-          current.map((element) => {
-            const initPos = initialPositions.get(element.id)
-            if (!initPos || !draggedIds.has(element.id) || element.kind === 'iterator') {
-              return element
-            }
-            return {
-              ...element,
-              position: { ...initPos },
-            }
-          }),
-        )
+      } else {
+        if (maxDist > 0) {
+          setElements((current) =>
+            current.map((element) => {
+              const initPos = initialPositions.get(element.id)
+              if (!initPos || !draggedIds.has(element.id) || element.kind === 'iterator') {
+                return element
+              }
+              return {
+                ...element,
+                position: { ...initPos },
+              }
+            }),
+          )
+        }
+        if (!event.shiftKey && selectedIds.size > 1) {
+          selectOne(id)
+        }
       }
       dragRef.current = null
       return
@@ -860,16 +942,27 @@ export const useSketchCanvasGestures = ({
    */
   const handleCanvasPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     resetCellTyping()
-    const startsMarquee =
-      event.button === 0 && (event.target === event.currentTarget || event.shiftKey)
+    setIsInsertBefore?.(false)
+    const isTargetOnElement =
+      event.target instanceof Element &&
+      Boolean(
+        event.target.closest(
+          '.canvas-element, .iterator-triangle, .matrix-resize-handle, .pointer-layer line',
+        ),
+      )
+    const startsMarquee = event.button === 0 && (!isTargetOnElement || event.shiftKey)
     if (startsMarquee) {
       confirmCellEdit(cellEditRef.current)
       cellEditRef.current = null
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur()
+      }
       const bounds = canvasRef.current?.getBoundingClientRect()
       if (!bounds) return
+      const pt = getCanvasPoint(event.clientX, event.clientY)
       marqueeRef.current = {
-        startX: event.clientX - bounds.left,
-        startY: event.clientY - bounds.top,
+        startX: pt.x,
+        startY: pt.y,
         additive: event.shiftKey,
       }
       if (!event.shiftKey) {
@@ -1031,8 +1124,8 @@ export const useSketchCanvasGestures = ({
       const bounds = hostBounds(elements, hostId)
       const canvasRect = canvasRef.current?.getBoundingClientRect()
       if (bounds && canvasRect) {
-        const hostScreenY = canvasRect.top + bounds.y
-        const centerY = hostScreenY + bounds.height / 2
+        const hostScreenY = canvasRect.top + panY + bounds.y * currentZoom
+        const centerY = hostScreenY + (bounds.height * currentZoom) / 2
         preferredMode = event.clientY < centerY ? 'top' : 'bottom'
       }
     }

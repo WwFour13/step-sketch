@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { MAX_CANVAS_ZOOM, MIN_CANVAS_ZOOM } from '../../constants/sketch'
 import { formatSaveStatus } from '../../utils/canvasState'
 
 export type HeaderProps = {
@@ -8,6 +9,10 @@ export type HeaderProps = {
   canRedo?: boolean
   onResetBoard?: () => void
   lastSnapshotTime?: number
+  zoom?: number
+  onZoomIn?: () => void
+  onZoomOut?: () => void
+  onResetZoom?: () => void
 }
 
 /** Renders the application brand, board breadcrumb, and top-bar actions. */
@@ -18,6 +23,10 @@ export const Header: React.FC<HeaderProps> = ({
   canRedo = false,
   onResetBoard,
   lastSnapshotTime,
+  zoom = 1,
+  onZoomIn,
+  onZoomOut,
+  onResetZoom,
 }) => {
   const [ticker, setTicker] = useState(() => Date.now())
 
@@ -91,6 +100,45 @@ export const Header: React.FC<HeaderProps> = ({
           >
             ↺
           </button>
+        )}
+        <span className="divider" />
+        {(onZoomIn || onZoomOut || onResetZoom) && (
+          <div className="zoom-controls">
+            <button
+              className="icon-button zoom-btn"
+              aria-label="Zoom out"
+              title="Zoom out (Ctrl+-)"
+              onClick={onZoomOut}
+              disabled={zoom <= MIN_CANVAS_ZOOM}
+              style={{
+                opacity: zoom <= MIN_CANVAS_ZOOM ? 0.4 : 1,
+                cursor: zoom <= MIN_CANVAS_ZOOM ? 'default' : 'pointer',
+              }}
+            >
+              −
+            </button>
+            <button
+              className="zoom-level-button"
+              aria-label="Reset zoom"
+              title="Click to reset zoom to 100% (Ctrl+0)"
+              onClick={onResetZoom}
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+            <button
+              className="icon-button zoom-btn"
+              aria-label="Zoom in"
+              title="Zoom in (Ctrl+=)"
+              onClick={onZoomIn}
+              disabled={zoom >= MAX_CANVAS_ZOOM}
+              style={{
+                opacity: zoom >= MAX_CANVAS_ZOOM ? 0.4 : 1,
+                cursor: zoom >= MAX_CANVAS_ZOOM ? 'default' : 'pointer',
+              }}
+            >
+              +
+            </button>
+          </div>
         )}
         <span className="divider" />
         <button className="share-button">

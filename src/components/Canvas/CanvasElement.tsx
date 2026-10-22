@@ -136,16 +136,57 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
                 const isCellActive = isResizingThis
                   ? isFutureCell
-                  : !(index === 0 && isInsertBeforeActive) &&
-                    (selectedCellIds.has(cellId) ||
-                      (isPrimarySelected && selectedCell === index) ||
-                      (isSelected && selectedCell === null && !hasPartialCellSelection))
+                  : selectedCellIds.has(cellId) ||
+                    (isPrimarySelected && selectedCell === index) ||
+                    (isSelected && selectedCell === null && !hasPartialCellSelection)
+
+                // Check if neighbor to the left or above is active so this cell's borders form their right/bottom wall
+                const isLeftActive =
+                  layout === 'vertical'
+                    ? false
+                    : (is2D ? column > 0 : index > 0) &&
+                      (isResizingThis
+                        ? isFutureCell
+                        : selectedCellIds.has(elementIds[index - 1]) ||
+                          (isPrimarySelected && selectedCell === index - 1) ||
+                          (isSelected && selectedCell === null && !hasPartialCellSelection))
+
+                const isAboveActive =
+                  layout === 'vertical'
+                    ? index > 0 &&
+                      (selectedCellIds.has(elementIds[index - 1]) ||
+                        (isPrimarySelected && selectedCell === index - 1) ||
+                        (isSelected && selectedCell === null && !hasPartialCellSelection))
+                    : is2D &&
+                      row > 0 &&
+                      (isResizingThis
+                        ? isFutureCell
+                        : selectedCellIds.has(elementIds[index - numCols]) ||
+                          (isPrimarySelected && selectedCell === index - numCols) ||
+                          (isSelected && selectedCell === null && !hasPartialCellSelection))
 
                 const resolvedGridClasses = isResizingThis
                   ? isFutureCell
                     ? activeGridClasses
                     : `${gridClasses} cell-contracting`
                   : gridClasses
+
+                const isFirstCell = index === 0
+                const isLastCell = index === values.length - 1
+                const positionClasses = [
+                  isFirstCell && 'cell-first',
+                  isLastCell && 'cell-last',
+                ]
+                  .filter(Boolean)
+                  .join(' ')
+
+                const activeBorderClasses = [
+                  isCellActive && 'cell-active',
+                  isLeftActive && 'cell-left-active',
+                  isAboveActive && 'cell-above-active',
+                ]
+                  .filter(Boolean)
+                  .join(' ')
 
                 return (
                   <input
@@ -154,7 +195,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     value={value}
                     readOnly
                     draggable={false}
-                    className={`array-cell-input ${resolvedGridClasses} ${isCellActive ? 'cell-active' : ''}`}
+                    className={`array-cell-input ${resolvedGridClasses} ${positionClasses} ${activeBorderClasses}`}
                     onPointerDown={(event) => {
                       onResetCellTyping()
                       onSelectCell(collection.id, index, event.shiftKey)

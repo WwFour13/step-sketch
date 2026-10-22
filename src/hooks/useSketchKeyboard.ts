@@ -34,6 +34,9 @@ type UseSketchKeyboardOptions = {
   undo?: () => void
   redo?: () => void
   commitSnapshot?: () => void
+  onZoomIn?: () => void
+  onZoomOut?: () => void
+  onResetZoom?: () => void
 }
 
 export const useSketchKeyboard = ({
@@ -59,6 +62,9 @@ export const useSketchKeyboard = ({
   undo,
   redo,
   commitSnapshot,
+  onZoomIn,
+  onZoomOut,
+  onResetZoom,
 }: UseSketchKeyboardOptions) => {
   useEffect(() => {
     /**
@@ -82,6 +88,28 @@ export const useSketchKeyboard = ({
       const isTypedCharacter =
         event.key.length === 1 &&
         ((!event.ctrlKey && !event.metaKey && !event.altKey) || event.getModifierState('AltGraph'))
+
+      const isZoomInShortcut =
+        (event.ctrlKey || event.metaKey) && (event.key === '=' || event.key === '+')
+      const isZoomOutShortcut =
+        (event.ctrlKey || event.metaKey) && (event.key === '-' || event.key === '_')
+      const isZoomResetShortcut =
+        (event.ctrlKey || event.metaKey) && event.key === '0'
+
+      if (isZoomInShortcut || isZoomOutShortcut || isZoomResetShortcut) {
+        const isInputField =
+          activeElement?.tagName === 'INPUT' ||
+          activeElement?.tagName === 'TEXTAREA' ||
+          Boolean(activeElement?.isContentEditable) ||
+          Boolean(activeElement?.closest('.leetcode-modal-container'))
+        if (!isLeetCodeModalOpen && !isInputField) {
+          event.preventDefault()
+          if (isZoomInShortcut) onZoomIn?.()
+          else if (isZoomOutShortcut) onZoomOut?.()
+          else onResetZoom?.()
+          return
+        }
+      }
 
       const isUndoShortcut =
         (event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === 'z'
@@ -862,5 +890,8 @@ export const useSketchKeyboard = ({
     undo,
     redo,
     commitSnapshot,
+    onZoomIn,
+    onZoomOut,
+    onResetZoom,
   ])
 }

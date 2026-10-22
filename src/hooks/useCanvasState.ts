@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import {
+  CANVAS_ASPECT_RATIO_X,
+  CANVAS_ASPECT_RATIO_Y,
+  DEFAULT_CANVAS_DIMENSIONS,
   DEFAULT_CANVAS_VIEWPORT,
   MAX_CANVAS_ZOOM,
   MIN_CANVAS_ZOOM,
@@ -22,6 +25,13 @@ export type UseCanvasStateOptions = {
   maxHistory?: number
 }
 
+export type PanBoundaryHit = {
+  left: boolean
+  right: boolean
+  top: boolean
+  bottom: boolean
+}
+
 export type UseCanvasStateReturn = {
   // Current composite state
   canvasState: CanvasState
@@ -31,6 +41,7 @@ export type UseCanvasStateReturn = {
   nextId: number
   dimensions: CanvasDimensions
   lastSnapshotTime: number
+  panBoundaryHit: PanBoundaryHit
 
   // Backward-compatible individual setters for existing hooks
   setElements: Dispatch<SetStateAction<SketchElement[]>>
@@ -51,7 +62,16 @@ export type UseCanvasStateReturn = {
   // Viewport / Camera controls
   setViewport: Dispatch<SetStateAction<CanvasViewport>>
   setZoom: (zoom: number | ((prev: number) => number)) => void
-  setPan: (pan: Position | ((prev: Position) => Position)) => void
+  zoomTo: (
+    targetZoomAction: number | ((prev: number) => number),
+    pivotScreenX?: number,
+    pivotScreenY?: number,
+    canvasPixelSize?: { width: number; height: number },
+  ) => void
+  setPan: (
+    pan: Position | ((prev: Position) => Position),
+    canvasPixelSize?: { width: number; height: number },
+  ) => void
   resetViewport: () => void
 
   // Dimensions
@@ -64,6 +84,74 @@ export type UseCanvasStateReturn = {
   ) => void
 }
 
+/**
+ * Calculates world dimensions for the maximum panning limits, guaranteeing
+ * that the total accessible screen strictly conforms to a hardcoded 16:9 ratio.
+ */
+export const getPannableWorldDimensions = (
+  zoom: number,
+  canvasPixelSize?: { width: number; height: number },
+  worldDimensions?: CanvasDimensions,
+): CanvasDimensions => {
+  const screenW = canvasPixelSize?.width ?? 1200
+  const screenH = canvasPixelSize?.height ?? 800
+
+  const baseW = worldDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width
+  const baseH = worldDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height
+
+  const requiredW = screenW / (zoom || 1)
+  const requiredH = screenH / (zoom || 1)
+
+  // Scale units in 16-by-9 blocks, ensuring screen coverage while strictly preserving 16:9 ratio
+  let scaleUnits = Math.ceil(
+    Math.max(
+      baseW / CANVAS_ASPECT_RATIO_X,
+      baseH / CANVAS_ASPECT_RATIO_Y,
+      requiredW / CANVAS_ASPECT_RATIO_X,
+      requiredH / CANVAS_ASPECT_RATIO_Y,
+    ),
+  )
+  if (scaleUnits % 4 !== 0) {
+    scaleUnits += 4 - (scaleUnits % 4)
+  }
+
+  return {
+    width: scaleUnits * CANVAS_ASPECT_RATIO_X,
+    height: scaleUnits * CANVAS_ASPECT_RATIO_Y,
+  }
+}
+
+export const clampPan = (
+  pan: Position,
+  zoom: number,
+  canvasPixelSize?: { width: number; height: number },
+  worldDimensions?: CanvasDimensions,
+): Position => {
+  const screenW = canvasPixelSize?.width ?? 1200
+  const screenH = canvasPixelSize?.height ?? 800
+  const world = getPannableWorldDimensions(zoom, canvasPixelSize, worldDimensions)
+
+  const scaledWorldW = world.width * zoom
+  const scaledWorldH = world.height * zoom
+
+  // Left boundary: pan.x <= 0 prevents camera from drifting right to reveal void to the left
+  // Right boundary: pan.x >= screenW - scaledWorldW prevents camera from drifting past right edge
+  const minX = screenW - scaledWorldW
+  const maxX = 0
+  const clampedX = Math.max(minX, Math.min(maxX, pan.x))
+
+  // Top boundary: pan.y <= 0 prevents camera from drifting down to reveal void above
+  // Bottom boundary: pan.y >= screenH - scaledWorldH
+  const minY = screenH - scaledWorldH
+  const maxY = 0
+  const clampedY = Math.max(minY, Math.min(maxY, pan.y))
+
+  return {
+    x: Math.round(clampedX),
+    y: Math.round(clampedY),
+  }
+}
+
 export const useCanvasState = (options: UseCanvasStateOptions = {}): UseCanvasStateReturn => {
   const { initialState = initialCanvasState, maxHistory = 50 } = options
 
@@ -73,6 +161,13 @@ export const useCanvasState = (options: UseCanvasStateOptions = {}): UseCanvasSt
     future: [],
   })
   const [lastSnapshotTime, setLastSnapshotTime] = useState<number>(() => Date.now())
+  const [panBoundaryHit, setPanBoundaryHit] = useState<PanBoundaryHit>({
+    left: false,
+    right: false,
+    top: false,
+    bottom: false,
+  })
+  const panBoundaryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const stateRef = useRef(canvasState)
   useEffect(() => {
@@ -230,18 +325,96 @@ export const useCanvasState = (options: UseCanvasStateOptions = {}): UseCanvasSt
     })
   }, [])
 
-  const setPan = useCallback((action: Position | ((prev: Position) => Position)) => {
-    setCanvasState((current) => {
-      const nextPan = typeof action === 'function' ? action(current.viewport.pan) : action
-      return {
-        ...current,
-        viewport: {
-          ...current.viewport,
-          pan: nextPan,
-        },
-      }
-    })
-  }, [])
+  /** Scales zoom centered around a screen pivot point (mouse cursor or canvas center). */
+  const zoomTo = useCallback(
+    (
+      targetZoomAction: number | ((prev: number) => number),
+      pivotScreenX?: number,
+      pivotScreenY?: number,
+      canvasPixelSize?: { width: number; height: number },
+    ) => {
+      setCanvasState((current) => {
+        const oldZoom = current.viewport.zoom || 1
+        const targetZoom =
+          typeof targetZoomAction === 'function' ? targetZoomAction(oldZoom) : targetZoomAction
+        const clampedZoom = Math.max(MIN_CANVAS_ZOOM, Math.min(MAX_CANVAS_ZOOM, targetZoom))
+        if (clampedZoom === oldZoom) return current
+
+        const canvasW = canvasPixelSize?.width ?? current.document.dimensions.width
+        const canvasH = canvasPixelSize?.height ?? current.document.dimensions.height
+
+        const pivotX = pivotScreenX ?? canvasW / 2
+        const pivotY = pivotScreenY ?? canvasH / 2
+
+        const oldPan = current.viewport.pan || { x: 0, y: 0 }
+        const zoomRatio = clampedZoom / oldZoom
+        const newPanX = pivotX - (pivotX - oldPan.x) * zoomRatio
+        const newPanY = pivotY - (pivotY - oldPan.y) * zoomRatio
+
+        const clampedPan = clampPan(
+          { x: newPanX, y: newPanY },
+          clampedZoom,
+          canvasPixelSize,
+          current.document.dimensions,
+        )
+
+        return {
+          ...current,
+          viewport: {
+            zoom: Number(clampedZoom.toFixed(3)),
+            pan: clampedPan,
+          },
+        }
+      })
+    },
+    [],
+  )
+
+  const setPan = useCallback(
+    (
+      action: Position | ((prev: Position) => Position),
+      canvasPixelSize?: { width: number; height: number },
+    ) => {
+      setCanvasState((current) => {
+        const nextPan = typeof action === 'function' ? action(current.viewport.pan) : action
+        const clampedPan = clampPan(
+          nextPan,
+          current.viewport.zoom,
+          canvasPixelSize,
+          current.document.dimensions,
+        )
+
+        const hitLeft = nextPan.x > clampedPan.x
+        const hitRight = nextPan.x < clampedPan.x
+        const hitTop = nextPan.y > clampedPan.y
+        const hitBottom = nextPan.y < clampedPan.y
+
+        if (hitLeft || hitRight || hitTop || hitBottom) {
+          setPanBoundaryHit((prev) => ({
+            left: hitLeft || prev.left,
+            right: hitRight || prev.right,
+            top: hitTop || prev.top,
+            bottom: hitBottom || prev.bottom,
+          }))
+          if (panBoundaryTimeoutRef.current) {
+            clearTimeout(panBoundaryTimeoutRef.current)
+          }
+          panBoundaryTimeoutRef.current = setTimeout(() => {
+            setPanBoundaryHit({ left: false, right: false, top: false, bottom: false })
+          }, 450)
+        }
+
+        return {
+          ...current,
+          viewport: {
+            ...current.viewport,
+            pan: clampedPan,
+          },
+        }
+      })
+    },
+    [],
+  )
 
   const resetViewport = useCallback(() => {
     setCanvasState((current) => ({
@@ -289,6 +462,7 @@ export const useCanvasState = (options: UseCanvasStateOptions = {}): UseCanvasSt
     nextId: canvasState.document.nextId,
     dimensions: canvasState.document.dimensions,
     lastSnapshotTime,
+    panBoundaryHit,
 
     setElements,
     setNextId,
@@ -305,6 +479,7 @@ export const useCanvasState = (options: UseCanvasStateOptions = {}): UseCanvasSt
 
     setViewport,
     setZoom,
+    zoomTo,
     setPan,
     resetViewport,
 

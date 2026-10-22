@@ -15,10 +15,15 @@ export const NODE_SIZE = 54
 export const CELL_SIZE = 42
 export const MAP_CELL_WIDTH = CELL_SIZE * 2
 
-/** Default logical canvas boundaries (world space). */
+/** Hardcoded 16:9 canvas aspect ratio. */
+export const CANVAS_ASPECT_RATIO_X = 16
+export const CANVAS_ASPECT_RATIO_Y = 9
+export const CANVAS_ASPECT_RATIO = CANVAS_ASPECT_RATIO_X / CANVAS_ASPECT_RATIO_Y
+
+/** Default logical canvas boundaries (world space) hardcoded to 16:9 ratio. */
 export const DEFAULT_CANVAS_DIMENSIONS: CanvasDimensions = {
-  width: 2400,
-  height: 1600,
+  width: 3200,
+  height: 1800,
 }
 
 /** Default viewport camera values. */
@@ -27,8 +32,9 @@ export const DEFAULT_CANVAS_VIEWPORT: CanvasViewport = {
   pan: { x: 0, y: 0 },
 }
 
-export const MIN_CANVAS_ZOOM = 0.25
-export const MAX_CANVAS_ZOOM = 2.5
+export const MIN_CANVAS_ZOOM = 0.5
+export const MAX_CANVAS_ZOOM = 2.0
+export const CANVAS_PAN_MARGIN = 200
 
 /** Palette and placement sides cycled through when creating iterators. */
 export const iteratorColors: IteratorColor[] = ['red', 'green', 'blue', 'yellow']

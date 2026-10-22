@@ -4,6 +4,7 @@ import { Canvas } from './components/Canvas/Canvas'
 import { Header } from './components/Header/Header'
 import { LeetCodeModal } from './components/LeetCodeModal/LeetCodeModal'
 import { Sidebar } from './components/Sidebar/Sidebar'
+import { MAX_CANVAS_ZOOM, MIN_CANVAS_ZOOM } from './constants/sketch'
 import { useCanvasState } from './hooks/useCanvasState'
 import { useSketchSelection, type CellEditConfirmation } from './hooks/useSketchSelection'
 import { useSketchClipboard, type SketchClipboard } from './hooks/useSketchClipboard'
@@ -37,6 +38,10 @@ function App() {
     canRedo,
     commitSnapshot,
     canvasState,
+    viewport,
+    dimensions,
+    panBoundaryHit,
+    zoomTo,
     setZoom,
     setPan,
     resetViewport,
@@ -45,6 +50,10 @@ function App() {
   } = useCanvasState()
   const [isLeetCodeModalOpen, setIsLeetCodeModalOpen] = useState(false)
   const [problemStatus, setProblemStatus] = useState('')
+  const [screenDimensions, setScreenDimensions] = useState<{ width: number; height: number }>({
+    width: 1420,
+    height: 850,
+  })
 
   const canvasRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<DragState | null>(null)
@@ -168,6 +177,90 @@ function App() {
     commitSnapshot()
     rawPasteClipboard()
   }
+
+  const handleZoomIn = () => {
+    const bounds = canvasRef.current?.getBoundingClientRect()
+    const canvasSize = bounds ? { width: bounds.width, height: bounds.height } : undefined
+    zoomTo(
+      (prev) => Math.min(MAX_CANVAS_ZOOM, +(prev + 0.1).toFixed(2)),
+      undefined,
+      undefined,
+      canvasSize,
+    )
+  }
+  const handleZoomOut = () => {
+    const bounds = canvasRef.current?.getBoundingClientRect()
+    const canvasSize = bounds ? { width: bounds.width, height: bounds.height } : undefined
+    zoomTo(
+      (prev) => Math.max(MIN_CANVAS_ZOOM, +(prev - 0.1).toFixed(2)),
+      undefined,
+      undefined,
+      canvasSize,
+    )
+  }
+  const handleResetZoom = () => {
+    const bounds = canvasRef.current?.getBoundingClientRect()
+    const canvasSize = bounds ? { width: bounds.width, height: bounds.height } : undefined
+    zoomTo(1, undefined, undefined, canvasSize)
+  }
+
+  useEffect(() => {
+    const canvasEl = canvasRef.current
+    if (!canvasEl) return
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect
+        if (width > 0 && height > 0) {
+          setScreenDimensions({ width: Math.round(width), height: Math.round(height) })
+        }
+      }
+    })
+    observer.observe(canvasEl)
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault()
+      const bounds = canvas.getBoundingClientRect()
+      const mouseScreenX = event.clientX - bounds.left
+      const mouseScreenY = event.clientY - bounds.top
+      const canvasSize = { width: bounds.width, height: bounds.height }
+
+      if (event.ctrlKey || event.metaKey) {
+        const zoomDelta = -event.deltaY * 0.005
+        zoomTo(
+          (prevZoom) => {
+            const nextZoom = prevZoom * (1 + zoomDelta)
+            return Math.max(MIN_CANVAS_ZOOM, Math.min(MAX_CANVAS_ZOOM, nextZoom))
+          },
+          mouseScreenX,
+          mouseScreenY,
+          canvasSize,
+        )
+      } else {
+        const deltaModeMultiplier = event.deltaMode === 1 ? 16 : 1
+        const dx = event.deltaX * deltaModeMultiplier
+        const dy = event.deltaY * deltaModeMultiplier
+        setPan(
+          (prevPan) => ({
+            x: prevPan.x - dx,
+            y: prevPan.y - dy,
+          }),
+          canvasSize,
+        )
+      }
+    }
+
+    canvas.addEventListener('wheel', handleWheel, { passive: false })
+    return () => {
+      canvas.removeEventListener('wheel', handleWheel)
+    }
+  }, [zoomTo, setPan])
+
   useSketchKeyboard({
     elements,
     setElements,
@@ -191,6 +284,9 @@ function App() {
     undo,
     redo,
     commitSnapshot,
+    onZoomIn: handleZoomIn,
+    onZoomOut: handleZoomOut,
+    onResetZoom: handleResetZoom,
   })
   const {
     addVariable,
@@ -261,6 +357,10 @@ function App() {
     deleteElement,
     resetCellTyping,
     commitSnapshot,
+    zoom: viewport.zoom,
+    pan: viewport.pan,
+    dimensions,
+    setIsInsertBefore,
   })
   // Expose canvasState API for external scripting, testing, and debugging
   useEffect(() => {
@@ -271,10 +371,12 @@ function App() {
       resetBoard,
       undo,
       redo,
+      zoomTo,
       setZoom,
       setPan,
       resetViewport,
       reorder,
+      dimensions,
     }
   }, [
     canvasState,
@@ -283,10 +385,12 @@ function App() {
     resetBoard,
     undo,
     redo,
+    zoomTo,
     setZoom,
     setPan,
     resetViewport,
     reorder,
+    dimensions,
   ])
 
   return (
@@ -298,6 +402,10 @@ function App() {
         canRedo={canRedo}
         onResetBoard={resetBoard}
         lastSnapshotTime={lastSnapshotTime}
+        zoom={viewport.zoom}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onResetZoom={handleResetZoom}
       />
       <div className="workspace">
         <Sidebar
@@ -357,6 +465,11 @@ function App() {
           iteratorDrag={iteratorDrag}
           matrixResize={matrixResize}
           canvasRef={canvasRef}
+          zoom={viewport.zoom}
+          pan={viewport.pan}
+          dimensions={dimensions}
+          screenDimensions={screenDimensions}
+          panBoundaryHit={panBoundaryHit}
           onCanvasPointerDown={handleCanvasPointerDown}
           onCanvasPointerMove={handleCanvasPointerMove}
           onCanvasPointerUp={(event) => {

@@ -1,7 +1,18 @@
 import React from 'react'
+import type { CanvasDimensions } from '../../types/sketch'
 
-/** Displays the canvas keyboard hints and fixed canvas dimensions. */
-export const CanvasFooter: React.FC = () => {
+export type CanvasFooterProps = {
+  dimensions?: CanvasDimensions
+  zoom?: number
+}
+
+/** Displays the canvas keyboard hints and dynamic canvas dimensions. */
+export const CanvasFooter: React.FC<CanvasFooterProps> = ({ dimensions, zoom }) => {
+  const dimText = dimensions
+    ? `${Math.round(dimensions.width)} x ${Math.round(dimensions.height)}`
+    : '1200 x 760'
+  const zoomText = zoom !== undefined ? ` • ${Math.round(zoom * 100)}%` : ''
+
   return (
     <footer className="canvas-footer">
       <span>
@@ -10,7 +21,9 @@ export const CanvasFooter: React.FC = () => {
       <span>
         <kbd>Delete</kbd> to remove selection
       </span>
-      <span className="footer-right">Canvas 1200 x 760</span>
+      <span className="footer-right">
+        Canvas {dimText}{zoomText} • 16:9
+      </span>
     </footer>
   )
 }

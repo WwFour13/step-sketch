@@ -1,8 +1,11 @@
 import React from 'react'
+import { getPannableWorldDimensions, type PanBoundaryHit } from '../../hooks/useCanvasState'
 import type {
+  CanvasDimensions,
   IteratorDragState,
   MatrixResizeState,
   PointerDraft,
+  Position,
   SelectionBox,
   SketchElement,
   SketchIterator,
@@ -41,6 +44,12 @@ export type CanvasProps = {
     targetId: number,
   ) => void
   onRelationshipFinish: (event: React.PointerEvent<SVGLineElement>) => void
+  zoom?: number
+  pan?: Position
+  dimensions?: CanvasDimensions
+  screenDimensions?: CanvasDimensions
+  panBoundaryHit?: PanBoundaryHit
+  onWheel?: (event: React.WheelEvent<HTMLDivElement>) => void
 }
 
 /**
@@ -70,7 +79,19 @@ export const Canvas: React.FC<CanvasProps> = ({
   onStartIteratorDrag,
   onRelationshipStart,
   onRelationshipFinish,
+  zoom = 1,
+  pan = { x: 0, y: 0 },
+  dimensions,
+  screenDimensions,
+  panBoundaryHit,
+  onWheel,
 }) => {
+  const pannableDimensions = getPannableWorldDimensions(
+    zoom,
+    screenDimensions ?? dimensions,
+    dimensions,
+  )
+
   const nonIteratorElements = elements.filter(
     (element): element is Exclude<SketchElement, SketchIterator> => element.kind !== 'iterator',
   )
@@ -79,70 +100,138 @@ export const Canvas: React.FC<CanvasProps> = ({
     (element): element is SketchIterator => element.kind === 'iterator',
   )
 
+  const gridSize = Math.max(8, 22 * zoom)
+  const patternOffsetX = ((pan.x % gridSize) + gridSize) % gridSize
+  const patternOffsetY = ((pan.y % gridSize) + gridSize) % gridSize
+  const dotRadius = Math.max(0.65, 0.9 * zoom)
+  const cellBorderWidth =
+    zoom < 1 ? Math.max(1, +(1.35 / zoom).toFixed(2)) : 1
+
   return (
     <section className="canvas-area">
       <div
         ref={canvasRef}
         className="canvas"
+        tabIndex={-1}
         onPointerMove={onCanvasPointerMove}
         onPointerUp={onCanvasPointerUp}
         onContextMenu={(event) => event.preventDefault()}
         onPointerDown={onCanvasPointerDown}
+        onWheel={onWheel}
       >
-        <PointerLayer
-          elements={elements}
-          pointerDraft={pointerDraft}
-          onRelationshipStart={onRelationshipStart}
-          onRelationshipFinish={onRelationshipFinish}
-        />
+        <svg className="canvas-grid-bg" aria-hidden="true">
+          <defs>
+            <pattern
+              id="canvas-grid-pattern"
+              x={patternOffsetX}
+              y={patternOffsetY}
+              width={gridSize}
+              height={gridSize}
+              patternUnits="userSpaceOnUse"
+            >
+              <circle
+                cx={gridSize / 2}
+                cy={gridSize / 2}
+                r={dotRadius}
+                className="canvas-grid-dot"
+              />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#canvas-grid-pattern)" />
+        </svg>
 
-        {nonIteratorElements.map((element) => (
-          <CanvasElement
-            key={element.id}
-            element={element}
-            isSelected={selectedIds.has(element.id)}
-            isPrimarySelected={selectedId === element.id}
-            selectedCellIds={selectedCellIds}
-            selectedCell={selectedCell}
-            isInsertBefore={isInsertBefore}
-            matrixResize={matrixResize}
-            onStartDrag={onStartDrag}
-            onStartMatrixResize={onStartMatrixResize}
-            onHostDoubleClick={onHostDoubleClick}
-            onSelectCell={onSelectCell}
-            onResetCellTyping={onResetCellTyping}
-          />
-        ))}
-
-        {iteratorElements.map((iterator) => {
-          const isDragging = iteratorDrag?.id === iterator.id
-          const position = isDragging
-            ? { x: iteratorDrag.x, y: iteratorDrag.y }
-            : iteratorPosition(elements, iterator)
-
-          return (
-            <IteratorElement
-              key={iterator.id}
-              iterator={iterator}
-              position={position}
-              isSelected={selectedIds.has(iterator.id)}
-              isDragging={isDragging}
-              onPointerDown={onStartIteratorDrag}
-            />
-          )
-        })}
-
-        {selectionBox && (
+        <div
+          className="canvas-viewport"
+          style={{
+            transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+            transformOrigin: '0 0',
+            ['--canvas-zoom' as string]: `${zoom}`,
+            ['--cell-border-width' as string]: `${cellBorderWidth}px`,
+          }}
+        >
+          {/* Visual 16:9 Canvas Board Boundary */}
           <div
-            className="selection-box"
+            className="canvas-board-boundary"
             style={{
-              left: selectionBox.x,
-              top: selectionBox.y,
-              width: selectionBox.width,
-              height: selectionBox.height,
+              width: pannableDimensions.width,
+              height: pannableDimensions.height,
             }}
+            aria-hidden="true"
           />
-        )}
+
+          <PointerLayer
+            elements={elements}
+            pointerDraft={pointerDraft}
+            onRelationshipStart={onRelationshipStart}
+            onRelationshipFinish={onRelationshipFinish}
+          />
+
+          {nonIteratorElements.map((element) => (
+            <CanvasElement
+              key={element.id}
+              element={element}
+              isSelected={selectedIds.has(element.id)}
+              isPrimarySelected={selectedId === element.id}
+              selectedCellIds={selectedCellIds}
+              selectedCell={selectedCell}
+              isInsertBefore={isInsertBefore}
+              matrixResize={matrixResize}
+              onStartDrag={onStartDrag}
+              onStartMatrixResize={onStartMatrixResize}
+              onHostDoubleClick={onHostDoubleClick}
+              onSelectCell={onSelectCell}
+              onResetCellTyping={onResetCellTyping}
+            />
+          ))}
+
+          {iteratorElements.map((iterator) => {
+            const isDragging = iteratorDrag?.id === iterator.id
+            const position = isDragging
+              ? { x: iteratorDrag.x, y: iteratorDrag.y }
+              : iteratorPosition(elements, iterator)
+
+            return (
+              <IteratorElement
+                key={iterator.id}
+                iterator={iterator}
+                position={position}
+                isSelected={selectedIds.has(iterator.id)}
+                isDragging={isDragging}
+                onPointerDown={onStartIteratorDrag}
+              />
+            )
+          })}
+
+          {selectionBox && (
+            <div
+              className="selection-box"
+              style={{
+                left: selectionBox.x,
+                top: selectionBox.y,
+                width: selectionBox.width,
+                height: selectionBox.height,
+              }}
+            />
+          )}
+        </div>
+
+        {/* Soft Screen Edge Boundary Vignette */}
+        <div
+          className={`canvas-edge-glow edge-left ${panBoundaryHit?.left ? 'active' : ''}`}
+          aria-hidden="true"
+        />
+        <div
+          className={`canvas-edge-glow edge-right ${panBoundaryHit?.right ? 'active' : ''}`}
+          aria-hidden="true"
+        />
+        <div
+          className={`canvas-edge-glow edge-top ${panBoundaryHit?.top ? 'active' : ''}`}
+          aria-hidden="true"
+        />
+        <div
+          className={`canvas-edge-glow edge-bottom ${panBoundaryHit?.bottom ? 'active' : ''}`}
+          aria-hidden="true"
+        />
 
         <div className="canvas-hint">
           <span>+</span>
@@ -150,7 +239,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         </div>
       </div>
 
-      <CanvasFooter />
+      <CanvasFooter dimensions={screenDimensions ?? dimensions} zoom={zoom} />
     </section>
   )
 }
