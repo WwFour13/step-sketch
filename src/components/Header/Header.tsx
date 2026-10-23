@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { MAX_CANVAS_ZOOM, MIN_CANVAS_ZOOM } from '../../constants/sketch'
 import { formatSaveStatus } from '../../utils/canvasState'
 
@@ -13,6 +13,8 @@ export type HeaderProps = {
   onZoomIn?: () => void
   onZoomOut?: () => void
   onResetZoom?: () => void
+  onSaveJson?: () => void
+  onLoadJson?: (file: File) => void
 }
 
 /** Renders the application brand, board breadcrumb, and top-bar actions. */
@@ -27,8 +29,23 @@ export const Header: React.FC<HeaderProps> = ({
   onZoomIn,
   onZoomOut,
   onResetZoom,
+  onSaveJson,
+  onLoadJson,
 }) => {
   const [ticker, setTicker] = useState(() => Date.now())
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleLoadClick = () => {
+    fileInputRef.current?.click()
+  }
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file && onLoadJson) {
+      onLoadJson(file)
+      event.target.value = ''
+    }
+  }
 
   useEffect(() => {
     // Tick at 100ms so (0s) -> (1s) -> (2s) -> (3s) -> (4s) increments with uniform 1.00s accuracy
@@ -141,6 +158,35 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         )}
         <span className="divider" />
+        {onSaveJson && (
+          <button
+            className="icon-button"
+            aria-label="Save to JSON"
+            title="Save board to JSON (Download)"
+            onClick={onSaveJson}
+          >
+            ⤓
+          </button>
+        )}
+        {onLoadJson && (
+          <>
+            <button
+              className="icon-button"
+              aria-label="Load from JSON"
+              title="Load board from JSON (Upload)"
+              onClick={handleLoadClick}
+            >
+              ⤒
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,application/json"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+          </>
+        )}
         <button className="share-button">
           Share <span>↗</span>
         </button>

@@ -12,7 +12,7 @@ import { useSketchActions } from './hooks/useSketchActions'
 import { useSketchKeyboard } from './hooks/useSketchKeyboard'
 import { useSketchCanvasGestures, type MatrixResizeDrag } from './hooks/useSketchCanvasGestures'
 import { useSketchDeletion } from './hooks/useSketchDeletion'
-import { calculateAutoPanDelta } from './utils/canvasState'
+import { calculateAutoPanDelta, validateCanvasState } from './utils/canvasState'
 import type {
   CellEditState,
   DragState,
@@ -420,6 +420,52 @@ function App() {
     dimensions,
   ])
 
+  const handleSaveJson = () => {
+    const blob = new Blob([JSON.stringify(canvasState, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const downloadAnchor = document.createElement('a')
+    downloadAnchor.href = url
+    downloadAnchor.download = 'step-sketch-untitled-board.json'
+    document.body.appendChild(downloadAnchor)
+    downloadAnchor.click()
+    downloadAnchor.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  const handleLoadJson = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result
+        if (typeof text !== 'string') {
+          window.alert('Failed to read JSON file.')
+          return
+        }
+        const parsed = JSON.parse(text)
+        const validatedState = validateCanvasState(parsed)
+        if (!validatedState) {
+          window.alert('Invalid Step-Sketch JSON file. Please check the file structure.')
+          return
+        }
+        // Clear current element selection so it doesn't linger with stale element IDs
+        setSelectedId(0)
+        setSelectedIds(new Set())
+        setSelectedCell(null)
+        setSelectedCellIds(new Set())
+        if (cellEditRef.current) cellEditRef.current = null
+        if (elementEditRef.current) elementEditRef.current = null
+
+        loadCanvasState(validatedState, false)
+      } catch {
+        window.alert('Invalid Step-Sketch JSON file. Parsing failed.')
+      }
+    }
+    reader.onerror = () => {
+      window.alert('Failed to read the selected file.')
+    }
+    reader.readAsText(file)
+  }
+
   return (
     <main className="app-shell">
       <Header
@@ -433,6 +479,8 @@ function App() {
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
         onResetZoom={handleResetZoom}
+        onSaveJson={handleSaveJson}
+        onLoadJson={handleLoadJson}
       />
       <div className="workspace">
         <Sidebar

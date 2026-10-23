@@ -1,4 +1,10 @@
-import { CELL_SIZE } from '../constants/sketch'
+import {
+  CELL_SIZE,
+  DEFAULT_CANVAS_DIMENSIONS,
+  DEFAULT_CANVAS_VIEWPORT,
+  MAX_CANVAS_ZOOM,
+  MIN_CANVAS_ZOOM,
+} from '../constants/sketch'
 import type {
   CanvasDiff,
   CanvasDimensions,
@@ -530,5 +536,90 @@ export const deserializeCanvasDocument = (json: string): CanvasDocument | null =
     return null
   } catch {
     return null
+  }
+}
+
+/** Serializes a CanvasState (document + viewport) to a formatted JSON string. */
+export const serializeCanvasState = (state: CanvasState): string => {
+  return JSON.stringify(state, null, 2)
+}
+
+/**
+ * Defensively validates an arbitrary parsed JSON object as a CanvasState.
+ * Supports both full CanvasState ({ document, viewport }) and standalone CanvasDocument ({ elements, ... }),
+ * providing defaults and bounds clamping where appropriate.
+ * Returns a valid CanvasState or null if the payload is invalid.
+ */
+export const validateCanvasState = (data: unknown): CanvasState | null => {
+  if (!data || typeof data !== 'object') return null
+
+  const candidate = data as Record<string, unknown>
+
+  // Case 1: Wrapped in CanvasState { document, viewport }
+  let doc: unknown = candidate.document
+  let vp: unknown = candidate.viewport
+
+  // Case 2: Direct CanvasDocument { elements, dimensions?, nextId?, version? }
+  if (!doc && Array.isArray(candidate.elements)) {
+    doc = candidate
+    vp = DEFAULT_CANVAS_VIEWPORT
+  }
+
+  if (!doc || typeof doc !== 'object') return null
+  const docObj = doc as Record<string, unknown>
+
+  if (!Array.isArray(docObj.elements)) return null
+
+  // Ensure every element has at least id, kind, and position
+  for (const el of docObj.elements) {
+    if (!el || typeof el !== 'object') return null
+    const elObj = el as Record<string, unknown>
+    if (typeof elObj.id !== 'number' || typeof elObj.kind !== 'string') return null
+    if (!elObj.position || typeof elObj.position !== 'object') return null
+    const pos = elObj.position as Record<string, unknown>
+    if (typeof pos.x !== 'number' || typeof pos.y !== 'number') return null
+  }
+
+  // Derive nextId if not provided or invalid
+  const maxElementId = docObj.elements.reduce<number>((max, el) => {
+    const elId = (el as { id: number }).id
+    return Math.max(max, elId)
+  }, 0)
+  const nextId =
+    typeof docObj.nextId === 'number' && docObj.nextId > maxElementId
+      ? docObj.nextId
+      : maxElementId + 1
+
+  // Validate or fallback dimensions
+  const dims = docObj.dimensions as Record<string, unknown> | undefined
+  const width =
+    typeof dims?.width === 'number' && dims.width > 0
+      ? dims.width
+      : DEFAULT_CANVAS_DIMENSIONS.width
+  const height =
+    typeof dims?.height === 'number' && dims.height > 0
+      ? dims.height
+      : DEFAULT_CANVAS_DIMENSIONS.height
+
+  const validatedDocument: CanvasDocument = {
+    version: 1,
+    dimensions: { width, height },
+    nextId,
+    elements: docObj.elements as SketchElement[],
+  }
+
+  // Validate viewport
+  const vpObj = vp && typeof vp === 'object' ? (vp as Record<string, unknown>) : null
+  const rawZoom = typeof vpObj?.zoom === 'number' ? vpObj.zoom : 1
+  const zoom = Math.max(MIN_CANVAS_ZOOM, Math.min(MAX_CANVAS_ZOOM, rawZoom))
+  const panObj = vpObj?.pan && typeof vpObj.pan === 'object' ? (vpObj.pan as Record<string, unknown>) : null
+  const pan = {
+    x: typeof panObj?.x === 'number' ? panObj.x : 0,
+    y: typeof panObj?.y === 'number' ? panObj.y : 0,
+  }
+
+  return {
+    document: validatedDocument,
+    viewport: { zoom, pan },
   }
 }
