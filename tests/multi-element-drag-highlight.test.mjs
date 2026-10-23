@@ -1,23 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-
-/** Simulates cell active calculation matching CanvasElement.tsx */
-const computeCellActive = ({
-  isSelected,
-  isPrimarySelected,
-  selectedCell,
-  selectedCellIds,
-  cellId,
-  index,
-  elementIds,
-}) => {
-  const hasPartialCellSelection = elementIds.some((id) => selectedCellIds.has(id))
-  return (
-    selectedCellIds.has(cellId) ||
-    (isPrimarySelected && selectedCell === index) ||
-    (isSelected && selectedCell === null && !hasPartialCellSelection)
-  )
-}
+import { computeCellActive } from '../src/utils/canvas.ts'
 
 test('multi-element selection highlights all cells of all selected collections when selectedCell is null', () => {
   const array1 = { id: 1, elementIds: [10, 11, 12] }

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "test": "node --test",
+    "test": "node --import tsx --test",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "fetch:leetcode-source": "node scripts/fetch-leetcode-source.mjs",
     "generate:leetcode-sketch": "node --env-file=.env.local scripts/generate-leetcode-sketch-data.mjs",
@@ -25,6 +25,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "oxlint": "^1.81.0",
     "prettier": "^3.5.3",
+    "tsx": "^4.23.15",
     "typescript": "~6.0.2",
     "vite": "^8.3.0"
   }

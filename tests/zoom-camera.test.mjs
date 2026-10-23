@@ -1,74 +1,15 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
+import {
+  CANVAS_ASPECT_RATIO_X,
+  CANVAS_ASPECT_RATIO_Y,
+  MAX_CANVAS_ZOOM,
+  MIN_CANVAS_ZOOM,
+} from '../src/constants/sketch.ts'
+import { clampPan, getPannableWorldDimensions } from '../src/hooks/useCanvasState.ts'
+import { calculateAutoPanDelta, computeCellBorderWidth } from '../src/utils/canvasState.ts'
 
-const MIN_CANVAS_ZOOM = 0.5
-const MAX_CANVAS_ZOOM = 2.0
-
-const CANVAS_ASPECT_RATIO_X = 16
-const CANVAS_ASPECT_RATIO_Y = 9
-
-const DEFAULT_CANVAS_DIMENSIONS = {
-  width: 3200,
-  height: 1800,
-}
-
-const clampZoom = (zoom) => {
-  return Math.max(MIN_CANVAS_ZOOM, Math.min(MAX_CANVAS_ZOOM, zoom))
-}
-
-const getPannableWorldDimensions = (zoom, canvasPixelSize, worldDimensions) => {
-  const screenW = canvasPixelSize?.width ?? 1200
-  const screenH = canvasPixelSize?.height ?? 800
-
-  const baseW = worldDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width
-  const baseH = worldDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height
-
-  const requiredW = screenW / (zoom || 1)
-  const requiredH = screenH / (zoom || 1)
-
-  let scaleUnits = Math.ceil(
-    Math.max(
-      baseW / CANVAS_ASPECT_RATIO_X,
-      baseH / CANVAS_ASPECT_RATIO_Y,
-      requiredW / CANVAS_ASPECT_RATIO_X,
-      requiredH / CANVAS_ASPECT_RATIO_Y,
-    ),
-  )
-  if (scaleUnits % 4 !== 0) {
-    scaleUnits += 4 - (scaleUnits % 4)
-  }
-
-  return {
-    width: scaleUnits * CANVAS_ASPECT_RATIO_X,
-    height: scaleUnits * CANVAS_ASPECT_RATIO_Y,
-  }
-}
-
-const clampPan = (pan, zoom, canvasPixelSize, worldDimensions) => {
-  const screenW = canvasPixelSize?.width ?? 1200
-  const screenH = canvasPixelSize?.height ?? 800
-  const world = getPannableWorldDimensions(zoom, canvasPixelSize, worldDimensions)
-
-  const scaledWorldW = world.width * zoom
-  const scaledWorldH = world.height * zoom
-
-  const minX = screenW - scaledWorldW
-  const maxX = 0
-  const clampedX = Math.max(minX, Math.min(maxX, pan.x))
-
-  const minY = screenH - scaledWorldH
-  const maxY = 0
-  const clampedY = Math.max(minY, Math.min(maxY, pan.y))
-
-  return {
-    x: Math.round(clampedX),
-    y: Math.round(clampedY),
-  }
-}
-
-const computeCellBorderWidth = (zoom) => {
-  return zoom < 1 ? Math.max(1, +(1.35 / zoom).toFixed(2)) : 1
-}
+const clampZoom = (zoom) => Math.max(MIN_CANVAS_ZOOM, Math.min(MAX_CANVAS_ZOOM, zoom))
 
 test('clampZoom enforces zoom boundaries between 0.5x and 2.0x', () => {
   assert.equal(clampZoom(0.2), 0.5)
@@ -342,34 +283,6 @@ test('canvas and panning dimensions scale up to fit arrays expanding beyond defa
     'Expanded canvas dimensions must strictly maintain 16:9 ratio',
   )
 })
-
-const calculateAutoPanDelta = (canvasBounds, targetBounds, padding = 60) => {
-  if (
-    canvasBounds.width <= 0 ||
-    canvasBounds.height <= 0 ||
-    targetBounds.width <= 0 ||
-    targetBounds.height <= 0
-  ) {
-    return { x: 0, y: 0 }
-  }
-
-  let deltaX = 0
-  let deltaY = 0
-
-  if (targetBounds.left < canvasBounds.left + padding) {
-    deltaX = targetBounds.left - (canvasBounds.left + padding)
-  } else if (targetBounds.right > canvasBounds.right - padding) {
-    deltaX = targetBounds.right - (canvasBounds.right - padding)
-  }
-
-  if (targetBounds.top < canvasBounds.top + padding) {
-    deltaY = targetBounds.top - (canvasBounds.top + padding)
-  } else if (targetBounds.bottom > canvasBounds.bottom - padding) {
-    deltaY = targetBounds.bottom - (canvasBounds.bottom - padding)
-  }
-
-  return { x: deltaX, y: deltaY }
-}
 
 test('auto-pan delta shifts camera left when typing or expanding cells past the right edge', () => {
   const canvasBounds = { left: 280, top: 62, right: 1280, bottom: 862, width: 1000, height: 800 }

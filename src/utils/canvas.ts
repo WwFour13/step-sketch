@@ -300,3 +300,29 @@ export const getRecursiveChildNodeIds = (
 
   return result
 }
+
+/** Determines whether an array or matrix cell should render in the active (selected) state. */
+export const computeCellActive = ({
+  isSelected,
+  isPrimarySelected,
+  selectedCell,
+  selectedCellIds,
+  cellId,
+  index,
+  elementIds,
+}: {
+  isSelected: boolean
+  isPrimarySelected: boolean
+  selectedCell: number | null
+  selectedCellIds: Set<number>
+  cellId: number
+  index: number
+  elementIds: number[]
+}): boolean => {
+  const hasPartialCellSelection = elementIds.some((id) => selectedCellIds.has(id))
+  return (
+    selectedCellIds.has(cellId) ||
+    (isPrimarySelected && selectedCell === index) ||
+    (isSelected && selectedCell === null && !hasPartialCellSelection)
+  )
+}

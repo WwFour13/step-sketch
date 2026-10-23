@@ -1,6 +1,7 @@
 import React from 'react'
 import { CELL_SIZE } from '../../constants/sketch'
 import type { MatrixResizeState, SketchElement, SketchIterator } from '../../types/sketch'
+import { computeCellActive } from '../../utils/canvas'
 import {
   getCollectionElementIds,
   getCollectionLayout,
@@ -140,9 +141,15 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
                 const isCellActive = isResizingThis
                   ? isFutureCell
-                  : selectedCellIds.has(cellId) ||
-                    (isPrimarySelected && selectedCell === index) ||
-                    (isSelected && selectedCell === null && !hasPartialCellSelection)
+                  : computeCellActive({
+                      isSelected,
+                      isPrimarySelected,
+                      selectedCell,
+                      selectedCellIds,
+                      cellId,
+                      index,
+                      elementIds,
+                    })
 
                 // Check if neighbor to the left or above is active so this cell's borders form their right/bottom wall
                 const isLeftActive =

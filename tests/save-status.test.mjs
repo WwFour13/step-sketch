@@ -1,31 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-
-const formatSaveStatus = (lastSnapshotTime, now) => {
-  const elapsedMs = Math.max(0, now - lastSnapshotTime)
-  const elapsedSec = Math.floor(elapsedMs / 1000)
-
-  if (elapsedSec < 5) {
-    return `Saved just now (${elapsedSec}s)`
-  }
-  if (elapsedSec < 60) {
-    return 'Saved < 1m ago'
-  }
-
-  const elapsedMin = Math.floor(elapsedSec / 60)
-  if (elapsedMin === 1) {
-    return 'Saved 1m ago'
-  }
-  if (elapsedMin < 60) {
-    return `Saved ${elapsedMin}m ago`
-  }
-
-  const elapsedHour = Math.floor(elapsedMin / 60)
-  if (elapsedHour === 1) {
-    return 'Saved 1h ago'
-  }
-  return `Saved ${elapsedHour}h ago`
-}
+import { formatSaveStatus } from '../src/utils/canvasState.ts'
 
 test('formatSaveStatus formats seconds < 5 with countdown', () => {
   const base = 1000000000000

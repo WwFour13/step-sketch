@@ -1,31 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-
-const getRecursiveChildNodeIds = (nodeId, elements) => {
-  const root = elements.find((item) => item.id === nodeId)
-  if (root?.kind !== 'node') {
-    return new Set()
-  }
-
-  const result = new Set([nodeId])
-  const queue = [nodeId]
-
-  while (queue.length > 0) {
-    const currentId = queue.shift()
-    const currentElement = elements.find((item) => item.id === currentId)
-    if (currentElement?.kind !== 'node') continue
-
-    for (const pointerId of currentElement.pointer_ids) {
-      const child = elements.find((item) => item.id === pointerId)
-      if (child?.kind === 'node' && !result.has(pointerId)) {
-        result.add(pointerId)
-        queue.push(pointerId)
-      }
-    }
-  }
-
-  return result
-}
+import { getRecursiveChildNodeIds } from '../src/utils/canvas.ts'
 
 test('getRecursiveChildNodeIds selects complete binary tree when root is clicked', () => {
   // Tree structure:

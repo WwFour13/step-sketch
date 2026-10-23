@@ -11,7 +11,7 @@ import type {
   SketchIterator,
 } from '../../types/sketch'
 import { iteratorPosition } from '../../utils/canvas'
-import { getElementStackingLevel } from '../../utils/canvasState'
+import { computeCellBorderWidth, getElementStackingLevel } from '../../utils/canvasState'
 import { CanvasElement } from './CanvasElement'
 import { CanvasFooter } from './CanvasFooter'
 import { IteratorElement } from './IteratorElement'
@@ -106,8 +106,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   const patternOffsetX = ((pan.x % gridSize) + gridSize) % gridSize
   const patternOffsetY = ((pan.y % gridSize) + gridSize) % gridSize
   const dotRadius = Math.max(0.65, 0.9 * zoom)
-  const cellBorderWidth =
-    zoom < 1 ? Math.max(1, +(1.35 / zoom).toFixed(2)) : 1
+  const cellBorderWidth = computeCellBorderWidth(zoom)
 
   return (
     <section className="canvas-area">

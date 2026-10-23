@@ -49,6 +49,11 @@ export const canvasToScreen = (
   }
 }
 
+/** Computes physical cell border width in CSS pixels to keep lines crisp when zoomed out. */
+export const computeCellBorderWidth = (zoom: number): number => {
+  return zoom < 1 ? Math.max(1, +(1.35 / zoom).toFixed(2)) : 1
+}
+
 /**
  * Clamps element position against the hard walls of the logical canvas boundaries.
  */
