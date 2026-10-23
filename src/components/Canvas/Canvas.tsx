@@ -209,6 +209,7 @@ export const Canvas: React.FC<CanvasProps> = ({
                 element={element}
                 isSelected={selectedIds.has(element.id)}
                 isPrimarySelected={selectedId === element.id}
+                isMultiSelected={selectedIds.size > 1}
                 selectedCellIds={selectedCellIds}
                 selectedCell={selectedCell}
                 isInsertBefore={isInsertBefore}

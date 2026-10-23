@@ -13,6 +13,7 @@ export type CanvasElementProps = {
   element: Exclude<SketchElement, SketchIterator>
   isSelected: boolean
   isPrimarySelected: boolean
+  isMultiSelected?: boolean
   selectedCellIds: Set<number>
   selectedCell: number | null
   isInsertBefore?: boolean
@@ -33,6 +34,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   element,
   isSelected,
   isPrimarySelected,
+  isMultiSelected,
   selectedCellIds,
   selectedCell,
   isInsertBefore,
@@ -200,7 +202,12 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                     className={`array-cell-input ${resolvedGridClasses} ${positionClasses} ${activeBorderClasses}`}
                     onPointerDown={(event) => {
                       onResetCellTyping()
-                      onSelectCell(collection.id, index, event.shiftKey)
+                      const isCellInMultiSelection =
+                        (isSelected && Boolean(isMultiSelected)) ||
+                        (selectedCellIds.size > 1 && selectedCellIds.has(cellId))
+                      if (!isCellInMultiSelection || event.shiftKey) {
+                        onSelectCell(collection.id, index, event.shiftKey)
+                      }
                     }}
                     onMouseDown={() => {
                       onResetCellTyping()

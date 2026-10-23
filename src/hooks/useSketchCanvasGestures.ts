@@ -71,6 +71,7 @@ type UseSketchCanvasGesturesOptions = {
   confirmCellEdit: (cellEdit: CellEditState | null) => unknown
   elementEditRef: MutableRefObject<{ elementId: number; hasTyped: boolean } | null>
   selectOne: (id: number, additive?: boolean) => void
+  selectCell?: (arrayId: number, index: number, additive?: boolean) => void
   deleteElement: (id: number) => void
   resetCellTyping: () => void
   commitSnapshot?: () => void
@@ -109,6 +110,7 @@ export const useSketchCanvasGestures = ({
   confirmCellEdit,
   elementEditRef,
   selectOne,
+  selectCell,
   deleteElement,
   resetCellTyping,
   commitSnapshot,
@@ -426,6 +428,14 @@ export const useSketchCanvasGestures = ({
       isSketchCollection(element) &&
       event.target instanceof HTMLInputElement &&
       event.target.classList.contains('array-cell-input')
+    const clickedCellIndex =
+      isArrayCellTarget && event.target instanceof HTMLInputElement
+        ? Array.from(
+            event.target.parentElement?.querySelectorAll<HTMLInputElement>('.array-cell-input') ??
+              [],
+          ).indexOf(event.target)
+        : undefined
+
     let activeSelection = isArrayCellTarget
       ? selectedIds.has(id)
         ? new Set(selectedIds)
@@ -436,14 +446,23 @@ export const useSketchCanvasGestures = ({
     if (isArrayCellTarget) {
       if (!selectedIds.has(id)) setSelectedIds(activeSelection)
       setSelectedId(id)
-      setElements((current) => bringElementsToFront(current, id))
+      setElements((current) =>
+        bringElementsToFront(current, activeSelection.size > 1 ? activeSelection : id),
+      )
     } else if (!selectedIds.has(id)) {
       selectOne(id)
       activeSelection = new Set([id])
     } else {
       setElements((current) => bringElementsToFront(current, activeSelection))
     }
-    if (isSketchCollection(element) && !isArrayCellTarget) {
+    if (activeSelection.size > 1) {
+      setSelectedCell(null)
+      setSelectedCellIds(new Set())
+      if (cellEditRef.current) {
+        confirmCellEdit(cellEditRef.current)
+        cellEditRef.current = null
+      }
+    } else if (isSketchCollection(element) && !isArrayCellTarget) {
       setSelectedCell(null)
       setSelectedCellIds(new Set())
     }
@@ -488,6 +507,7 @@ export const useSketchCanvasGestures = ({
           )
           .map((item) => [item.id, item.position]),
       ),
+      clickedCellIndex: clickedCellIndex !== undefined && clickedCellIndex !== -1 ? clickedCellIndex : undefined,
     }
     event.currentTarget.setPointerCapture(event.pointerId)
   }
@@ -903,7 +923,11 @@ export const useSketchCanvasGestures = ({
           !dragRef.current.isRecursiveNodeSelect &&
           selectedIds.size > 1
         ) {
-          selectOne(id)
+          if (dragRef.current.clickedCellIndex !== undefined && selectCell) {
+            selectCell(id, dragRef.current.clickedCellIndex)
+          } else {
+            selectOne(id)
+          }
         }
       }
       dragRef.current = null

@@ -381,6 +381,7 @@ function App() {
     confirmCellEdit: (cellEdit) => confirmCellEditRef.current(cellEdit),
     elementEditRef,
     selectOne,
+    selectCell,
     deleteElement,
     resetCellTyping,
     commitSnapshot,
