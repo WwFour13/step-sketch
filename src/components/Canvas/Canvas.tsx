@@ -91,6 +91,7 @@ export const Canvas: React.FC<CanvasProps> = ({
     zoom,
     screenDimensions ?? dimensions,
     dimensions,
+    elements,
   )
 
   const nonIteratorElements = elements.filter(
@@ -113,8 +114,18 @@ export const Canvas: React.FC<CanvasProps> = ({
       <div
         ref={canvasRef}
         className="canvas"
+        onScroll={(event) => {
+          if (event.currentTarget.scrollLeft !== 0) {
+            event.currentTarget.scrollLeft = 0
+          }
+          if (event.currentTarget.scrollTop !== 0) {
+            event.currentTarget.scrollTop = 0
+          }
+        }}
         onPointerMove={onCanvasPointerMove}
         onPointerUp={onCanvasPointerUp}
+        onPointerCancel={onCanvasPointerUp}
+        onLostPointerCapture={onCanvasPointerUp}
         onContextMenu={(event) => event.preventDefault()}
         onPointerDown={onCanvasPointerDown}
         onWheel={onWheel}

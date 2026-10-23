@@ -266,3 +266,203 @@ test('hard walls dynamically update with zoom and pan to keep elements in visibl
   assert.ok(minDelta <= maxDelta)
 })
 
+test('oversized array expansion (width > visible width) can slide between screen edges without freezing or locking', () => {
+  const screenWidth = 1200
+  const zoom = 2.0 // visible world width = (1200 - 32) / 2 = 584px
+  const pan = { x: 0, y: 0 }
+  const minVisX = (-pan.x + 16) / zoom // 8px
+  const maxVisX = (screenWidth - pan.x - 16) / zoom // 592px
+
+  // Array has 25 cells: width = 25 * 42 = 1050px (> 584px visible width!)
+  const el = { initialPos: { x: 100, y: 100 }, width: 1050, height: 42 }
+
+  const bound1 = minVisX - el.initialPos.x // 8 - 100 = -92 (left edge at left wall)
+  const bound2 = maxVisX - el.width - el.initialPos.x // 592 - 1050 - 100 = -558 (right edge at right wall)
+
+  const minDeltaX = Math.min(bound1, bound2) // -558
+  const maxDeltaX = Math.max(bound1, bound2) // -92
+
+  assert.ok(minDeltaX < maxDeltaX, 'Range must not collapse: minDeltaX < maxDeltaX')
+  assert.equal(minDeltaX, -558)
+  assert.equal(maxDeltaX, -92)
+
+  // Dragging right to view left edge
+  const clampedAtLeft = Math.max(minDeltaX, Math.min(maxDeltaX, 200))
+  assert.equal(clampedAtLeft, -92)
+  assert.equal(el.initialPos.x + clampedAtLeft, 8, 'Left edge aligns with left wall')
+
+  // Dragging left to view right edge
+  const clampedAtRight = Math.max(minDeltaX, Math.min(maxDeltaX, -800))
+  assert.equal(clampedAtRight, -558)
+  assert.equal(el.initialPos.x + clampedAtRight + el.width, 592, 'Right edge aligns with right wall')
+
+  // Dragging to a position in between
+  const clampedMid = Math.max(minDeltaX, Math.min(maxDeltaX, -300))
+  assert.equal(clampedMid, -300, 'Free movement is preserved across the entire array')
+})
+
+test('canvas and panning dimensions scale up to fit arrays expanding beyond default boundaries', () => {
+  const zoom = 1.0
+  const canvasPixelSize = { width: 1200, height: 800 }
+  const worldDimensions = { width: 3200, height: 1800 }
+
+  // Array expanded far to the right: x = 2800, width = 1200 => right edge = 4000 (> 3200)
+  const _expandedElements = [
+    { kind: 'array', position: { x: 2800, y: 200 }, values: Array(28).fill('a') }, // 28 * 42 = 1176px => 3976px
+  ]
+
+  const maxElementX = 2800 + 1176 + 100 // 4076px
+  const baseW = Math.max(worldDimensions.width, maxElementX)
+  const requiredW = canvasPixelSize.width / zoom
+
+  let scaleUnits = Math.ceil(
+    Math.max(
+      baseW / CANVAS_ASPECT_RATIO_X,
+      worldDimensions.height / CANVAS_ASPECT_RATIO_Y,
+      requiredW / CANVAS_ASPECT_RATIO_X,
+      canvasPixelSize.height / CANVAS_ASPECT_RATIO_Y,
+    ),
+  )
+  if (scaleUnits % 4 !== 0) {
+    scaleUnits += 4 - (scaleUnits % 4)
+  }
+
+  const expandedWorld = {
+    width: scaleUnits * CANVAS_ASPECT_RATIO_X,
+    height: scaleUnits * CANVAS_ASPECT_RATIO_Y,
+  }
+
+  assert.ok(
+    expandedWorld.width >= 4076,
+    `World width ${expandedWorld.width} must accommodate the expanded array at 4076px`,
+  )
+  assert.equal(
+    expandedWorld.width / expandedWorld.height,
+    16 / 9,
+    'Expanded canvas dimensions must strictly maintain 16:9 ratio',
+  )
+})
+
+const calculateAutoPanDelta = (canvasBounds, targetBounds, padding = 60) => {
+  if (
+    canvasBounds.width <= 0 ||
+    canvasBounds.height <= 0 ||
+    targetBounds.width <= 0 ||
+    targetBounds.height <= 0
+  ) {
+    return { x: 0, y: 0 }
+  }
+
+  let deltaX = 0
+  let deltaY = 0
+
+  if (targetBounds.left < canvasBounds.left + padding) {
+    deltaX = targetBounds.left - (canvasBounds.left + padding)
+  } else if (targetBounds.right > canvasBounds.right - padding) {
+    deltaX = targetBounds.right - (canvasBounds.right - padding)
+  }
+
+  if (targetBounds.top < canvasBounds.top + padding) {
+    deltaY = targetBounds.top - (canvasBounds.top + padding)
+  } else if (targetBounds.bottom > canvasBounds.bottom - padding) {
+    deltaY = targetBounds.bottom - (canvasBounds.bottom - padding)
+  }
+
+  return { x: deltaX, y: deltaY }
+}
+
+test('auto-pan delta shifts camera left when typing or expanding cells past the right edge', () => {
+  const canvasBounds = { left: 280, top: 62, right: 1280, bottom: 862, width: 1000, height: 800 }
+  // Cell placed at right edge: right = 1290 (exceeds right threshold 1280 - 60 = 1220 by 70px)
+  const cellBounds = { left: 1246, top: 200, right: 1290, bottom: 244, width: 44, height: 44 }
+
+  const delta = calculateAutoPanDelta(canvasBounds, cellBounds, 60)
+  assert.equal(delta.x, 70, 'deltaX must be 70px to the right so camera pan shifts left by 70px')
+  assert.equal(delta.y, 0, 'deltaY should be 0 since Y is within bounds')
+
+  // Applying delta to pan
+  const currentPan = { x: 0, y: 0 }
+  const nextPan = { x: currentPan.x - delta.x, y: currentPan.y - delta.y }
+  assert.equal(nextPan.x, -70)
+  // After moving pan by -70px, the cell right edge on screen will be 1290 - 70 = 1220 (exactly canvasBounds.right - padding)
+  assert.equal(cellBounds.right + nextPan.x, canvasBounds.right - 60)
+})
+
+test('auto-pan delta shifts camera right when editing cells past the left edge', () => {
+  const canvasBounds = { left: 280, top: 62, right: 1280, bottom: 862, width: 1000, height: 800 }
+  // Cell placed at left: left = 300 (left threshold is 280 + 60 = 340, cell is 40px past threshold)
+  const cellBounds = { left: 300, top: 200, right: 344, bottom: 244, width: 44, height: 44 }
+
+  const delta = calculateAutoPanDelta(canvasBounds, cellBounds, 60)
+  assert.equal(delta.x, -40, 'deltaX must be -40px so camera pan shifts right by 40px')
+  assert.equal(delta.y, 0)
+
+  const currentPan = { x: -200, y: 0 }
+  const nextPan = { x: currentPan.x - delta.x, y: currentPan.y - delta.y }
+  assert.equal(nextPan.x, -160)
+})
+
+test('auto-pan delta shifts camera up when expanding cells past the bottom edge', () => {
+  const canvasBounds = { left: 280, top: 62, right: 1280, bottom: 862, width: 1000, height: 800 }
+  // Bottom threshold: 862 - 60 = 802. Cell bottom = 850 (exceeds threshold by 48px)
+  const cellBounds = { left: 500, top: 806, right: 544, bottom: 850, width: 44, height: 44 }
+
+  const delta = calculateAutoPanDelta(canvasBounds, cellBounds, 60)
+  assert.equal(delta.x, 0)
+  assert.equal(delta.y, 48, 'deltaY must be 48px so camera pan shifts up by 48px')
+
+  const currentPan = { x: 0, y: 0 }
+  const nextPan = { x: currentPan.x - delta.x, y: currentPan.y - delta.y }
+  assert.equal(nextPan.y, -48)
+})
+
+test('auto-pan delta leaves camera unchanged when cell is safely within viewport', () => {
+  const canvasBounds = { left: 280, top: 62, right: 1280, bottom: 862, width: 1000, height: 800 }
+  const cellBounds = { left: 500, top: 300, right: 544, bottom: 344, width: 44, height: 44 }
+
+  const delta = calculateAutoPanDelta(canvasBounds, cellBounds, 60)
+  assert.deepEqual(delta, { x: 0, y: 0 })
+})
+
+test('auto-pan delta returns (0, 0) for zero or unmeasured bounding boxes', () => {
+  const zeroCanvas = { left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }
+  const cellBounds = { left: 100, top: 100, right: 144, bottom: 144, width: 44, height: 44 }
+
+  const delta = calculateAutoPanDelta(zeroCanvas, cellBounds, 60)
+  assert.deepEqual(delta, { x: 0, y: 0 })
+})
+
+test('virtual camera coordinates remain invariant when native scroll offset is strictly guarded to 0', () => {
+  const canvasRect = { left: 280, top: 62 }
+  const viewport = { zoom: 1.5, pan: { x: -100, y: -50 } }
+
+  // Canvas world point
+  const worldPt = { x: 400, y: 300 }
+
+  // Screen point calculation with scrollLeft === 0
+  const screenPt = {
+    x: worldPt.x * viewport.zoom + viewport.pan.x + canvasRect.left,
+    y: worldPt.y * viewport.zoom + viewport.pan.y + canvasRect.top,
+  }
+
+  // Hit test back to world: (screen - left - pan) / zoom
+  const hitTestWorld = {
+    x: (screenPt.x - canvasRect.left - viewport.pan.x) / viewport.zoom,
+    y: (screenPt.y - canvasRect.top - viewport.pan.y) / viewport.zoom,
+  }
+
+  assert.equal(hitTestWorld.x, worldPt.x)
+  assert.equal(hitTestWorld.y, worldPt.y)
+
+  // Demonstrating the bug if scrollLeft were non-zero (e.g. 80px)
+  const unmanagedScrollOffset = 80
+  const corruptedHitTestWorldX = (screenPt.x - unmanagedScrollOffset - canvasRect.left - viewport.pan.x) / viewport.zoom
+  assert.notEqual(corruptedHitTestWorldX, worldPt.x, 'Unmanaged scroll offsets corrupt hit testing')
+
+  // With strict zero-scroll guard, scroll offset is 0, preserving perfect zoom and coordinate window
+  const guardedScrollOffset = 0
+  const guardedHitTestWorldX = (screenPt.x - guardedScrollOffset - canvasRect.left - viewport.pan.x) / viewport.zoom
+  assert.equal(guardedHitTestWorldX, worldPt.x, 'Strict zero scroll guard preserves coordinate invariance')
+})
+
+

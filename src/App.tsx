@@ -12,6 +12,7 @@ import { useSketchActions } from './hooks/useSketchActions'
 import { useSketchKeyboard } from './hooks/useSketchKeyboard'
 import { useSketchCanvasGestures, type MatrixResizeDrag } from './hooks/useSketchCanvasGestures'
 import { useSketchDeletion } from './hooks/useSketchDeletion'
+import { calculateAutoPanDelta } from './utils/canvasState'
 import type {
   CellEditState,
   DragState,
@@ -119,12 +120,40 @@ function App() {
       return
     }
 
-    const arrayElement = canvasRef.current?.querySelector<HTMLElement>(
+    const canvasEl = canvasRef.current
+    if (!canvasEl) return
+
+    // Ensure native scroll offsets are always 0 so virtual camera is never offset
+    if (canvasEl.scrollLeft !== 0) canvasEl.scrollLeft = 0
+    if (canvasEl.scrollTop !== 0) canvasEl.scrollTop = 0
+
+    const arrayElement = canvasEl.querySelector<HTMLElement>(
       `.canvas-element[data-host-id="${cellEdit.arrayId}"]`,
     )
     const cells = arrayElement?.querySelectorAll<HTMLInputElement>('.array-cell-input')
-    cells?.[cellEdit.index]?.focus()
-  }, [elements, selectedCell])
+    const targetCell = cells?.[cellEdit.index]
+    if (!targetCell) return
+
+    // Focus with preventScroll to prevent browser from natively scrolling .canvas or parent elements
+    targetCell.focus({ preventScroll: true })
+
+    const canvasBounds = canvasEl.getBoundingClientRect()
+    const cellBounds = targetCell.getBoundingClientRect()
+    const delta = calculateAutoPanDelta(canvasBounds, cellBounds, 60)
+
+    if (delta.x !== 0 || delta.y !== 0) {
+      setPan(
+        (prev) => ({
+          x: prev.x - delta.x,
+          y: prev.y - delta.y,
+        }),
+        {
+          width: canvasBounds.width,
+          height: canvasBounds.height,
+        },
+      )
+    }
+  }, [elements, selectedCell, setPan])
 
   /** Resets the selected cell's numeric replacement state before editing. */
   const resetCellTyping = () => {

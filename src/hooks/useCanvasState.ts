@@ -19,6 +19,7 @@ import type {
   SketchElement,
 } from '../types/sketch'
 import { reorderElements } from '../utils/canvasState'
+import { elementBounds } from '../utils/canvas'
 
 export type UseCanvasStateOptions = {
   initialState?: CanvasState
@@ -92,12 +93,26 @@ export const getPannableWorldDimensions = (
   zoom: number,
   canvasPixelSize?: { width: number; height: number },
   worldDimensions?: CanvasDimensions,
+  elements?: SketchElement[],
 ): CanvasDimensions => {
   const screenW = canvasPixelSize?.width ?? 1200
   const screenH = canvasPixelSize?.height ?? 800
 
-  const baseW = worldDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width
-  const baseH = worldDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height
+  let baseW = worldDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width
+  let baseH = worldDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height
+
+  if (elements && elements.length > 0) {
+    for (const el of elements) {
+      if (el.kind === 'iterator') continue
+      const b = elementBounds(el)
+      if (b.x + b.width + 100 > baseW) {
+        baseW = b.x + b.width + 100
+      }
+      if (b.y + b.height + 100 > baseH) {
+        baseH = b.y + b.height + 100
+      }
+    }
+  }
 
   const requiredW = screenW / (zoom || 1)
   const requiredH = screenH / (zoom || 1)
@@ -126,10 +141,11 @@ export const clampPan = (
   zoom: number,
   canvasPixelSize?: { width: number; height: number },
   worldDimensions?: CanvasDimensions,
+  elements?: SketchElement[],
 ): Position => {
   const screenW = canvasPixelSize?.width ?? 1200
   const screenH = canvasPixelSize?.height ?? 800
-  const world = getPannableWorldDimensions(zoom, canvasPixelSize, worldDimensions)
+  const world = getPannableWorldDimensions(zoom, canvasPixelSize, worldDimensions, elements)
 
   const scaledWorldW = world.width * zoom
   const scaledWorldH = world.height * zoom
@@ -356,6 +372,7 @@ export const useCanvasState = (options: UseCanvasStateOptions = {}): UseCanvasSt
           clampedZoom,
           canvasPixelSize,
           current.document.dimensions,
+          current.document.elements,
         )
 
         return {
@@ -382,6 +399,7 @@ export const useCanvasState = (options: UseCanvasStateOptions = {}): UseCanvasSt
           current.viewport.zoom,
           canvasPixelSize,
           current.document.dimensions,
+          current.document.elements,
         )
 
         const hitLeft = nextPan.x > clampedPan.x

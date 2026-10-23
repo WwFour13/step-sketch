@@ -660,10 +660,10 @@ export const useSketchCanvasGestures = ({
     const minVisibleY = (-panY + 24) / currentZoom
     const maxVisibleY = (screenHeight - panY - 24) / currentZoom
 
-    let minDeltaX = -Infinity
-    let maxDeltaX = Infinity
-    let minDeltaY = -Infinity
-    let maxDeltaY = Infinity
+    let groupMinX = Infinity
+    let groupMaxX = -Infinity
+    let groupMinY = Infinity
+    let groupMaxY = -Infinity
 
     draggedIds.forEach((draggedId) => {
       const initPos = initialPositions.get(draggedId)
@@ -673,33 +673,25 @@ export const useSketchCanvasGestures = ({
       const elWidth = b.width || 42
       const elHeight = b.height || 42
 
-      minDeltaX = Math.max(minDeltaX, minVisibleX - initPos.x)
-      maxDeltaX = Math.min(maxDeltaX, maxVisibleX - elWidth - initPos.x)
-      minDeltaY = Math.max(minDeltaY, minVisibleY - initPos.y)
-      maxDeltaY = Math.min(maxDeltaY, maxVisibleY - elHeight - initPos.y)
+      groupMinX = Math.min(groupMinX, initPos.x)
+      groupMaxX = Math.max(groupMaxX, initPos.x + elWidth)
+      groupMinY = Math.min(groupMinY, initPos.y)
+      groupMaxY = Math.max(groupMaxY, initPos.y + elHeight)
     })
 
-    let clampedDeltaX = rawDeltaX
-    if (minDeltaX <= maxDeltaX) {
-      clampedDeltaX = Math.max(minDeltaX, Math.min(maxDeltaX, rawDeltaX))
-    } else {
-      const primaryEl = elements.find((e) => e.id === id)
-      const primaryB = primaryEl ? elementBounds(primaryEl) : { width: 42, height: 42 }
-      const pMin = minVisibleX - primaryPosition.x
-      const pMax = maxVisibleX - (primaryB.width || 42) - primaryPosition.x
-      clampedDeltaX = Math.max(pMin, Math.min(pMax, rawDeltaX))
-    }
+    if (groupMinX === Infinity) return
 
-    let clampedDeltaY = rawDeltaY
-    if (minDeltaY <= maxDeltaY) {
-      clampedDeltaY = Math.max(minDeltaY, Math.min(maxDeltaY, rawDeltaY))
-    } else {
-      const primaryEl = elements.find((e) => e.id === id)
-      const primaryB = primaryEl ? elementBounds(primaryEl) : { width: 42, height: 42 }
-      const pMin = minVisibleY - primaryPosition.y
-      const pMax = maxVisibleY - (primaryB.height || 42) - primaryPosition.y
-      clampedDeltaY = Math.max(pMin, Math.min(pMax, rawDeltaY))
-    }
+    const boundX1 = minVisibleX - groupMinX
+    const boundX2 = maxVisibleX - groupMaxX
+    const minDeltaX = Math.min(boundX1, boundX2)
+    const maxDeltaX = Math.max(boundX1, boundX2)
+    const clampedDeltaX = Math.max(minDeltaX, Math.min(maxDeltaX, rawDeltaX))
+
+    const boundY1 = minVisibleY - groupMinY
+    const boundY2 = maxVisibleY - groupMaxY
+    const minDeltaY = Math.min(boundY1, boundY2)
+    const maxDeltaY = Math.max(boundY1, boundY2)
+    const clampedDeltaY = Math.max(minDeltaY, Math.min(maxDeltaY, rawDeltaY))
 
     setElements((current) =>
       current.map((element) => {

@@ -60,6 +60,43 @@ export const clampToWalls = (
 }
 
 /**
+ * Calculates pan adjustment delta required to keep a bounding box (e.g. active editing cell)
+ * visible within the canvas viewport bounds with specified padding.
+ * Returns { x: deltaX, y: deltaY } to subtract from current pan (i.e. nextPan = pan - delta).
+ */
+export const calculateAutoPanDelta = (
+  canvasBounds: { left: number; top: number; right: number; bottom: number; width: number; height: number },
+  targetBounds: { left: number; top: number; right: number; bottom: number; width: number; height: number },
+  padding = 60,
+): Position => {
+  if (
+    canvasBounds.width <= 0 ||
+    canvasBounds.height <= 0 ||
+    targetBounds.width <= 0 ||
+    targetBounds.height <= 0
+  ) {
+    return { x: 0, y: 0 }
+  }
+
+  let deltaX = 0
+  let deltaY = 0
+
+  if (targetBounds.left < canvasBounds.left + padding) {
+    deltaX = targetBounds.left - (canvasBounds.left + padding)
+  } else if (targetBounds.right > canvasBounds.right - padding) {
+    deltaX = targetBounds.right - (canvasBounds.right - padding)
+  }
+
+  if (targetBounds.top < canvasBounds.top + padding) {
+    deltaY = targetBounds.top - (canvasBounds.top + padding)
+  } else if (targetBounds.bottom > canvasBounds.bottom - padding) {
+    deltaY = targetBounds.bottom - (canvasBounds.bottom - padding)
+  }
+
+  return { x: deltaX, y: deltaY }
+}
+
+/**
  * Clamps element position against the visible hard walls for the current zoom level and pan.
  */
 export const clampToVisibleWalls = (
