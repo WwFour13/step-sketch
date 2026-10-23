@@ -11,6 +11,7 @@ import type {
   SketchIterator,
 } from '../../types/sketch'
 import { iteratorPosition } from '../../utils/canvas'
+import { getElementStackingLevel } from '../../utils/canvasState'
 import { CanvasElement } from './CanvasElement'
 import { CanvasFooter } from './CanvasFooter'
 import { IteratorElement } from './IteratorElement'
@@ -53,8 +54,8 @@ export type CanvasProps = {
 }
 
 /**
- * Renders the canvas layers in stacking order: pointer lines, sketch objects,
- * iterators, then the active selection rectangle.
+ * Renders the canvas layers in stacking order: pointer lines, iterators,
+ * other sketch elements, then the active selection rectangle.
  */
 export const Canvas: React.FC<CanvasProps> = ({
   elements,
@@ -163,31 +164,16 @@ export const Canvas: React.FC<CanvasProps> = ({
             pointerDraft={pointerDraft}
             onRelationshipStart={onRelationshipStart}
             onRelationshipFinish={onRelationshipFinish}
+            getElementLevel={(id) => getElementStackingLevel(elements, id)}
           />
-
-          {nonIteratorElements.map((element) => (
-            <CanvasElement
-              key={element.id}
-              element={element}
-              isSelected={selectedIds.has(element.id)}
-              isPrimarySelected={selectedId === element.id}
-              selectedCellIds={selectedCellIds}
-              selectedCell={selectedCell}
-              isInsertBefore={isInsertBefore}
-              matrixResize={matrixResize}
-              onStartDrag={onStartDrag}
-              onStartMatrixResize={onStartMatrixResize}
-              onHostDoubleClick={onHostDoubleClick}
-              onSelectCell={onSelectCell}
-              onResetCellTyping={onResetCellTyping}
-            />
-          ))}
 
           {iteratorElements.map((iterator) => {
             const isDragging = iteratorDrag?.id === iterator.id
             const position = isDragging
               ? { x: iteratorDrag.x, y: iteratorDrag.y }
               : iteratorPosition(elements, iterator)
+            const hostLevel = getElementStackingLevel(elements, iterator.hostId)
+            const zIndex = isDragging ? 10000 : hostLevel + 2
 
             return (
               <IteratorElement
@@ -196,7 +182,32 @@ export const Canvas: React.FC<CanvasProps> = ({
                 position={position}
                 isSelected={selectedIds.has(iterator.id)}
                 isDragging={isDragging}
+                zIndex={zIndex}
                 onPointerDown={onStartIteratorDrag}
+              />
+            )
+          })}
+
+          {nonIteratorElements.map((element) => {
+            const elementLevel = getElementStackingLevel(elements, element.id)
+            const zIndex = elementLevel + 1
+
+            return (
+              <CanvasElement
+                key={element.id}
+                element={element}
+                isSelected={selectedIds.has(element.id)}
+                isPrimarySelected={selectedId === element.id}
+                selectedCellIds={selectedCellIds}
+                selectedCell={selectedCell}
+                isInsertBefore={isInsertBefore}
+                matrixResize={matrixResize}
+                zIndex={zIndex}
+                onStartDrag={onStartDrag}
+                onStartMatrixResize={onStartMatrixResize}
+                onHostDoubleClick={onHostDoubleClick}
+                onSelectCell={onSelectCell}
+                onResetCellTyping={onResetCellTyping}
               />
             )
           })}

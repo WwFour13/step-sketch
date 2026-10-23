@@ -21,6 +21,7 @@ import {
   hostBounds,
   hostIdFromPoint,
 } from '../utils/canvas'
+import { bringElementsToFront } from '../utils/canvasState'
 import {
   getCollectionElementIds,
   getCollectionLayout,
@@ -333,7 +334,10 @@ export const useSketchCanvasGestures = ({
       selectedCellIdsInBox.forEach((cellId) => next.add(cellId))
       return next
     })
-    if (selectedObjectIds.length > 0) setSelectedId(selectedObjectIds[0])
+    if (selectedObjectIds.length > 0) {
+      setSelectedId(selectedObjectIds[0])
+      setElements((current) => bringElementsToFront(current, selectedObjectIds))
+    }
     setSelectedCell(null)
   }
 
@@ -376,6 +380,7 @@ export const useSketchCanvasGestures = ({
       setSelectedId(id)
       setSelectedCell(null)
       setSelectedCellIds(new Set())
+      setElements((current) => bringElementsToFront(current, activeSelection))
 
       const pt = getCanvasPoint(event.clientX, event.clientY)
       const draggedIds = new Set<number>(activeSelection)
@@ -431,9 +436,12 @@ export const useSketchCanvasGestures = ({
     if (isArrayCellTarget) {
       if (!selectedIds.has(id)) setSelectedIds(activeSelection)
       setSelectedId(id)
+      setElements((current) => bringElementsToFront(current, id))
     } else if (!selectedIds.has(id)) {
       selectOne(id)
       activeSelection = new Set([id])
+    } else {
+      setElements((current) => bringElementsToFront(current, activeSelection))
     }
     if (isSketchCollection(element) && !isArrayCellTarget) {
       setSelectedCell(null)

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { CELL_SIZE } from '../constants/sketch'
 import type { CellEditState, SketchCollection, SketchElement } from '../types/sketch'
+import { bringElementsToFront } from '../utils/canvasState'
 import {
   getCollectionElementIds,
   getCollectionValues,
@@ -183,8 +184,9 @@ export const useSketchSelection = ({
         setSelectedCell(selectedIndex)
       }
       setIsInsertBefore(false)
+      setElements((current) => bringElementsToFront(current, arrayId))
     },
-    [cellEditRef, confirmCellEdit, elements, selectedCellIds, selectedIds],
+    [cellEditRef, confirmCellEdit, elements, selectedCellIds, selectedIds, setElements],
   )
 
   const selectOne = useCallback(
@@ -205,8 +207,9 @@ export const useSketchSelection = ({
         return next
       })
       setSelectedId(id)
+      setElements((current) => bringElementsToFront(current, id))
     },
-    [cellEditRef, confirmCellEdit, selectedId, selectedIds],
+    [cellEditRef, confirmCellEdit, selectedId, selectedIds, setElements],
   )
 
   return {

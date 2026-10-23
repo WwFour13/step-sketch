@@ -17,6 +17,7 @@ export type CanvasElementProps = {
   selectedCell: number | null
   isInsertBefore?: boolean
   matrixResize?: MatrixResizeState | null
+  zIndex?: number
   onStartDrag: (event: React.PointerEvent, id: number) => void
   onStartMatrixResize?: (event: React.PointerEvent, id: number) => void
   onHostDoubleClick: (event: React.MouseEvent) => void
@@ -36,6 +37,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   selectedCell,
   isInsertBefore,
   matrixResize,
+  zIndex,
   onStartDrag,
   onStartMatrixResize,
   onHostDoubleClick,
@@ -65,7 +67,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       data-node-id={element.kind === 'node' ? element.id : undefined}
       data-host-id={element.id}
       className={`canvas-element ${isSelected ? 'selected' : ''} kind-${element.kind}`}
-      style={{ left: element.position.x, top: element.position.y }}
+      style={{ left: element.position.x, top: element.position.y, zIndex }}
       onPointerDown={(event) => onStartDrag(event, element.id)}
       onDoubleClick={onHostDoubleClick}
     >

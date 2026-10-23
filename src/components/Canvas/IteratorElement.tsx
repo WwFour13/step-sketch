@@ -7,6 +7,7 @@ export type IteratorElementProps = {
   position: Position
   isSelected: boolean
   isDragging: boolean
+  zIndex?: number
   onPointerDown: (event: React.PointerEvent<HTMLDivElement>, iterator: SketchIterator) => void
 }
 
@@ -16,6 +17,7 @@ export const IteratorElement: React.FC<IteratorElementProps> = ({
   position,
   isSelected,
   isDragging,
+  zIndex,
   onPointerDown,
 }) => {
   return (
@@ -25,6 +27,7 @@ export const IteratorElement: React.FC<IteratorElementProps> = ({
         left: position.x,
         top: position.y,
         pointerEvents: isDragging ? 'none' : 'auto',
+        zIndex,
       }}
       title={
         iterator.label

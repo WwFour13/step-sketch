@@ -12,7 +12,11 @@ import type {
   SpawnPlacementResult,
 } from '../types/sketch'
 import { elementBounds } from './canvas'
-import { getCollectionValues, isSketchCollection } from './sketchCollections'
+import {
+  getCollectionElementIds,
+  getCollectionValues,
+  isSketchCollection,
+} from './sketchCollections'
 
 /** Converts screen viewport coordinates to canvas world coordinates. */
 export const screenToCanvas = (
@@ -110,6 +114,147 @@ export const reorderElements = (
   }
 
   return copy
+}
+
+/**
+ * Resolves the host sketch element for an iterator or cell ID.
+ * Returns the matching node, variable, or collection element.
+ */
+export const getHostElement = (
+  elements: SketchElement[],
+  hostId: number,
+): SketchElement | undefined => {
+  return elements.find(
+    (element) =>
+      element.id === hostId ||
+      (isSketchCollection(element) && getCollectionElementIds(element).includes(hostId)),
+  )
+}
+
+/**
+ * Calculates the stacking level (z-index) for all elements, iterators, and pointers.
+ * - Base sketch elements (nodes, variables, collections) receive levels based on their
+ *   stacking position in the sketch elements slice: (index + 1) * 10.
+ * - Iterators receive the same level as their host element.
+ * - Pointer arrows receive the level of their lowest edge node:
+ *   min(level(sourceNode), level(targetNode)).
+ */
+export const getElementStackingLevel = (
+  elements: SketchElement[],
+  elementId: number,
+): number => {
+  // 1. Check if elementId is a sketch element (node, variable, collection)
+  const sketchElements = elements.filter((el) => el.kind !== 'iterator')
+  const sketchIndex = sketchElements.findIndex((el) => el.id === elementId)
+  if (sketchIndex !== -1) {
+    return (sketchIndex + 1) * 10
+  }
+
+  // 2. Check if elementId is an iterator
+  const iterator = elements.find((el) => el.kind === 'iterator' && el.id === elementId)
+  if (iterator && iterator.kind === 'iterator') {
+    const host = getHostElement(elements, iterator.hostId)
+    if (host) {
+      return getElementStackingLevel(elements, host.id)
+    }
+  }
+
+  // 3. Check if elementId is a collection cell ID
+  const hostCollection = elements.find(
+    (el) => isSketchCollection(el) && getCollectionElementIds(el).includes(elementId),
+  )
+  if (hostCollection) {
+    return getElementStackingLevel(elements, hostCollection.id)
+  }
+
+  return 10
+}
+
+/**
+ * Brings the specified element ID(s) to the front of their respective layer
+ * (sketch elements within the sketch elements layer; iterators within the iterator layer).
+ * If an array/matrix/map cell ID is provided, its parent collection is resolved and brought to front.
+ * If multiple IDs are provided, their relative stacking order among each other is preserved.
+ *
+ * @param elements Complete list of sketch elements
+ * @param targetIds Single element ID, array of IDs, or Set of IDs to bring to front
+ * @returns Reordered list of sketch elements
+ */
+export const bringElementsToFront = (
+  elements: SketchElement[],
+  targetIds: number | number[] | Set<number>,
+): SketchElement[] => {
+  const rawTargetSet =
+    targetIds instanceof Set
+      ? targetIds
+      : new Set(Array.isArray(targetIds) ? targetIds : [targetIds])
+
+  if (rawTargetSet.size === 0) return elements
+
+  const targetSet = new Set(rawTargetSet)
+
+  // 1. Resolve any cell IDs to their parent collection ID
+  for (const element of elements) {
+    if (isSketchCollection(element)) {
+      const cellIds = getCollectionElementIds(element)
+      if (cellIds.some((cid) => rawTargetSet.has(cid))) {
+        targetSet.add(element.id)
+      }
+    }
+  }
+
+  // 2. If an iterator is in targetSet, resolve its host element so both are elevated
+  for (const element of elements) {
+    if (element.kind === 'iterator' && targetSet.has(element.id)) {
+      const host = getHostElement(elements, element.hostId)
+      if (host) {
+        targetSet.add(host.id)
+      }
+    }
+  }
+
+  // 3. If a host element is in targetSet, include all iterators hosted on it
+  for (const element of elements) {
+    if (element.kind === 'iterator') {
+      const host = getHostElement(elements, element.hostId)
+      if (host && targetSet.has(host.id)) {
+        targetSet.add(element.id)
+      }
+    }
+  }
+
+  const unselectedSketch: SketchElement[] = []
+  const selectedSketch: SketchElement[] = []
+  const unselectedIterators: SketchElement[] = []
+  const selectedIterators: SketchElement[] = []
+
+  for (const element of elements) {
+    if (element.kind === 'iterator') {
+      if (targetSet.has(element.id)) {
+        selectedIterators.push(element)
+      } else {
+        unselectedIterators.push(element)
+      }
+    } else {
+      if (targetSet.has(element.id)) {
+        selectedSketch.push(element)
+      } else {
+        unselectedSketch.push(element)
+      }
+    }
+  }
+
+  // If none of the target IDs matched any element, preserve original array
+  if (selectedSketch.length === 0 && selectedIterators.length === 0) {
+    return elements
+  }
+
+  return [
+    ...unselectedSketch,
+    ...selectedSketch,
+    ...unselectedIterators,
+    ...selectedIterators,
+  ]
 }
 
 /**
