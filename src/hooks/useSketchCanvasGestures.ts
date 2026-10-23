@@ -805,23 +805,53 @@ export const useSketchCanvasGestures = ({
             (element): element is SketchIterator =>
               element.kind === 'iterator' && element.id === draggedIterator.id,
           )
-          if (hostArray?.kind === 'set' || hostArray?.kind === 'map') {
+          if (hostArray?.kind === 'map') {
             nextMode = 'left'
           } else if (hostArray?.kind === 'matrix') {
-            nextMode = currentIterator?.mode === 'left' ? 'left' : 'top'
+            const bounds = hostBounds(elements, hostId)
+            const canvasRect = canvasRef.current?.getBoundingClientRect()
             const elementIds = getCollectionElementIds(hostArray)
             const index = elementIds.indexOf(hostId)
             const columns = Math.max(1, hostArray.columns)
             const row = Math.floor(index / columns)
             const column = index % columns
+
+            if (row === 0 && column > 0) {
+              nextMode = 'top'
+            } else if (column === 0 && row > 0) {
+              nextMode = 'left'
+            } else if (bounds && canvasRect) {
+              const hostScreenX = canvasRect.left + panX + bounds.x * currentZoom
+              const hostScreenY = canvasRect.top + panY + bounds.y * currentZoom
+              const distTop = event.clientY - hostScreenY
+              const distLeft = event.clientX - hostScreenX
+              nextMode = distTop < distLeft ? 'top' : 'left'
+            } else {
+              nextMode = 'top'
+            }
             nextHostId = nextMode === 'left' ? elementIds[row * columns] : elementIds[column]
           } else {
             const bounds = hostBounds(elements, hostId)
             const canvasRect = canvasRef.current?.getBoundingClientRect()
             if (bounds && canvasRect) {
+              const hostScreenX = canvasRect.left + panX + bounds.x * currentZoom
               const hostScreenY = canvasRect.top + panY + bounds.y * currentZoom
+              const centerX = hostScreenX + (bounds.width * currentZoom) / 2
               const centerY = hostScreenY + (bounds.height * currentZoom) / 2
-              nextMode = event.clientY < centerY ? 'top' : 'bottom'
+              if (!hostArray) {
+                // Node or Variable: support all 4 sides based on drop quadrant
+                const dx = event.clientX - centerX
+                const dy = event.clientY - centerY
+                if (Math.abs(dx) > Math.abs(dy)) {
+                  nextMode = dx < 0 ? 'left' : 'right'
+                } else {
+                  nextMode = dy < 0 ? 'top' : 'bottom'
+                }
+              } else if (hostArray.kind === 'set') {
+                nextMode = event.clientX < centerX ? 'left' : 'right'
+              } else {
+                nextMode = event.clientY < centerY ? 'top' : 'bottom'
+              }
             }
           }
 

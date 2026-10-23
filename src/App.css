@@ -876,35 +876,47 @@
   color: inherit !important;
 }
 
-/* Horizontal array border overlap & rounding */
-.array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input + input {
-  margin-left: calc(-1 * var(--cell-border-width, 1px));
+/* Horizontal array border overlap & rounding: preserve exact 42px cell step without cumulative drift */
+.array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input {
+  width: calc(42px + var(--cell-border-width, 1px));
+  height: 42px;
+  margin-right: calc(-1 * var(--cell-border-width, 1px));
+}
+.array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input.cell-last,
+.array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input:last-of-type {
+  width: 42px;
+  margin-right: 0;
+  border-radius: 0 4px 4px 0;
 }
 .array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input.cell-first,
 .array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input:first-of-type {
   border-radius: 4px 0 0 4px;
 }
-.array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input.cell-last,
-.array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input:last-of-type {
-  border-radius: 0 4px 4px 0;
-}
 .array-cells:not(.layout-vertical):not(.layout-matrix):not(.layout-map) input:only-of-type {
+  width: 42px;
+  margin-right: 0;
   border-radius: 4px;
 }
 
-/* Vertical array border overlap & rounding */
-.array-cells.layout-vertical input + input {
-  margin-top: calc(-1 * var(--cell-border-width, 1px));
+/* Vertical array border overlap & rounding: preserve exact 42px cell step without cumulative drift */
+.array-cells.layout-vertical input {
+  width: 42px;
+  height: calc(42px + var(--cell-border-width, 1px));
+  margin-bottom: calc(-1 * var(--cell-border-width, 1px));
+}
+.array-cells.layout-vertical input.cell-last,
+.array-cells.layout-vertical input:last-of-type {
+  height: 42px;
+  margin-bottom: 0;
+  border-radius: 0 0 4px 4px;
 }
 .array-cells.layout-vertical input.cell-first,
 .array-cells.layout-vertical input:first-of-type {
   border-radius: 4px 4px 0 0;
 }
-.array-cells.layout-vertical input.cell-last,
-.array-cells.layout-vertical input:last-of-type {
-  border-radius: 0 0 4px 4px;
-}
 .array-cells.layout-vertical input:only-of-type {
+  height: 42px;
+  margin-bottom: 0;
   border-radius: 4px;
 }
 
@@ -1008,13 +1020,13 @@
   border-bottom-right-radius: 4px;
 }
 .array-cell-fake-insert {
-  width: 14px;
+  width: calc(14px + var(--cell-border-width, 1px));
   height: 42px;
   box-sizing: border-box;
   border: var(--cell-border-width, 1px) solid #e88a75;
   border-right: 0;
   margin-left: -14px;
-  margin-right: 0;
+  margin-right: calc(-1 * var(--cell-border-width, 1px));
   border-radius: 4px 0 0 4px;
   background: #fff;
   position: relative;
@@ -1025,7 +1037,6 @@
 .array-cell-fake-insert + input {
   border-top-left-radius: 0 !important;
   border-bottom-left-radius: 0 !important;
-  margin-left: calc(-1 * var(--cell-border-width, 1px));
 }
 /* SVG overlay for stored pointer relationships and active pointer drafts. */
 .pointer-layer {
