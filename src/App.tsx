@@ -20,6 +20,7 @@ import type {
   MarqueeDrag,
   MatrixResizeState,
   PointerDraft,
+  Position,
   RelationshipDrag,
   SelectionBox,
 } from './types/sketch'
@@ -40,6 +41,7 @@ function App() {
     commitSnapshot,
     canvasState,
     viewport,
+    setViewport,
     dimensions,
     panBoundaryHit,
     zoomTo,
@@ -56,6 +58,7 @@ function App() {
   })
 
   const canvasRef = useRef<HTMLDivElement>(null)
+  const mouseWorldPosRef = useRef<Position | null>(null)
   const dragRef = useRef<DragState | null>(null)
   const pointerRef = useRef<PointerDraft | null>(null)
   const relationshipRef = useRef<RelationshipDrag | null>(null)
@@ -200,6 +203,11 @@ function App() {
     cellEditRef,
     elementEditRef,
     clipboardRef,
+    mouseWorldPosRef,
+    viewport,
+    setViewport,
+    dimensions,
+    screenDimensions,
   })
   const pasteClipboard = () => {
     commitSnapshot()
@@ -342,6 +350,10 @@ function App() {
     confirmCellEdit: (cellEdit) => confirmCellEditRef.current(cellEdit),
     setSelectedCell,
     setIsLeetCodeModalOpen,
+    viewport,
+    setViewport,
+    dimensions,
+    screenDimensions,
   })
   const {
     startIteratorDrag,
@@ -350,7 +362,7 @@ function App() {
     finishPointer,
     handleRelationshipStart,
     handleCanvasPointerDown,
-    handleCanvasPointerMove,
+    handleCanvasPointerMove: gestureHandleCanvasPointerMove,
     handleHostDoubleClick,
   } = useSketchCanvasGestures({
     elements,
@@ -390,6 +402,22 @@ function App() {
     dimensions,
     setIsInsertBefore,
   })
+
+  const handleCanvasPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const canvasEl = canvasRef.current
+    if (canvasEl) {
+      const rect = canvasEl.getBoundingClientRect()
+      const worldX = Math.round((event.clientX - rect.left - viewport.pan.x) / viewport.zoom)
+      const worldY = Math.round((event.clientY - rect.top - viewport.pan.y) / viewport.zoom)
+      mouseWorldPosRef.current = { x: worldX, y: worldY }
+    }
+    gestureHandleCanvasPointerMove(event)
+  }
+
+  const handleCanvasPointerLeave = () => {
+    mouseWorldPosRef.current = null
+  }
+
   // Expose canvasState API for external scripting, testing, and debugging
   useEffect(() => {
     ;(window as unknown as { __canvasStateApi?: unknown }).__canvasStateApi = {
@@ -547,6 +575,7 @@ function App() {
           panBoundaryHit={panBoundaryHit}
           onCanvasPointerDown={handleCanvasPointerDown}
           onCanvasPointerMove={handleCanvasPointerMove}
+          onCanvasPointerLeave={handleCanvasPointerLeave}
           onCanvasPointerUp={(event) => {
             finishPointer(event)
           }}

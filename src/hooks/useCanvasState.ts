@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import {
-  CANVAS_ASPECT_RATIO_X,
-  CANVAS_ASPECT_RATIO_Y,
-  DEFAULT_CANVAS_DIMENSIONS,
   DEFAULT_CANVAS_VIEWPORT,
   MAX_CANVAS_ZOOM,
   MIN_CANVAS_ZOOM,
@@ -18,8 +15,7 @@ import type {
   Position,
   SketchElement,
 } from '../types/sketch'
-import { reorderElements } from '../utils/canvasState'
-import { elementBounds } from '../utils/canvas'
+import { clampPan, reorderElements } from '../utils/canvasState'
 
 export type UseCanvasStateOptions = {
   initialState?: CanvasState
@@ -85,88 +81,7 @@ export type UseCanvasStateReturn = {
   ) => void
 }
 
-/**
- * Calculates world dimensions for the maximum panning limits, guaranteeing
- * that the total accessible screen strictly conforms to a hardcoded 16:9 ratio.
- */
-export const getPannableWorldDimensions = (
-  zoom: number,
-  canvasPixelSize?: { width: number; height: number },
-  worldDimensions?: CanvasDimensions,
-  elements?: SketchElement[],
-): CanvasDimensions => {
-  const screenW = canvasPixelSize?.width ?? 1200
-  const screenH = canvasPixelSize?.height ?? 800
-
-  let baseW = worldDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width
-  let baseH = worldDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height
-
-  if (elements && elements.length > 0) {
-    for (const el of elements) {
-      if (el.kind === 'iterator') continue
-      const b = elementBounds(el)
-      if (b.x + b.width + 100 > baseW) {
-        baseW = b.x + b.width + 100
-      }
-      if (b.y + b.height + 100 > baseH) {
-        baseH = b.y + b.height + 100
-      }
-    }
-  }
-
-  const requiredW = screenW / (zoom || 1)
-  const requiredH = screenH / (zoom || 1)
-
-  // Scale units in 16-by-9 blocks, ensuring screen coverage while strictly preserving 16:9 ratio
-  let scaleUnits = Math.ceil(
-    Math.max(
-      baseW / CANVAS_ASPECT_RATIO_X,
-      baseH / CANVAS_ASPECT_RATIO_Y,
-      requiredW / CANVAS_ASPECT_RATIO_X,
-      requiredH / CANVAS_ASPECT_RATIO_Y,
-    ),
-  )
-  if (scaleUnits % 4 !== 0) {
-    scaleUnits += 4 - (scaleUnits % 4)
-  }
-
-  return {
-    width: scaleUnits * CANVAS_ASPECT_RATIO_X,
-    height: scaleUnits * CANVAS_ASPECT_RATIO_Y,
-  }
-}
-
-export const clampPan = (
-  pan: Position,
-  zoom: number,
-  canvasPixelSize?: { width: number; height: number },
-  worldDimensions?: CanvasDimensions,
-  elements?: SketchElement[],
-): Position => {
-  const screenW = canvasPixelSize?.width ?? 1200
-  const screenH = canvasPixelSize?.height ?? 800
-  const world = getPannableWorldDimensions(zoom, canvasPixelSize, worldDimensions, elements)
-
-  const scaledWorldW = world.width * zoom
-  const scaledWorldH = world.height * zoom
-
-  // Left boundary: pan.x <= 0 prevents camera from drifting right to reveal void to the left
-  // Right boundary: pan.x >= screenW - scaledWorldW prevents camera from drifting past right edge
-  const minX = screenW - scaledWorldW
-  const maxX = 0
-  const clampedX = Math.max(minX, Math.min(maxX, pan.x))
-
-  // Top boundary: pan.y <= 0 prevents camera from drifting down to reveal void above
-  // Bottom boundary: pan.y >= screenH - scaledWorldH
-  const minY = screenH - scaledWorldH
-  const maxY = 0
-  const clampedY = Math.max(minY, Math.min(maxY, pan.y))
-
-  return {
-    x: Math.round(clampedX),
-    y: Math.round(clampedY),
-  }
-}
+export { clampPan, getPannableWorldDimensions } from '../utils/canvasState'
 
 export const useCanvasState = (options: UseCanvasStateOptions = {}): UseCanvasStateReturn => {
   const { initialState = initialCanvasState, maxHistory = 50 } = options

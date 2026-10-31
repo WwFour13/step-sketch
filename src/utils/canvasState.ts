@@ -1,4 +1,6 @@
 import {
+  CANVAS_ASPECT_RATIO_X,
+  CANVAS_ASPECT_RATIO_Y,
   CELL_SIZE,
   DEFAULT_CANVAS_DIMENSIONS,
   DEFAULT_CANVAS_VIEWPORT,
@@ -411,82 +413,242 @@ export const diffCanvasStates = (prev: CanvasState, next: CanvasState): CanvasDi
 }
 
 /**
- * Calculates a non-overlapping spawn position for a new element on the canvas.
- * Acknowledges other elements and visible canvas boundaries; auto-zooms out if crowded.
+ * Calculates accessible world canvas dimensions ensuring screen coverage and
+ * enforcing that the total accessible screen strictly conforms to a hardcoded 16:9 ratio.
+ */
+export const getPannableWorldDimensions = (
+  zoom: number,
+  canvasPixelSize?: { width: number; height: number },
+  worldDimensions?: CanvasDimensions,
+  elements?: SketchElement[],
+): CanvasDimensions => {
+  const screenW = canvasPixelSize?.width ?? 1200
+  const screenH = canvasPixelSize?.height ?? 800
+
+  let baseW = worldDimensions?.width ?? DEFAULT_CANVAS_DIMENSIONS.width
+  let baseH = worldDimensions?.height ?? DEFAULT_CANVAS_DIMENSIONS.height
+
+  if (elements && elements.length > 0) {
+    for (const el of elements) {
+      if (el.kind === 'iterator') continue
+      const b = elementBounds(el)
+      if (b.x + b.width + 100 > baseW) {
+        baseW = b.x + b.width + 100
+      }
+      if (b.y + b.height + 100 > baseH) {
+        baseH = b.y + b.height + 100
+      }
+    }
+  }
+
+  const requiredW = screenW / (zoom || 1)
+  const requiredH = screenH / (zoom || 1)
+
+  // Scale units in 16-by-9 blocks, ensuring screen coverage while strictly preserving 16:9 ratio
+  let scaleUnits = Math.ceil(
+    Math.max(
+      baseW / CANVAS_ASPECT_RATIO_X,
+      baseH / CANVAS_ASPECT_RATIO_Y,
+      requiredW / CANVAS_ASPECT_RATIO_X,
+      requiredH / CANVAS_ASPECT_RATIO_Y,
+    ),
+  )
+  if (scaleUnits % 4 !== 0) {
+    scaleUnits += 4 - (scaleUnits % 4)
+  }
+
+  return {
+    width: scaleUnits * CANVAS_ASPECT_RATIO_X,
+    height: scaleUnits * CANVAS_ASPECT_RATIO_Y,
+  }
+}
+
+/**
+ * Clamps pan coordinates so the viewport cannot reveal void beyond logical canvas limits.
+ */
+export const clampPan = (
+  pan: Position,
+  zoom: number,
+  canvasPixelSize?: { width: number; height: number },
+  worldDimensions?: CanvasDimensions,
+  elements?: SketchElement[],
+): Position => {
+  const screenW = canvasPixelSize?.width ?? 1200
+  const screenH = canvasPixelSize?.height ?? 800
+  const world = getPannableWorldDimensions(zoom, canvasPixelSize, worldDimensions, elements)
+
+  const scaledWorldW = world.width * zoom
+  const scaledWorldH = world.height * zoom
+
+  // Left boundary: pan.x <= 0 prevents camera from drifting right to reveal void to the left
+  // Right boundary: pan.x >= screenW - scaledWorldW prevents camera from drifting past right edge
+  const minX = screenW - scaledWorldW
+  const maxX = 0
+  const clampedX = Math.max(minX, Math.min(maxX, pan.x))
+
+  // Top boundary: pan.y <= 0 prevents camera from drifting down to reveal void above
+  // Bottom boundary: pan.y >= screenH - scaledWorldH
+  const minY = screenH - scaledWorldH
+  const maxY = 0
+  const clampedY = Math.max(minY, Math.min(maxY, pan.y))
+
+  return {
+    x: Math.round(clampedX),
+    y: Math.round(clampedY),
+  }
+}
+
+/**
+ * Calculates a non-overlapping spawn position for a new element on the canvas in reading order
+ * (top-left to bottom-right). If the current visible window is full, progressively zooms out
+ * around the viewport center (down to MIN_CANVAS_ZOOM = 0.5) to reveal open space.
+ * Overlapping is used only as a last resort when the canvas remains congested even at 0.5x zoom.
  */
 export const findNonOverlappingSpawnPosition = (
   existingElements: SketchElement[],
   newElementSize: { width: number; height: number },
-  dimensions: CanvasDimensions,
-  viewport: CanvasViewport,
-  viewportPixelSize: { width: number; height: number } = { width: 1200, height: 800 },
+  dimensions: CanvasDimensions = DEFAULT_CANVAS_DIMENSIONS,
+  viewport: CanvasViewport = DEFAULT_CANVAS_VIEWPORT,
+  viewportPixelSize: { width: number; height: number } = { width: 1420, height: 850 },
 ): SpawnPlacementResult => {
   const PADDING = 24
-  const startX = 88
-  const startY = 88
-  const stepX = CELL_SIZE
-  const stepY = CELL_SIZE
+  const VIEWPORT_PADDING_X = 32
+  const VIEWPORT_PADDING_Y = 32
+  const STEP_X = CELL_SIZE
+  const STEP_Y = CELL_SIZE
 
   const existingBoxes = existingElements
     .filter((el) => el.kind !== 'iterator')
     .map((el) => elementBounds(el))
 
-  const visibleWidth = viewportPixelSize.width / (viewport.zoom || 1)
-  const visibleHeight = viewportPixelSize.height / (viewport.zoom || 1)
+  const collidesWithExisting = (candidate: { left: number; top: number; right: number; bottom: number }) => {
+    return existingBoxes.some((box) => {
+      return (
+        candidate.left < box.x + box.width + PADDING &&
+        candidate.right > box.x - PADDING &&
+        candidate.top < box.y + box.height + PADDING &&
+        candidate.bottom > box.y - PADDING
+      )
+    })
+  }
 
-  const candidateMaxX = Math.min(dimensions.width, visibleWidth) - newElementSize.width - PADDING
-  const candidateMaxY = Math.min(dimensions.height, visibleHeight) - newElementSize.height - PADDING
+  const scanVisibleArea = (
+    worldMinX: number,
+    worldMinY: number,
+    worldMaxX: number,
+    worldMaxY: number,
+  ): Position | null => {
+    const rawStartX = worldMinX + VIEWPORT_PADDING_X
+    const rawStartY = worldMinY + VIEWPORT_PADDING_Y
+    const startX = Math.ceil(rawStartX / STEP_X) * STEP_X
+    const startY = Math.ceil(rawStartY / STEP_Y) * STEP_Y
+    const endX = worldMaxX - newElementSize.width - VIEWPORT_PADDING_X
+    const endY = worldMaxY - newElementSize.height - VIEWPORT_PADDING_Y
 
-  // Try candidate positions in a readable grid scan
-  for (let y = startY; y <= candidateMaxY; y += stepY) {
-    for (let x = startX; x <= candidateMaxX; x += stepX) {
-      const candidateBox = {
-        left: x,
-        right: x + newElementSize.width,
-        top: y,
-        bottom: y + newElementSize.height,
+    if (endX < startX || endY < startY) {
+      return null
+    }
+
+    for (let y = startY; y <= endY; y += STEP_Y) {
+      for (let x = startX; x <= endX; x += STEP_X) {
+        const candidate = {
+          left: x,
+          right: x + newElementSize.width,
+          top: y,
+          bottom: y + newElementSize.height,
+        }
+        if (!collidesWithExisting(candidate)) {
+          return { x, y }
+        }
       }
+    }
+    return null
+  }
 
-      const collides = existingBoxes.some((box) => {
-        return (
-          candidateBox.left < box.x + box.width + PADDING &&
-          candidateBox.right > box.x - PADDING &&
-          candidateBox.top < box.y + box.height + PADDING &&
-          candidateBox.bottom > box.y - PADDING
-        )
-      })
+  const currentZoom = viewport.zoom || 1
+  const currentPan = viewport.pan || { x: 0, y: 0 }
+  const screenW = viewportPixelSize.width || 1200
+  const screenH = viewportPixelSize.height || 800
 
-      if (!collides) {
-        return { position: { x, y } }
+  // Phase 1: Try finding an open spot in reading order inside the current visible viewport
+  const curWorldMinX = Math.max(0, -currentPan.x / currentZoom)
+  const curWorldMinY = Math.max(0, -currentPan.y / currentZoom)
+  const curWorldMaxX = Math.min(dimensions.width, (screenW - currentPan.x) / currentZoom)
+  const curWorldMaxY = Math.min(dimensions.height, (screenH - currentPan.y) / currentZoom)
+
+  const currentSlot = scanVisibleArea(curWorldMinX, curWorldMinY, curWorldMaxX, curWorldMaxY)
+  if (currentSlot) {
+    return { position: currentSlot }
+  }
+
+  // Phase 2: If crowded, progressively zoom out around the viewport center (down to MIN_CANVAS_ZOOM)
+  const screenCenterX = screenW / 2
+  const screenCenterY = screenH / 2
+
+  const zoomSteps: number[] = []
+  let testZoom = +(currentZoom - 0.1).toFixed(2)
+  while (testZoom >= MIN_CANVAS_ZOOM - 0.001) {
+    zoomSteps.push(testZoom)
+    testZoom = +(testZoom - 0.1).toFixed(2)
+  }
+  if (!zoomSteps.includes(MIN_CANVAS_ZOOM)) {
+    zoomSteps.push(MIN_CANVAS_ZOOM)
+  }
+
+  for (const z of zoomSteps) {
+    const zoomRatio = z / currentZoom
+    const unscaledPanX = screenCenterX - (screenCenterX - currentPan.x) * zoomRatio
+    const unscaledPanY = screenCenterY - (screenCenterY - currentPan.y) * zoomRatio
+    const clampedPan = clampPan(
+      { x: unscaledPanX, y: unscaledPanY },
+      z,
+      viewportPixelSize,
+      dimensions,
+      existingElements,
+    )
+
+    const zWorldMinX = Math.max(0, -clampedPan.x / z)
+    const zWorldMinY = Math.max(0, -clampedPan.y / z)
+    const zWorldMaxX = Math.min(dimensions.width, (screenW - clampedPan.x) / z)
+    const zWorldMaxY = Math.min(dimensions.height, (screenH - clampedPan.y) / z)
+
+    const slot = scanVisibleArea(zWorldMinX, zWorldMinY, zWorldMaxX, zWorldMaxY)
+    if (slot) {
+      return {
+        position: slot,
+        adjustedViewport: {
+          zoom: z,
+          pan: clampedPan,
+        },
       }
     }
   }
 
-  // If no slot fits inside current visible viewport without overlap,
-  // find a position outside the existing cluster and zoom out so it is visible.
-  let maxY = startY
-  for (const box of existingBoxes) {
-    if (box.y + box.height > maxY) {
-      maxY = box.y + box.height
-    }
-  }
+  // Phase 3: Last resort overlap when completely congested even at 0.5x
+  const finalZoom = Math.min(currentZoom, MIN_CANVAS_ZOOM)
+  const zoomRatio = finalZoom / currentZoom
+  const finalUnscaledPanX = screenCenterX - (screenCenterX - currentPan.x) * zoomRatio
+  const finalUnscaledPanY = screenCenterY - (screenCenterY - currentPan.y) * zoomRatio
+  const finalPan = clampPan(
+    { x: finalUnscaledPanX, y: finalUnscaledPanY },
+    finalZoom,
+    viewportPixelSize,
+    dimensions,
+    existingElements,
+  )
 
-  const fallbackY = maxY + PADDING * 2
-  const fallbackX = startX
+  const finalWorldMinX = Math.max(0, -finalPan.x / finalZoom)
+  const finalWorldMinY = Math.max(0, -finalPan.y / finalZoom)
 
-  const neededHeight = fallbackY + newElementSize.height + PADDING * 2
-  const adjustedZoom =
-    neededHeight > visibleHeight
-      ? Math.max(0.3, Math.min(viewport.zoom, viewportPixelSize.height / neededHeight))
-      : viewport.zoom
+  const cascadeIndex = existingBoxes.length % 8
+  const fallbackX = Math.round(finalWorldMinX + VIEWPORT_PADDING_X + cascadeIndex * 24)
+  const fallbackY = Math.round(finalWorldMinY + VIEWPORT_PADDING_Y + cascadeIndex * 24)
 
   return {
     position: { x: fallbackX, y: fallbackY },
     adjustedViewport:
-      adjustedZoom !== viewport.zoom ? { ...viewport, zoom: adjustedZoom } : undefined,
-    adjustedDimensions:
-      neededHeight > dimensions.height
-        ? { width: dimensions.width, height: Math.max(dimensions.height + 400, neededHeight + 200) }
+      finalZoom !== currentZoom || finalPan.x !== currentPan.x || finalPan.y !== currentPan.y
+        ? { zoom: finalZoom, pan: finalPan }
         : undefined,
   }
 }

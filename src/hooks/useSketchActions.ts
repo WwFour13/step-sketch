@@ -1,9 +1,12 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
-import { iteratorColors } from '../constants/sketch'
+import { CELL_SIZE, NODE_SIZE, iteratorColors } from '../constants/sketch'
 import { buildCanvasElementsFromTestCases } from '../services/leetcodeSketch'
 import type { CellEditConfirmation } from './useSketchSelection'
 import type {
+  CanvasDimensions,
+  CanvasViewport,
   CellEditState,
+  Position,
   SketchArrayInputType,
   SketchCollection,
   SketchElement,
@@ -11,6 +14,8 @@ import type {
   SketchNode,
 } from '../types/sketch'
 import type { ParsedTestCase } from '../services/leetcodeSketch'
+import { elementBounds } from '../utils/canvas'
+import { findNonOverlappingSpawnPosition } from '../utils/canvasState'
 import {
   getCollectionElementIds,
   isSketchCollection,
@@ -31,6 +36,10 @@ type UseSketchActionsOptions = {
   confirmCellEdit: (cellEdit: CellEditState | null) => CellEditConfirmation | null
   setSelectedCell: Dispatch<SetStateAction<number | null>>
   setIsLeetCodeModalOpen: Dispatch<SetStateAction<boolean>>
+  viewport?: CanvasViewport
+  setViewport?: Dispatch<SetStateAction<CanvasViewport>>
+  dimensions?: CanvasDimensions
+  screenDimensions?: { width: number; height: number }
 }
 
 export const useSketchActions = ({
@@ -47,11 +56,29 @@ export const useSketchActions = ({
   confirmCellEdit,
   setSelectedCell,
   setIsLeetCodeModalOpen,
+  viewport,
+  setViewport,
+  dimensions,
+  screenDimensions,
 }: UseSketchActionsOptions) => {
+  const getSpawnPosition = (size: { width: number; height: number }): Position => {
+    const result = findNonOverlappingSpawnPosition(
+      elements,
+      size,
+      dimensions,
+      viewport,
+      screenDimensions,
+    )
+    if (result.adjustedViewport && setViewport) {
+      setViewport(result.adjustedViewport)
+    }
+    return result.position
+  }
+
   const addVariable = (kind: 'variable' | 'node') => {
     const id = nextId
     const value = String(Math.floor(Math.random() * 10))
-    const position = { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 }
+    const position = getSpawnPosition({ width: NODE_SIZE, height: NODE_SIZE })
     const element: SketchElement =
       kind === 'node'
         ? { id, kind, value, pointer_ids: [], pointer_limit: '+', position }
@@ -76,6 +103,10 @@ export const useSketchActions = ({
       (values.length > 0 && values.some((val) => !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(val)))
         ? 'character'
         : 'number')
+    const position = getSpawnPosition({
+      width: Math.max(1, values.length) * CELL_SIZE,
+      height: CELL_SIZE,
+    })
     setElements((current) => [
       ...current,
       {
@@ -85,7 +116,7 @@ export const useSketchActions = ({
         input_type: resolvedInputType,
         element_ids: elementIds,
         values,
-        position: { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 },
+        position,
       },
     ])
     setNextId((current) => current + values.length + 1)
@@ -96,6 +127,7 @@ export const useSketchActions = ({
     const id = nextId
     const values = ['2', '7', '11', '15']
     const elementIds = values.map((_, index) => id + index + 1)
+    const position = getSpawnPosition({ width: CELL_SIZE, height: values.length * CELL_SIZE })
     setElements((current) => [
       ...current,
       {
@@ -104,7 +136,7 @@ export const useSketchActions = ({
         label: 'set',
         element_ids: elementIds,
         values,
-        position: { x: 180, y: 120 },
+        position,
       },
     ])
     setNextId((current) => current + values.length + 1)
@@ -115,6 +147,10 @@ export const useSketchActions = ({
     const id = nextId
     const values = ['name', 'Ada', 'role', 'coder', 'level', '42']
     const elementIds = values.map((_, index) => id + index + 1)
+    const position = getSpawnPosition({
+      width: CELL_SIZE * 2,
+      height: Math.ceil(values.length / 2) * CELL_SIZE,
+    })
     setElements((current) => [
       ...current,
       {
@@ -123,7 +159,7 @@ export const useSketchActions = ({
         label: 'map',
         element_ids: elementIds,
         values,
-        position: { x: 180, y: 120 },
+        position,
       },
     ])
     setNextId((current) => current + values.length + 1)
@@ -132,13 +168,14 @@ export const useSketchActions = ({
 
   const addLinkedList = () => {
     const firstId = nextId
+    const position = getSpawnPosition({ width: 2 * 120 + NODE_SIZE, height: NODE_SIZE + 20 })
     const nodes: SketchNode[] = [0, 1, 2].map((index) => ({
       id: firstId + index,
       kind: 'node',
       value: String(index + 1),
       pointer_ids: index < 2 ? [firstId + index + 1] : [],
       pointer_limit: 1,
-      position: { x: 140 + index * 120, y: 170 },
+      position: { x: position.x + index * 120, y: position.y },
     }))
     const count = elements.filter((element) => element.kind === 'iterator').length
     const iteratorId = firstId + nodes.length
@@ -166,6 +203,12 @@ export const useSketchActions = ({
       { x: 395, y: 370 },
       { x: 525, y: 370 },
     ]
+    const minX = 135
+    const minY = 110
+    const boundsWidth = 525 + NODE_SIZE - minX // 444
+    const boundsHeight = 370 + NODE_SIZE - minY // 314
+    const position = getSpawnPosition({ width: boundsWidth, height: boundsHeight })
+
     const nodes: SketchNode[] = [0, 1, 2, 3, 4, 5, 6].map((index) => {
       const leftId = firstId + index * 2 + 1
       const rightId = firstId + index * 2 + 2
@@ -176,7 +219,10 @@ export const useSketchActions = ({
         value: String(index + 1),
         pointer_ids: pointerIds,
         pointer_limit: 2,
-        position: positions[index],
+        position: {
+          x: position.x + (positions[index].x - minX),
+          y: position.y + (positions[index].y - minY),
+        },
       }
     })
     setElements((current) => [...current, ...nodes])
@@ -187,6 +233,7 @@ export const useSketchActions = ({
   const addMatrix = () => {
     const id = nextId
     const values = Array.from({ length: 9 }, (_, index) => String(index + 1))
+    const position = getSpawnPosition({ width: 3 * CELL_SIZE, height: 3 * CELL_SIZE })
     setElements((current) => [
       ...current,
       {
@@ -197,7 +244,7 @@ export const useSketchActions = ({
           values.slice(row * 3, row * 3 + 3).map((_, column) => id + row * 3 + column + 1),
         ),
         values: [values.slice(0, 3), values.slice(3, 6), values.slice(6, 9)],
-        position: { x: 180, y: 120 },
+        position,
         columns: 3,
       },
     ])
@@ -217,18 +264,43 @@ export const useSketchActions = ({
   }
 
   const handleImportTestCases = (selectedCases: ParsedTestCase[], _problemTitle?: string) => {
-    const maxY = elements.reduce((acc, element) => {
-      if (element.kind === 'iterator') return acc
-      return Math.max(acc, element.position.y + 110)
-    }, 60)
-    const startY = Math.max(100, maxY + 30)
-    const result = buildCanvasElementsFromTestCases(selectedCases, nextId, startY)
-    setElements((current) => [...current, ...result.elements])
-    setNextId(result.nextId)
+    const tempResult = buildCanvasElementsFromTestCases(selectedCases, nextId, 0)
+    const nonIterators = tempResult.elements.filter((el) => el.kind !== 'iterator')
+    if (nonIterators.length === 0) return
 
-    const firstElement = result.elements[0]
+    let minX = Infinity
+    let minY = Infinity
+    let maxX = -Infinity
+    let maxY = -Infinity
+    for (const el of nonIterators) {
+      const b = elementBounds(el)
+      if (b.x < minX) minX = b.x
+      if (b.y < minY) minY = b.y
+      if (b.x + b.width > maxX) maxX = b.x + b.width
+      if (b.y + b.height > maxY) maxY = b.y + b.height
+    }
+    const groupWidth = Math.max(CELL_SIZE, maxX - minX)
+    const groupHeight = Math.max(CELL_SIZE, maxY - minY)
+    const targetPos = getSpawnPosition({ width: groupWidth, height: groupHeight })
+    const deltaX = targetPos.x - minX
+    const deltaY = targetPos.y - minY
+
+    const shiftedElements = tempResult.elements.map((el) => {
+      if (el.kind === 'iterator') return el
+      return {
+        ...el,
+        position: {
+          x: el.position.x + deltaX,
+          y: el.position.y + deltaY,
+        },
+      }
+    })
+    setElements((current) => [...current, ...shiftedElements])
+    setNextId(tempResult.nextId)
+
+    const firstElement = shiftedElements[0]
     if (firstElement) {
-      setSelectedIds(new Set(result.elements.map((element) => element.id)))
+      setSelectedIds(new Set(shiftedElements.map((element) => element.id)))
       setSelectedId(firstElement.id)
     }
   }

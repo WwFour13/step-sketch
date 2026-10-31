@@ -32,6 +32,7 @@ export type CanvasProps = {
   canvasRef: React.RefObject<HTMLDivElement | null>
   onCanvasPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void
   onCanvasPointerMove: (event: React.PointerEvent<HTMLDivElement>) => void
+  onCanvasPointerLeave?: (event: React.PointerEvent<HTMLDivElement>) => void
   onCanvasPointerUp: (event: React.PointerEvent<HTMLDivElement>) => void
   onStartDrag: (event: React.PointerEvent, id: number) => void
   onStartMatrixResize?: (event: React.PointerEvent, id: number) => void
@@ -71,6 +72,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   canvasRef,
   onCanvasPointerDown,
   onCanvasPointerMove,
+  onCanvasPointerLeave,
   onCanvasPointerUp,
   onStartDrag,
   onStartMatrixResize,
@@ -122,6 +124,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           }
         }}
         onPointerMove={onCanvasPointerMove}
+        onPointerLeave={onCanvasPointerLeave}
         onPointerUp={onCanvasPointerUp}
         onPointerCancel={onCanvasPointerUp}
         onLostPointerCapture={onCanvasPointerUp}

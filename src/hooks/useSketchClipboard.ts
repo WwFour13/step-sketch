@@ -1,13 +1,17 @@
 import { useCallback } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
-import { CELL_SIZE } from '../constants/sketch'
+import { CELL_SIZE, NODE_SIZE } from '../constants/sketch'
 import type {
+  CanvasDimensions,
+  CanvasViewport,
   CellEditState,
+  Position,
   SketchArray,
   SketchCollection,
   SketchElement,
   SketchNode,
 } from '../types/sketch'
+import { findNonOverlappingSpawnPosition } from '../utils/canvasState'
 import {
   createSketchArray,
   getCollectionElementIds,
@@ -99,6 +103,11 @@ type UseSketchClipboardOptions = {
   cellEditRef: MutableRefObject<CellEditState | null>
   elementEditRef: MutableRefObject<{ elementId: number; hasTyped: boolean } | null>
   clipboardRef: MutableRefObject<SketchClipboard | null>
+  mouseWorldPosRef?: MutableRefObject<Position | null>
+  viewport?: CanvasViewport
+  setViewport?: Dispatch<SetStateAction<CanvasViewport>>
+  dimensions?: CanvasDimensions
+  screenDimensions?: { width: number; height: number }
 }
 
 export const useSketchClipboard = ({
@@ -116,6 +125,11 @@ export const useSketchClipboard = ({
   cellEditRef,
   elementEditRef,
   clipboardRef,
+  mouseWorldPosRef,
+  viewport,
+  setViewport,
+  dimensions,
+  screenDimensions,
 }: UseSketchClipboardOptions) => {
   const copySelection = useCallback(() => {
     if (selectedCellIds.size > 0) {
@@ -266,20 +280,49 @@ export const useSketchClipboard = ({
     }
   }, [clipboardRef, elements, selectedCellIds, selectedIds])
 
+  const getSpawnPosition = useCallback(
+    (size: { width: number; height: number }): Position => {
+      const result = findNonOverlappingSpawnPosition(
+        elements,
+        size,
+        dimensions,
+        viewport,
+        screenDimensions,
+      )
+      if (result.adjustedViewport && setViewport) {
+        setViewport(result.adjustedViewport)
+      }
+      return result.position
+    },
+    [dimensions, elements, screenDimensions, setViewport, viewport],
+  )
+
   const pasteClipboard = useCallback(() => {
     const clipboard = clipboardRef.current
     if (!clipboard) return
     if (selectedIds.size === 0 && selectedCellIds.size === 0) {
       if (clipboard.kind === 'nodes') {
         const idMap = new Map(clipboard.nodes.map((node, index) => [node.id, nextId + index]))
-        const offset = CELL_SIZE * (1 + (nextId % 4))
+        const minX = Math.min(...clipboard.nodes.map((node) => node.position.x))
+        const minY = Math.min(...clipboard.nodes.map((node) => node.position.y))
+        const maxX = Math.max(...clipboard.nodes.map((node) => node.position.x + NODE_SIZE))
+        const maxY = Math.max(...clipboard.nodes.map((node) => node.position.y + NODE_SIZE))
+        const boundsWidth = Math.max(NODE_SIZE, maxX - minX)
+        const boundsHeight = Math.max(NODE_SIZE, maxY - minY)
+        const targetPos =
+          mouseWorldPosRef?.current !== null && mouseWorldPosRef?.current !== undefined
+            ? mouseWorldPosRef.current
+            : getSpawnPosition({ width: boundsWidth, height: boundsHeight })
+        const deltaX = targetPos.x - minX
+        const deltaY = targetPos.y - minY
+
         const pastedNodes = clipboard.nodes.map((node, index) => ({
           ...node,
           id: nextId + index,
           pointer_ids: node.pointer_ids
             .map((pointerId) => idMap.get(pointerId))
             .filter((pointerId): pointerId is number => pointerId !== undefined),
-          position: { x: node.position.x + offset, y: node.position.y + offset },
+          position: { x: node.position.x + deltaX, y: node.position.y + deltaY },
         }))
         setElements((current) => [...current, ...pastedNodes])
         setNextId((current) => current + pastedNodes.length)
@@ -290,7 +333,10 @@ export const useSketchClipboard = ({
       }
       if (clipboard.kind === 'value') {
         const id = nextId
-        const position = { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 }
+        const position =
+          mouseWorldPosRef?.current !== null && mouseWorldPosRef?.current !== undefined
+            ? mouseWorldPosRef.current
+            : getSpawnPosition({ width: NODE_SIZE, height: NODE_SIZE })
         const newElement: SketchElement =
           clipboard.sourceKind === 'node'
             ? {
@@ -341,13 +387,32 @@ export const useSketchClipboard = ({
       }
       if (values.length === 0) values.push('')
       const elementIds = values.map((_, index) => id + index + 1)
+
+      let arrayWidth = Math.max(1, values.length) * CELL_SIZE
+      let arrayHeight = CELL_SIZE
+      if (collectionKind === 'set') {
+        arrayWidth = CELL_SIZE
+        arrayHeight = Math.max(1, values.length) * CELL_SIZE
+      } else if (collectionKind === 'map') {
+        arrayWidth = CELL_SIZE * 2
+        arrayHeight = Math.max(1, Math.ceil(values.length / 2)) * CELL_SIZE
+      } else if (collectionKind === 'matrix') {
+        const cols = Math.max(1, columns ?? 1)
+        arrayWidth = cols * CELL_SIZE
+        arrayHeight = Math.max(1, Math.ceil(values.length / cols)) * CELL_SIZE
+      }
+      const position =
+        mouseWorldPosRef?.current !== null && mouseWorldPosRef?.current !== undefined
+          ? mouseWorldPosRef.current
+          : getSpawnPosition({ width: arrayWidth, height: arrayHeight })
+
       let newArray = createSketchArray(
         collectionKind,
         id,
         label,
         values,
         elementIds,
-        { x: 130 + (id % 3) * 70, y: 100 + (id % 3) * 60 },
+        position,
         columns,
         clipboard.input_type,
       )
@@ -509,6 +574,8 @@ export const useSketchClipboard = ({
     clipboardRef,
     elementEditRef,
     elements,
+    getSpawnPosition,
+    mouseWorldPosRef,
     nextId,
     selectedCell,
     selectedCellIds,
