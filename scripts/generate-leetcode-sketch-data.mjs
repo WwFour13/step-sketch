@@ -7,11 +7,13 @@ const promptPath = fileURLToPath(new URL('./leetcode-sketch-data-prompt.md', imp
 const defaults = {
   input: 'data/source/leetcode-problems-api.json',
   output: 'data/processed/leetcode-sketch-problems-v1.json',
-  concurrency: 2,
+  concurrency: 1,
   limit: Infinity,
   ids: null,
   retries: 3,
   force: false,
+  rateLimitDelay: 30000,
+  requestTimeout: 60000,
 }
 const inputShapes = new Set([
   'scalar',
@@ -43,6 +45,8 @@ const parseArgs = (args) => {
       '--limit': 'limit',
       '--ids': 'ids',
       '--retries': 'retries',
+      '--rate-limit-delay': 'rateLimitDelay',
+      '--timeout': 'requestTimeout',
     }
     const key = values[arg]
     if (!key || args[index + 1] === undefined) {
@@ -68,7 +72,10 @@ const parseArgs = (args) => {
       if (!Number.isInteger(number) || number < minimum) {
         throw new Error(`--${key} must be a ${minimum === 1 ? 'positive' : 'non-negative'} integer`)
       }
-      options[key] = number
+      options[key] =
+        (key === 'rateLimitDelay' || key === 'requestTimeout') && number < 1000
+          ? number * 1000
+          : number
     }
   }
   return options
@@ -216,9 +223,35 @@ const makePrompt = (problem) => {
   )
 }
 
+const parseRetryDelayMs = (response, detailText, defaultDelayMs) => {
+  const retryAfterHeader = response.headers.get('retry-after')
+  if (retryAfterHeader) {
+    const seconds = Number(retryAfterHeader)
+    if (Number.isFinite(seconds) && seconds > 0) {
+      return Math.round(seconds * 1000) + 1000
+    }
+  }
+  const match = detailText.match(/(?:retryDelay|retry\s+(?:in|after))\D*([\d.]+)\s*s?/i)
+  if (match) {
+    const seconds = parseFloat(match[1])
+    if (Number.isFinite(seconds) && seconds > 0) {
+      return Math.round(seconds * 1000) + 2000
+    }
+  }
+  return defaultDelayMs
+}
+
 const requestGeneratedProblem = async (
   problem,
-  { apiKey, baseUrl, model, promptTemplate, retries },
+  {
+    apiKey,
+    baseUrl,
+    model,
+    promptTemplate,
+    retries = 3,
+    rateLimitDelay = 30000,
+    requestTimeout = 60000,
+  },
 ) => {
   const url = `${baseUrl.replace(/\/+$/, '')}/models/${encodeURIComponent(model)}:generateContent`
   for (let attempt = 0; ; attempt += 1) {
@@ -236,28 +269,68 @@ const requestGeneratedProblem = async (
           contents: [{ role: 'user', parts: [{ text: makePrompt(problem) }] }],
           generationConfig: { temperature: 0, responseMimeType: 'application/json' },
         }),
+        signal: AbortSignal.timeout(requestTimeout),
       })
+
       if (!response.ok) {
         const detail = (await response.text()).slice(0, 1000)
+        const status = response.status
+        const isRateLimit = status === 429
+        const isTimeout = status === 408 || status === 504
+        const isTransient = isRateLimit || isTimeout || status === 503
+
+        if (isTransient) {
+          const delayMs = parseRetryDelayMs(response, detail, rateLimitDelay)
+          const reason = isRateLimit
+            ? 'Rate limit reached (429)'
+            : isTimeout
+              ? `HTTP ${status} timeout`
+              : `HTTP ${status} service unavailable`
+          console.warn(
+            `[#${problem.questionId}] ${reason}. Waiting ${Math.round(delayMs / 1000)}s before retrying (attempt ${attempt + 1})...`,
+          )
+          await new Promise((resolve) => setTimeout(resolve, delayMs))
+          continue
+        }
+
         const error = new Error(`Gemini request failed (${response.status}): ${detail}`)
-        if (attempt >= retries || (response.status !== 429 && response.status < 500)) throw error
-      } else {
-        const payload = await response.json()
-        const parts = payload.candidates?.[0]?.content?.parts
-        const content = Array.isArray(parts) ? parts.map((part) => part.text ?? '').join('') : ''
-        if (!content) throw new Error('Gemini response did not contain JSON content')
-        return validateGeneratedProblem(problem, JSON.parse(content))
+        if (response.status < 500 || attempt >= retries) throw error
+
+        const waitMs = Math.min(1000 * 2 ** attempt, rateLimitDelay)
+        console.warn(
+          `[#${problem.questionId}] Server error (${response.status}). Retrying in ${Math.round(waitMs / 1000)}s (attempt ${attempt + 1}/${retries})...`,
+        )
+        await new Promise((resolve) => setTimeout(resolve, waitMs))
+        continue
       }
+
+      const payload = await response.json()
+      const parts = payload.candidates?.[0]?.content?.parts
+      const content = Array.isArray(parts) ? parts.map((part) => part.text ?? '').join('') : ''
+      if (!content) throw new Error('Gemini response did not contain JSON content')
+      return validateGeneratedProblem(problem, JSON.parse(content))
     } catch (error) {
-      if (attempt >= retries) throw error
-      if (
-        !(error instanceof TypeError) &&
-        !/Gemini request failed \((429|5\d\d)\)/.test(error.message)
-      ) {
-        throw error
+      const isTimeoutError =
+        error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')
+      const isNetworkError =
+        error instanceof TypeError &&
+        /fetch failed|network|econnreset|etimedout/i.test(error.message)
+
+      if (isTimeoutError || isNetworkError) {
+        const reason = isTimeoutError
+          ? `Request timed out after ${Math.round(requestTimeout / 1000)}s`
+          : `Network error (${error.message})`
+        console.warn(
+          `[#${problem.questionId}] ${reason}. Waiting ${Math.round(rateLimitDelay / 1000)}s before retrying (attempt ${attempt + 1})...`,
+        )
+        await new Promise((resolve) => setTimeout(resolve, rateLimitDelay))
+        continue
       }
+
+      if (attempt >= retries) throw error
+      const waitMs = 1000 * 2 ** attempt
+      await new Promise((resolve) => setTimeout(resolve, waitMs))
     }
-    await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** attempt))
   }
 }
 
@@ -359,28 +432,7 @@ const main = async () => {
   console.log(
     `Generating ${pending.length} LeetCode Sketch record(s); ${sourceProblems.length - pending.length} already have shape labels and will be skipped.`,
   )
-  await runPool(pending, options.concurrency, async (problem) => {
-    const id = String(problem.questionId)
-    try {
-      problems[id] = await requestGeneratedProblem(problem, {
-        apiKey,
-        baseUrl,
-        model,
-        promptTemplate,
-        retries: options.retries,
-      })
-      console.log(`Generated #${id}: ${problem.title}`)
-    } catch (error) {
-      failures.push({
-        questionId: Number(problem.questionId),
-        title: problem.title,
-        error: error instanceof Error ? error.message : String(error),
-      })
-      console.error(`Failed #${id}: ${error instanceof Error ? error.message : String(error)}`)
-    }
-  })
-
-  const output = {
+  const buildOutput = () => ({
     dataset: 'leetcode-sketch',
     schemaVersion: 2,
     generatedAt: new Date().toISOString(),
@@ -396,7 +448,33 @@ const main = async () => {
     problems: Object.fromEntries(
       Object.entries(problems).sort(([a], [b]) => Number(a) - Number(b)),
     ),
-  }
+  })
+
+  await runPool(pending, options.concurrency, async (problem) => {
+    const id = String(problem.questionId)
+    try {
+      problems[id] = await requestGeneratedProblem(problem, {
+        apiKey,
+        baseUrl,
+        model,
+        promptTemplate,
+        retries: options.retries,
+        rateLimitDelay: options.rateLimitDelay,
+        requestTimeout: options.requestTimeout,
+      })
+      console.log(`Generated #${id}: ${problem.title}`)
+      await writeJsonAtomically(outputPath, buildOutput())
+    } catch (error) {
+      failures.push({
+        questionId: Number(problem.questionId),
+        title: problem.title,
+        error: error instanceof Error ? error.message : String(error),
+      })
+      console.error(`Failed #${id}: ${error instanceof Error ? error.message : String(error)}`)
+    }
+  })
+
+  const output = buildOutput()
   await writeJsonAtomically(outputPath, output)
 
   const errorPath = `${outputPath}.errors.json`
