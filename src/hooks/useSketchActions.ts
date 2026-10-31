@@ -1,5 +1,5 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
-import { CELL_SIZE, NODE_SIZE, iteratorColors } from '../constants/sketch'
+import { CELL_SIZE } from '../constants/sketch'
 import { buildCanvasElementsFromTestCases } from '../services/leetcodeSketch'
 import type { CellEditConfirmation } from './useSketchSelection'
 import type {
@@ -10,12 +10,12 @@ import type {
   SketchArrayInputType,
   SketchCollection,
   SketchElement,
-  SketchIterator,
   SketchNode,
 } from '../types/sketch'
 import type { ParsedTestCase } from '../services/leetcodeSketch'
 import { elementBounds } from '../utils/canvas'
 import { findNonOverlappingSpawnPosition } from '../utils/canvasState'
+import { createTemplateElements, TEMPLATE_DEFINITIONS } from '../utils/sketchTemplates'
 import {
   getCollectionElementIds,
   isSketchCollection,
@@ -76,16 +76,15 @@ export const useSketchActions = ({
   }
 
   const addVariable = (kind: 'variable' | 'node') => {
-    const id = nextId
-    const value = String(Math.floor(Math.random() * 10))
-    const position = getSpawnPosition({ width: NODE_SIZE, height: NODE_SIZE })
-    const element: SketchElement =
-      kind === 'node'
-        ? { id, kind, value, pointer_ids: [], pointer_limit: '+', position }
-        : { id, kind, label: 'variable', value, position }
-    setElements((current) => [...current, element])
-    setNextId((current) => current + 1)
-    selectOne(id)
+    const position = getSpawnPosition(TEMPLATE_DEFINITIONS[kind].size)
+    const { elements: newElements, nextId: newNextId, primaryId } = createTemplateElements(
+      kind,
+      nextId,
+      position,
+    )
+    setElements((current) => [...current, ...newElements])
+    setNextId(newNextId)
+    selectOne(primaryId)
   }
 
   const addArray = (
@@ -124,132 +123,75 @@ export const useSketchActions = ({
   }
 
   const addSet = () => {
-    const id = nextId
-    const values = ['2', '7', '11', '15']
-    const elementIds = values.map((_, index) => id + index + 1)
-    const position = getSpawnPosition({ width: CELL_SIZE, height: values.length * CELL_SIZE })
-    setElements((current) => [
-      ...current,
-      {
-        id,
-        kind: 'set',
-        label: 'set',
-        element_ids: elementIds,
-        values,
-        position,
-      },
-    ])
-    setNextId((current) => current + values.length + 1)
-    selectOne(id)
+    const position = getSpawnPosition(TEMPLATE_DEFINITIONS.set.size)
+    const { elements: newElements, nextId: newNextId, primaryId } = createTemplateElements(
+      'set',
+      nextId,
+      position,
+    )
+    setElements((current) => [...current, ...newElements])
+    setNextId(newNextId)
+    selectOne(primaryId)
   }
 
   const addMap = () => {
-    const id = nextId
-    const values = ['name', 'Ada', 'role', 'coder', 'level', '42']
-    const elementIds = values.map((_, index) => id + index + 1)
-    const position = getSpawnPosition({
-      width: CELL_SIZE * 2,
-      height: Math.ceil(values.length / 2) * CELL_SIZE,
-    })
-    setElements((current) => [
-      ...current,
-      {
-        id,
-        kind: 'map',
-        label: 'map',
-        element_ids: elementIds,
-        values,
-        position,
-      },
-    ])
-    setNextId((current) => current + values.length + 1)
-    selectOne(id)
+    const position = getSpawnPosition(TEMPLATE_DEFINITIONS.map.size)
+    const { elements: newElements, nextId: newNextId, primaryId } = createTemplateElements(
+      'map',
+      nextId,
+      position,
+    )
+    setElements((current) => [...current, ...newElements])
+    setNextId(newNextId)
+    selectOne(primaryId)
   }
 
   const addLinkedList = () => {
-    const firstId = nextId
-    const position = getSpawnPosition({ width: 2 * 120 + NODE_SIZE, height: NODE_SIZE + 20 })
-    const nodes: SketchNode[] = [0, 1, 2].map((index) => ({
-      id: firstId + index,
-      kind: 'node',
-      value: String(index + 1),
-      pointer_ids: index < 2 ? [firstId + index + 1] : [],
-      pointer_limit: 1,
-      position: { x: position.x + index * 120, y: position.y },
-    }))
+    const position = getSpawnPosition(TEMPLATE_DEFINITIONS['linked-list'].size)
     const count = elements.filter((element) => element.kind === 'iterator').length
-    const iteratorId = firstId + nodes.length
-    const iterator: SketchIterator = {
-      id: iteratorId,
-      kind: 'iterator',
-      hostId: firstId,
-      color: iteratorColors[count % iteratorColors.length],
-      mode: 'bottom',
-      label: 'head',
-    }
-    setElements((current) => [...current, ...nodes, iterator])
-    setNextId((current) => current + nodes.length + 1)
-    selectOne(firstId)
+    const { elements: newElements, nextId: newNextId, primaryId } = createTemplateElements(
+      'linked-list',
+      nextId,
+      position,
+      count,
+    )
+    setElements((current) => [...current, ...newElements])
+    setNextId(newNextId)
+    const selectableIds = newElements
+      .filter((element) => element.kind !== 'iterator')
+      .map((element) => element.id)
+    setSelectedIds(new Set(selectableIds))
+    setSelectedId(primaryId)
+    setSelectedCell(null)
   }
 
   const addBinaryTree = () => {
-    const firstId = nextId
-    const positions = [
-      { x: 330, y: 110 },
-      { x: 200, y: 240 },
-      { x: 460, y: 240 },
-      { x: 135, y: 370 },
-      { x: 265, y: 370 },
-      { x: 395, y: 370 },
-      { x: 525, y: 370 },
-    ]
-    const minX = 135
-    const minY = 110
-    const boundsWidth = 525 + NODE_SIZE - minX // 444
-    const boundsHeight = 370 + NODE_SIZE - minY // 314
-    const position = getSpawnPosition({ width: boundsWidth, height: boundsHeight })
-
-    const nodes: SketchNode[] = [0, 1, 2, 3, 4, 5, 6].map((index) => {
-      const leftId = firstId + index * 2 + 1
-      const rightId = firstId + index * 2 + 2
-      const pointerIds = [leftId, rightId].filter((pointerId) => pointerId < firstId + 7)
-      return {
-        id: firstId + index,
-        kind: 'node' as const,
-        value: String(index + 1),
-        pointer_ids: pointerIds,
-        pointer_limit: 2,
-        position: {
-          x: position.x + (positions[index].x - minX),
-          y: position.y + (positions[index].y - minY),
-        },
-      }
-    })
-    setElements((current) => [...current, ...nodes])
-    setNextId((current) => current + nodes.length)
-    selectOne(firstId)
+    const position = getSpawnPosition(TEMPLATE_DEFINITIONS['binary-tree'].size)
+    const { elements: newElements, nextId: newNextId, primaryId } = createTemplateElements(
+      'binary-tree',
+      nextId,
+      position,
+    )
+    setElements((current) => [...current, ...newElements])
+    setNextId(newNextId)
+    const selectableIds = newElements
+      .filter((element) => element.kind !== 'iterator')
+      .map((element) => element.id)
+    setSelectedIds(new Set(selectableIds))
+    setSelectedId(primaryId)
+    setSelectedCell(null)
   }
 
   const addMatrix = () => {
-    const id = nextId
-    const values = Array.from({ length: 9 }, (_, index) => String(index + 1))
-    const position = getSpawnPosition({ width: 3 * CELL_SIZE, height: 3 * CELL_SIZE })
-    setElements((current) => [
-      ...current,
-      {
-        id,
-        kind: 'matrix',
-        label: 'matrix',
-        element_ids: [0, 1, 2].map((row) =>
-          values.slice(row * 3, row * 3 + 3).map((_, column) => id + row * 3 + column + 1),
-        ),
-        values: [values.slice(0, 3), values.slice(3, 6), values.slice(6, 9)],
-        position,
-        columns: 3,
-      },
-    ])
-    setNextId((current) => current + values.length + 1)
-    selectOne(id)
+    const position = getSpawnPosition(TEMPLATE_DEFINITIONS.matrix.size)
+    const { elements: newElements, nextId: newNextId, primaryId } = createTemplateElements(
+      'matrix',
+      nextId,
+      position,
+    )
+    setElements((current) => [...current, ...newElements])
+    setNextId(newNextId)
+    selectOne(primaryId)
   }
 
   const openLeetCodeModal = () => {

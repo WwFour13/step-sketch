@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Dispatch, MutableRefObject, RefObject, SetStateAction } from 'react'
 import type {
   CanvasDimensions,
@@ -28,7 +29,20 @@ import {
   getCollectionValues,
   isSketchCollection,
 } from '../utils/sketchCollections'
+import {
+  createTemplateElements,
+  TEMPLATE_DEFINITIONS,
+  type TemplateKind,
+} from '../utils/sketchTemplates'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
+
+export type TemplateDragGhost = {
+  kind: TemplateKind
+  icon: string
+  label: string
+  x: number
+  y: number
+}
 
 export type MatrixResizeDrag = {
   id: number
@@ -122,15 +136,37 @@ export const useSketchCanvasGestures = ({
   const panX = pan?.x ?? 0
   const panY = pan?.y ?? 0
 
+  const elementsRef = useRef(elements)
+  const nextIdRef = useRef(nextId)
+  const zoomRef = useRef(currentZoom)
+  const panRef = useRef({ x: panX, y: panY })
+
+  useEffect(() => {
+    elementsRef.current = elements
+    nextIdRef.current = nextId
+    zoomRef.current = currentZoom
+    panRef.current = { x: panX, y: panY }
+  })
+
+  const [templateDragGhost, setTemplateDragGhost] = useState<TemplateDragGhost | null>(null)
+  const justDraggedTemplateRef = useRef(false)
+
+  const wasTemplateJustDragged = useCallback(() => {
+    return justDraggedTemplateRef.current
+  }, [])
+
   /** Converts screen client coordinates to canvas world coordinates. */
-  const getCanvasPoint = (clientX: number, clientY: number) => {
-    const bounds = canvasRef.current?.getBoundingClientRect()
-    if (!bounds) return { x: 0, y: 0 }
-    return {
-      x: (clientX - bounds.left - panX) / currentZoom,
-      y: (clientY - bounds.top - panY) / currentZoom,
-    }
-  }
+  const getCanvasPoint = useCallback(
+    (clientX: number, clientY: number) => {
+      const bounds = canvasRef.current?.getBoundingClientRect()
+      if (!bounds) return { x: 0, y: 0 }
+      return {
+        x: (clientX - bounds.left - panX) / currentZoom,
+        y: (clientY - bounds.top - panY) / currentZoom,
+      }
+    },
+    [canvasRef, currentZoom, panX, panY],
+  )
   /**
    * Advances an iterator one linked node or collection cell in its current
    * direction. Does nothing when the host has no valid next item.
@@ -638,6 +674,94 @@ export const useSketchCanvasGestures = ({
   }
 
   /**
+   * Moves currently dragged element(s) with boundary clamping based on pointer client coordinates.
+   */
+  const moveDrag = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!dragRef.current) return
+      const { id, offsetX, offsetY, draggedIds, initialPositions } = dragRef.current
+      const primaryPosition = initialPositions.get(id)
+      if (!primaryPosition) return
+
+      const pt = getCanvasPoint(clientX, clientY)
+      const rawTargetX = pt.x - offsetX
+      const rawTargetY = pt.y - offsetY
+      const rawDeltaX = rawTargetX - primaryPosition.x
+      const rawDeltaY = rawTargetY - primaryPosition.y
+
+      const bounds = canvasRef.current?.getBoundingClientRect()
+      const screenWidth = bounds?.width ?? dimensions?.width ?? 1200
+      const screenHeight = bounds?.height ?? dimensions?.height ?? 800
+
+      // Visible canvas boundaries in world coordinates at current zoom and pan
+      const minVisibleX = (-panX + 16) / currentZoom
+      const maxVisibleX = (screenWidth - panX - 16) / currentZoom
+      const minVisibleY = (-panY + 24) / currentZoom
+      const maxVisibleY = (screenHeight - panY - 24) / currentZoom
+
+      let groupMinX = Infinity
+      let groupMaxX = -Infinity
+      let groupMinY = Infinity
+      let groupMaxY = -Infinity
+
+      draggedIds.forEach((draggedId) => {
+        const initPos = initialPositions.get(draggedId)
+        const el = elementsRef.current.find((e) => e.id === draggedId)
+        if (!initPos || !el || el.kind === 'iterator') return
+        const b = elementBounds(el)
+        const elWidth = b.width || 42
+        const elHeight = b.height || 42
+
+        groupMinX = Math.min(groupMinX, initPos.x)
+        groupMaxX = Math.max(groupMaxX, initPos.x + elWidth)
+        groupMinY = Math.min(groupMinY, initPos.y)
+        groupMaxY = Math.max(groupMaxY, initPos.y + elHeight)
+      })
+
+      if (groupMinX === Infinity) return
+
+      const boundX1 = minVisibleX - groupMinX
+      const boundX2 = maxVisibleX - groupMaxX
+      const minDeltaX = Math.min(boundX1, boundX2)
+      const maxDeltaX = Math.max(boundX1, boundX2)
+      const clampedDeltaX = Math.max(minDeltaX, Math.min(maxDeltaX, rawDeltaX))
+
+      const boundY1 = minVisibleY - groupMinY
+      const boundY2 = maxVisibleY - groupMaxY
+      const minDeltaY = Math.min(boundY1, boundY2)
+      const maxDeltaY = Math.max(boundY1, boundY2)
+      const clampedDeltaY = Math.max(minDeltaY, Math.min(maxDeltaY, rawDeltaY))
+
+      setElements((current) =>
+        current.map((element) => {
+          const initialPosition = initialPositions.get(element.id)
+          if (!draggedIds.has(element.id) || !initialPosition || element.kind === 'iterator') {
+            return element
+          }
+          return {
+            ...element,
+            position: {
+              x: Math.round(initialPosition.x + clampedDeltaX),
+              y: Math.round(initialPosition.y + clampedDeltaY),
+            },
+          }
+        }),
+      )
+    },
+    [
+      canvasRef,
+      currentZoom,
+      dimensions?.height,
+      dimensions?.width,
+      dragRef,
+      getCanvasPoint,
+      panX,
+      panY,
+      setElements,
+    ],
+  )
+
+  /**
    * Updates the active iterator drag, pointer-connection draft, or element
    * group drag from the current pointer position.
    * @param event Pointer-move event over the canvas.
@@ -659,76 +783,169 @@ export const useSketchCanvasGestures = ({
       setPointerDraft(draft)
       return
     }
-    if (!dragRef.current) return
-    const { id, offsetX, offsetY, draggedIds, initialPositions } = dragRef.current
-    const primaryPosition = initialPositions.get(id)
-    if (!primaryPosition) return
-
-    const pt = getCanvasPoint(event.clientX, event.clientY)
-    const rawTargetX = pt.x - offsetX
-    const rawTargetY = pt.y - offsetY
-    const rawDeltaX = rawTargetX - primaryPosition.x
-    const rawDeltaY = rawTargetY - primaryPosition.y
-
-    const bounds = canvasRef.current?.getBoundingClientRect()
-    const screenWidth = bounds?.width ?? dimensions?.width ?? 1200
-    const screenHeight = bounds?.height ?? dimensions?.height ?? 800
-
-    // Visible canvas boundaries in world coordinates at current zoom and pan
-    const minVisibleX = (-panX + 16) / currentZoom
-    const maxVisibleX = (screenWidth - panX - 16) / currentZoom
-    const minVisibleY = (-panY + 24) / currentZoom
-    const maxVisibleY = (screenHeight - panY - 24) / currentZoom
-
-    let groupMinX = Infinity
-    let groupMaxX = -Infinity
-    let groupMinY = Infinity
-    let groupMaxY = -Infinity
-
-    draggedIds.forEach((draggedId) => {
-      const initPos = initialPositions.get(draggedId)
-      const el = elements.find((e) => e.id === draggedId)
-      if (!initPos || !el || el.kind === 'iterator') return
-      const b = elementBounds(el)
-      const elWidth = b.width || 42
-      const elHeight = b.height || 42
-
-      groupMinX = Math.min(groupMinX, initPos.x)
-      groupMaxX = Math.max(groupMaxX, initPos.x + elWidth)
-      groupMinY = Math.min(groupMinY, initPos.y)
-      groupMaxY = Math.max(groupMaxY, initPos.y + elHeight)
-    })
-
-    if (groupMinX === Infinity) return
-
-    const boundX1 = minVisibleX - groupMinX
-    const boundX2 = maxVisibleX - groupMaxX
-    const minDeltaX = Math.min(boundX1, boundX2)
-    const maxDeltaX = Math.max(boundX1, boundX2)
-    const clampedDeltaX = Math.max(minDeltaX, Math.min(maxDeltaX, rawDeltaX))
-
-    const boundY1 = minVisibleY - groupMinY
-    const boundY2 = maxVisibleY - groupMaxY
-    const minDeltaY = Math.min(boundY1, boundY2)
-    const maxDeltaY = Math.max(boundY1, boundY2)
-    const clampedDeltaY = Math.max(minDeltaY, Math.min(maxDeltaY, rawDeltaY))
-
-    setElements((current) =>
-      current.map((element) => {
-        const initialPosition = initialPositions.get(element.id)
-        if (!draggedIds.has(element.id) || !initialPosition || element.kind === 'iterator') {
-          return element
-        }
-        return {
-          ...element,
-          position: {
-            x: Math.round(initialPosition.x + clampedDeltaX),
-            y: Math.round(initialPosition.y + clampedDeltaY),
-          },
-        }
-      }),
-    )
+    moveDrag(event.clientX, event.clientY)
   }
+
+  /**
+   * Starts a drag from a toolbar template button. Shows a floating button preview
+   * under the cursor before reaching the canvas, then converts into a real canvas element
+   * and delegates to normal element dragging as soon as the pointer enters the canvas.
+   */
+  const startTemplateDrag = useCallback(
+    (event: ReactPointerEvent, kind: TemplateKind) => {
+      if (event.button !== 0) return
+      const template = TEMPLATE_DEFINITIONS[kind]
+      if (!template) return
+
+      const startX = event.clientX
+      const startY = event.clientY
+      let hasDragged = false
+      let hasEnteredCanvas = false
+
+      const handlePointerMove = (moveEvent: PointerEvent) => {
+        if (!hasDragged) {
+          if (Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY) < 4) {
+            return
+          }
+          hasDragged = true
+          justDraggedTemplateRef.current = true
+        }
+
+        const bounds = canvasRef.current?.getBoundingClientRect()
+        const isOverCanvas = Boolean(
+          bounds &&
+            moveEvent.clientX >= bounds.left &&
+            moveEvent.clientX <= bounds.right &&
+            moveEvent.clientY >= bounds.top &&
+            moveEvent.clientY <= bounds.bottom,
+        )
+
+        if (!hasEnteredCanvas && !isOverCanvas) {
+          setTemplateDragGhost({
+            kind,
+            icon: template.icon,
+            label: template.label,
+            x: moveEvent.clientX,
+            y: moveEvent.clientY,
+          })
+          return
+        }
+
+        if (!hasEnteredCanvas && isOverCanvas && bounds) {
+          hasEnteredCanvas = true
+          setTemplateDragGhost(null)
+
+          const z = zoomRef.current || 1
+          const p = panRef.current
+          const worldX = (moveEvent.clientX - bounds.left - p.x) / z
+          const worldY = (moveEvent.clientY - bounds.top - p.y) / z
+          const spawnPos: Position = {
+            x: Math.round(worldX - template.size.width / 2),
+            y: Math.round(worldY - template.size.height / 2),
+          }
+
+          commitSnapshot?.()
+
+          if (cellEditRef.current) {
+            confirmCellEdit(cellEditRef.current)
+            cellEditRef.current = null
+          }
+          elementEditRef.current = null
+          resetCellTyping()
+          setIsInsertBefore?.(false)
+
+          const iterCount = elementsRef.current.filter((el) => el.kind === 'iterator').length
+          const buildResult = createTemplateElements(
+            kind,
+            nextIdRef.current,
+            spawnPos,
+            iterCount,
+          )
+
+          const updatedElements = [...elementsRef.current, ...buildResult.elements]
+          elementsRef.current = updatedElements
+          setElements(updatedElements)
+          setNextId(buildResult.nextId)
+
+          const selectableIds = buildResult.elements
+            .filter((el) => el.kind !== 'iterator')
+            .map((el) => el.id)
+
+          setSelectedIds(new Set(selectableIds))
+          setSelectedId(buildResult.primaryId)
+          setSelectedCell(null)
+          setSelectedCellIds(new Set())
+
+          const primaryElement = buildResult.elements.find(
+            (el): el is Exclude<SketchElement, SketchIterator> =>
+              el.id === buildResult.primaryId && el.kind !== 'iterator',
+          )
+          const primaryInitialPos = primaryElement?.position ?? spawnPos
+          dragRef.current = {
+            id: buildResult.primaryId,
+            offsetX: Math.round(worldX - primaryInitialPos.x),
+            offsetY: Math.round(worldY - primaryInitialPos.y),
+            draggedIds: new Set(selectableIds),
+            initialPositions: new Map(
+              buildResult.elements
+                .filter(
+                  (item): item is Exclude<SketchElement, SketchIterator> =>
+                    item.kind !== 'iterator',
+                )
+                .map((item) => [item.id, item.position]),
+            ),
+            isTemplateDrag: true,
+          }
+          return
+        }
+
+        if (hasEnteredCanvas) {
+          moveDrag(moveEvent.clientX, moveEvent.clientY)
+        }
+      }
+
+      const handlePointerUp = (upEvent: PointerEvent) => {
+        window.removeEventListener('pointermove', handlePointerMove)
+        window.removeEventListener('pointerup', handlePointerUp)
+        window.removeEventListener('pointercancel', handlePointerUp)
+
+        setTemplateDragGhost(null)
+
+        if (hasDragged) {
+          justDraggedTemplateRef.current = true
+          setTimeout(() => {
+            justDraggedTemplateRef.current = false
+          }, 100)
+        }
+
+        if (hasEnteredCanvas && dragRef.current) {
+          moveDrag(upEvent.clientX, upEvent.clientY)
+          dragRef.current = null
+        }
+      }
+
+      window.addEventListener('pointermove', handlePointerMove)
+      window.addEventListener('pointerup', handlePointerUp)
+      window.addEventListener('pointercancel', handlePointerUp)
+    },
+    [
+      canvasRef,
+      cellEditRef,
+      commitSnapshot,
+      confirmCellEdit,
+      dragRef,
+      elementEditRef,
+      moveDrag,
+      resetCellTyping,
+      setElements,
+      setIsInsertBefore,
+      setNextId,
+      setSelectedCell,
+      setSelectedCellIds,
+      setSelectedId,
+      setSelectedIds,
+    ],
+  )
 
   /**
    * Completes whichever canvas gesture is active: rehosts a dragged iterator,
@@ -904,6 +1121,11 @@ export const useSketchCanvasGestures = ({
       return
     }
     if (dragRef.current) {
+      if (dragRef.current.isTemplateDrag) {
+        dragRef.current = null
+        return
+      }
+
       const { id, initialPositions, draggedIds } = dragRef.current
       const primaryElement = elements.find(
         (el): el is Exclude<SketchElement, SketchIterator> =>
@@ -1241,5 +1463,8 @@ export const useSketchCanvasGestures = ({
     handleCanvasPointerDown,
     handleCanvasPointerMove,
     handleHostDoubleClick,
+    startTemplateDrag,
+    wasTemplateJustDragged,
+    templateDragGhost,
   }
 }

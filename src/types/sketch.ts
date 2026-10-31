@@ -90,6 +90,7 @@ export type DragState = {
   initialPositions: Map<number, Position>
   isRecursiveNodeSelect?: boolean
   clickedCellIndex?: number
+  isTemplateDrag?: boolean
 }
 
 /** Live draft for a pointer being drawn from a source node to the cursor. */

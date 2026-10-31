@@ -364,6 +364,9 @@ function App() {
     handleCanvasPointerDown,
     handleCanvasPointerMove: gestureHandleCanvasPointerMove,
     handleHostDoubleClick,
+    startTemplateDrag,
+    wasTemplateJustDragged,
+    templateDragGhost,
   } = useSketchCanvasGestures({
     elements,
     setElements,
@@ -555,6 +558,8 @@ function App() {
             addMatrix()
           }}
           onOpenLeetCodeModal={openLeetCodeModal}
+          onStartTemplateDrag={startTemplateDrag}
+          wasTemplateJustDragged={wasTemplateJustDragged}
         />
         <Canvas
           elements={elements}
@@ -608,6 +613,17 @@ function App() {
         }}
         initialProblemNumber="1"
       />
+      {templateDragGhost && (
+        <div
+          className="template-drag-ghost"
+          style={{ left: templateDragGhost.x, top: templateDragGhost.y }}
+        >
+          <span className="template-icon">{templateDragGhost.icon}</span>
+          <span className="template-copy">
+            <strong>{templateDragGhost.label}</strong>
+          </span>
+        </div>
+      )}
     </main>
   )
 }

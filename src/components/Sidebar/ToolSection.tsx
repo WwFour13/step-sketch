@@ -1,5 +1,6 @@
 import React from 'react'
 import type { SketchArrayInputType } from '../../types/sketch'
+import type { TemplateKind } from '../../utils/sketchTemplates'
 
 /** Element-creation callbacks and import status consumed by the tool palette. */
 export type ToolSectionProps = {
@@ -11,6 +12,8 @@ export type ToolSectionProps = {
   onAddBinaryTree: () => void
   onAddMatrix: () => void
   onOpenLeetCodeModal: () => void
+  onStartTemplateDrag?: (event: React.PointerEvent, kind: TemplateKind) => void
+  wasTemplateJustDragged?: () => boolean
 }
 
 /**
@@ -26,7 +29,14 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
   onAddBinaryTree,
   onAddMatrix,
   onOpenLeetCodeModal,
+  onStartTemplateDrag,
+  wasTemplateJustDragged,
 }) => {
+  const handleTemplateClick = (callback: () => void) => {
+    if (wasTemplateJustDragged?.()) return
+    callback()
+  }
+
   return (
     <div className="tool-section">
       <div className="section-label">ADD TO CANVAS</div>
@@ -35,7 +45,9 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
         <button
           className="template-button"
           title="single square"
-          onClick={() => onAddVariable('variable')}
+          draggable={false}
+          onPointerDown={(event) => onStartTemplateDrag?.(event, 'variable')}
+          onClick={() => handleTemplateClick(() => onAddVariable('variable'))}
         >
           <span className="template-icon">□</span>
           <span className="template-copy">
@@ -45,26 +57,48 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
         <button
           className="template-button"
           title="[ 1, 4, 9, 16 ]"
-          onClick={() => onAddArray(['1', '4', '9', '16'], 'array', 'number')}
+          draggable={false}
+          onPointerDown={(event) => onStartTemplateDrag?.(event, 'array')}
+          onClick={() =>
+            handleTemplateClick(() => onAddArray(['1', '4', '9', '16'], 'array', 'number'))
+          }
         >
           <span className="template-icon">[]</span>
           <span className="template-copy">
             <strong>Array</strong>
           </span>
         </button>
-        <button className="template-button" title="1 → 2 → 3" onClick={onAddLinkedList}>
+        <button
+          className="template-button"
+          title="1 → 2 → 3"
+          draggable={false}
+          onPointerDown={(event) => onStartTemplateDrag?.(event, 'linked-list')}
+          onClick={() => handleTemplateClick(onAddLinkedList)}
+        >
           <span className="template-icon">→→</span>
           <span className="template-copy">
             <strong>Linked list</strong>
           </span>
         </button>
-        <button className="template-button" title="vertical unique values" onClick={onAddSet}>
+        <button
+          className="template-button"
+          title="vertical unique values"
+          draggable={false}
+          onPointerDown={(event) => onStartTemplateDrag?.(event, 'set')}
+          onClick={() => handleTemplateClick(onAddSet)}
+        >
           <span className="template-icon">∪</span>
           <span className="template-copy">
             <strong>Set</strong>
           </span>
         </button>
-        <button className="template-button" title="2D array / matrix" onClick={onAddMatrix}>
+        <button
+          className="template-button"
+          title="2D array / matrix"
+          draggable={false}
+          onPointerDown={(event) => onStartTemplateDrag?.(event, 'matrix')}
+          onClick={() => handleTemplateClick(onAddMatrix)}
+        >
           <span className="template-icon">▦</span>
           <span className="template-copy">
             <strong>Matrix</strong>
@@ -75,7 +109,9 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
         <button
           className="template-button"
           title="pointer target"
-          onClick={() => onAddVariable('node')}
+          draggable={false}
+          onPointerDown={(event) => onStartTemplateDrag?.(event, 'node')}
+          onClick={() => handleTemplateClick(() => onAddVariable('node'))}
         >
           <span className="template-icon">→</span>
           <span className="template-copy">
@@ -85,20 +121,36 @@ export const ToolSection: React.FC<ToolSectionProps> = ({
         <button
           className="template-button"
           title='"algo" as cells'
-          onClick={() => onAddArray(['a', 'l', 'g', 'o'], 'text', 'character')}
+          draggable={false}
+          onPointerDown={(event) => onStartTemplateDrag?.(event, 'string')}
+          onClick={() =>
+            handleTemplateClick(() => onAddArray(['a', 'l', 'g', 'o'], 'text', 'character'))
+          }
         >
           <span className="template-icon">Aa</span>
           <span className="template-copy">
             <strong>String</strong>
           </span>
         </button>
-        <button className="template-button" title="7 connected nodes" onClick={onAddBinaryTree}>
+        <button
+          className="template-button"
+          title="7 connected nodes"
+          draggable={false}
+          onPointerDown={(event) => onStartTemplateDrag?.(event, 'binary-tree')}
+          onClick={() => handleTemplateClick(onAddBinaryTree)}
+        >
           <span className="template-icon">⋔</span>
           <span className="template-copy">
             <strong>Binary tree</strong>
           </span>
         </button>
-        <button className="template-button" title="key / value pairs" onClick={onAddMap}>
+        <button
+          className="template-button"
+          title="key / value pairs"
+          draggable={false}
+          onPointerDown={(event) => onStartTemplateDrag?.(event, 'map')}
+          onClick={() => handleTemplateClick(onAddMap)}
+        >
           <span className="template-icon">↔</span>
           <span className="template-copy">
             <strong>Map</strong>
