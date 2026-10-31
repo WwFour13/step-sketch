@@ -1,7 +1,7 @@
 {
   "dataset": "leetcode-sketch",
   "schemaVersion": 2,
-  "generatedAt": "2026-10-15T04:27:45.085Z",
+  "generatedAt": "2026-10-31T05:33:47.008Z",
   "generator": {
     "provider": "google-gemini",
     "model": "gemini-3.1-flash-lite"
@@ -2476,6 +2476,87 @@
         }
       ]
     },
+    "46": {
+      "questionId": 46,
+      "title": "Permutations",
+      "titleSlug": "permutations",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "47": {
+      "questionId": 47,
+      "title": "Permutations II",
+      "titleSlug": "permutations-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                1,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
     "48": {
       "questionId": 48,
       "title": "Rotate Image",
@@ -2538,6 +2619,163 @@
                 ]
               ],
               "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "49": {
+      "questionId": 49,
+      "title": "Group Anagrams",
+      "titleSlug": "group-anagrams",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "strs",
+              "value": [
+                "eat",
+                "tea",
+                "tan",
+                "ate",
+                "nat",
+                "bat"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "strs",
+              "value": [
+                ""
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "strs",
+              "value": [
+                "a"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "50": {
+      "questionId": 50,
+      "title": "Pow(x, n)",
+      "titleSlug": "powx-n",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "n",
+              "value": 10,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": 2.1,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "n",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "x",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "n",
+              "value": -2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "51": {
+      "questionId": 51,
+      "title": "N-Queens",
+      "titleSlug": "n-queens",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 4,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "52": {
+      "questionId": 52,
+      "title": "N-Queens II",
+      "titleSlug": "n-queens-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 4,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 1,
+              "shape": "scalar",
               "nodeStructure": null
             }
           ]
@@ -3427,6 +3665,695 @@
         }
       ]
     },
+    "71": {
+      "questionId": 71,
+      "title": "Simplify Path",
+      "titleSlug": "simplify-path",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "path",
+              "value": "/home/",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "path",
+              "value": "/home//foo/",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "path",
+              "value": "/home/user/Documents/../Pictures",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "path",
+              "value": "/../",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "path",
+              "value": "/.../a/../b/c/../d/./",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "72": {
+      "questionId": 72,
+      "title": "Edit Distance",
+      "titleSlug": "edit-distance",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "word1",
+              "value": "horse",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "word2",
+              "value": "ros",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "word1",
+              "value": "intention",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "word2",
+              "value": "execution",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "73": {
+      "questionId": 73,
+      "title": "Set Matrix Zeroes",
+      "titleSlug": "set-matrix-zeroes",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  1,
+                  1,
+                  1
+                ],
+                [
+                  1,
+                  0,
+                  1
+                ],
+                [
+                  1,
+                  1,
+                  1
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  0,
+                  1,
+                  2,
+                  0
+                ],
+                [
+                  3,
+                  4,
+                  5,
+                  2
+                ],
+                [
+                  1,
+                  3,
+                  1,
+                  5
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "74": {
+      "questionId": 74,
+      "title": "Search a 2D Matrix",
+      "titleSlug": "search-a-2d-matrix",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                [
+                  10,
+                  11,
+                  16,
+                  20
+                ],
+                [
+                  23,
+                  30,
+                  34,
+                  60
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "matrix",
+              "value": [
+                [
+                  1,
+                  3,
+                  5,
+                  7
+                ],
+                [
+                  10,
+                  11,
+                  16,
+                  20
+                ],
+                [
+                  23,
+                  30,
+                  34,
+                  60
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 13,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "75": {
+      "questionId": 75,
+      "title": "Sort Colors",
+      "titleSlug": "sort-colors",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                0,
+                2,
+                1,
+                1,
+                0
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                0,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "76": {
+      "questionId": 76,
+      "title": "Minimum Window Substring",
+      "titleSlug": "minimum-window-substring",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "ADOBECODEBANC",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "t",
+              "value": "ABC",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "a",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "t",
+              "value": "a",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "a",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "t",
+              "value": "aa",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "77": {
+      "questionId": 77,
+      "title": "Combinations",
+      "titleSlug": "combinations",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 4,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "k",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "k",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "78": {
+      "questionId": 78,
+      "title": "Subsets",
+      "titleSlug": "subsets",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "79": {
+      "questionId": 79,
+      "title": "Word Search",
+      "titleSlug": "word-search",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "board",
+              "value": [
+                [
+                  "A",
+                  "B",
+                  "C",
+                  "E"
+                ],
+                [
+                  "S",
+                  "F",
+                  "C",
+                  "S"
+                ],
+                [
+                  "A",
+                  "D",
+                  "E",
+                  "E"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "word",
+              "value": "ABCCED",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "board",
+              "value": [
+                [
+                  "A",
+                  "B",
+                  "C",
+                  "E"
+                ],
+                [
+                  "S",
+                  "F",
+                  "C",
+                  "S"
+                ],
+                [
+                  "A",
+                  "D",
+                  "E",
+                  "E"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "word",
+              "value": "SEE",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "board",
+              "value": [
+                [
+                  "A",
+                  "B",
+                  "C",
+                  "E"
+                ],
+                [
+                  "S",
+                  "F",
+                  "C",
+                  "S"
+                ],
+                [
+                  "A",
+                  "D",
+                  "E",
+                  "E"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "word",
+              "value": "ABCB",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "80": {
+      "questionId": 80,
+      "title": "Remove Duplicates from Sorted Array II",
+      "titleSlug": "remove-duplicates-from-sorted-array-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                1,
+                1,
+                2,
+                2,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0,
+                0,
+                1,
+                1,
+                1,
+                1,
+                2,
+                3,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "81": {
+      "questionId": 81,
+      "title": "Search in Rotated Sorted Array II",
+      "titleSlug": "search-in-rotated-sorted-array-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                5,
+                6,
+                0,
+                0,
+                1,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                5,
+                6,
+                0,
+                0,
+                1,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "82": {
+      "questionId": 82,
+      "title": "Remove Duplicates from Sorted List II",
+      "titleSlug": "remove-duplicates-from-sorted-list-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3,
+                3,
+                4,
+                4,
+                5
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                1,
+                1,
+                2,
+                3
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        }
+      ]
+    },
+    "83": {
+      "questionId": 83,
+      "title": "Remove Duplicates from Sorted List",
+      "titleSlug": "remove-duplicates-from-sorted-list",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                1,
+                2
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                1,
+                2,
+                3,
+                3
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        }
+      ]
+    },
     "84": {
       "questionId": 84,
       "title": "Largest Rectangle in Histogram",
@@ -4294,6 +5221,581 @@
         }
       ]
     },
+    "101": {
+      "questionId": 101,
+      "title": "Symmetric Tree",
+      "titleSlug": "symmetric-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                2,
+                3,
+                4,
+                4,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                2,
+                null,
+                3,
+                null,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "102": {
+      "questionId": 102,
+      "title": "Binary Tree Level Order Traversal",
+      "titleSlug": "binary-tree-level-order-traversal",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                3,
+                9,
+                20,
+                null,
+                null,
+                15,
+                7
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "103": {
+      "questionId": 103,
+      "title": "Binary Tree Zigzag Level Order Traversal",
+      "titleSlug": "binary-tree-zigzag-level-order-traversal",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                3,
+                9,
+                20,
+                null,
+                null,
+                15,
+                7
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "104": {
+      "questionId": 104,
+      "title": "Maximum Depth of Binary Tree",
+      "titleSlug": "maximum-depth-of-binary-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                3,
+                9,
+                20,
+                null,
+                null,
+                15,
+                7
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                null,
+                2
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "105": {
+      "questionId": 105,
+      "title": "Construct Binary Tree from Preorder and Inorder Traversal",
+      "titleSlug": "construct-binary-tree-from-preorder-and-inorder-traversal",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "preorder",
+              "value": [
+                3,
+                9,
+                20,
+                15,
+                7
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "inorder",
+              "value": [
+                9,
+                3,
+                15,
+                20,
+                7
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "preorder",
+              "value": [
+                -1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "inorder",
+              "value": [
+                -1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "106": {
+      "questionId": 106,
+      "title": "Construct Binary Tree from Inorder and Postorder Traversal",
+      "titleSlug": "construct-binary-tree-from-inorder-and-postorder-traversal",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "inorder",
+              "value": [
+                9,
+                3,
+                15,
+                20,
+                7
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "postorder",
+              "value": [
+                9,
+                15,
+                7,
+                20,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "inorder",
+              "value": [
+                -1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "postorder",
+              "value": [
+                -1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "107": {
+      "questionId": 107,
+      "title": "Binary Tree Level Order Traversal II",
+      "titleSlug": "binary-tree-level-order-traversal-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                3,
+                9,
+                20,
+                null,
+                null,
+                15,
+                7
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "108": {
+      "questionId": 108,
+      "title": "Convert Sorted Array to Binary Search Tree",
+      "titleSlug": "convert-sorted-array-to-binary-search-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                -10,
+                -3,
+                0,
+                5,
+                9
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "109": {
+      "questionId": 109,
+      "title": "Convert Sorted List to Binary Search Tree",
+      "titleSlug": "convert-sorted-list-to-binary-search-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                -10,
+                -3,
+                0,
+                5,
+                9
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        }
+      ]
+    },
+    "110": {
+      "questionId": 110,
+      "title": "Balanced Binary Tree",
+      "titleSlug": "balanced-binary-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                3,
+                9,
+                20,
+                null,
+                null,
+                15,
+                7
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                2,
+                3,
+                3,
+                null,
+                null,
+                4,
+                4
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "111": {
+      "questionId": 111,
+      "title": "Minimum Depth of Binary Tree",
+      "titleSlug": "minimum-depth-of-binary-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                3,
+                9,
+                20,
+                null,
+                null,
+                15,
+                7
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                2,
+                null,
+                3,
+                null,
+                4,
+                null,
+                5,
+                null,
+                6
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "112": {
+      "questionId": 112,
+      "title": "Path Sum",
+      "titleSlug": "path-sum",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                5,
+                4,
+                8,
+                11,
+                null,
+                13,
+                4,
+                7,
+                2,
+                null,
+                null,
+                null,
+                1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            },
+            {
+              "name": "targetSum",
+              "value": 22,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            },
+            {
+              "name": "targetSum",
+              "value": 5,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            },
+            {
+              "name": "targetSum",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
     "113": {
       "questionId": 113,
       "title": "Path Sum II",
@@ -4370,6 +5872,851 @@
         }
       ]
     },
+    "114": {
+      "questionId": 114,
+      "title": "Flatten Binary Tree to Linked List",
+      "titleSlug": "flatten-binary-tree-to-linked-list",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                5,
+                3,
+                4,
+                null,
+                6
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                0
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "115": {
+      "questionId": 115,
+      "title": "Distinct Subsequences",
+      "titleSlug": "distinct-subsequences",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "rabbbit",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "t",
+              "value": "rabbit",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "babgbag",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "t",
+              "value": "bag",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "116": {
+      "questionId": 116,
+      "title": "Populating Next Right Pointers in Each Node",
+      "titleSlug": "populating-next-right-pointers-in-each-node",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "117": {
+      "questionId": 117,
+      "title": "Populating Next Right Pointers in Each Node II",
+      "titleSlug": "populating-next-right-pointers-in-each-node-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                null,
+                7
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "118": {
+      "questionId": 118,
+      "title": "Pascal's Triangle",
+      "titleSlug": "pascals-triangle",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "numRows",
+              "value": 5,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "numRows",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "119": {
+      "questionId": 119,
+      "title": "Pascal's Triangle II",
+      "titleSlug": "pascals-triangle-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "rowIndex",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "rowIndex",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "rowIndex",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "120": {
+      "questionId": 120,
+      "title": "Triangle",
+      "titleSlug": "triangle",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "triangle",
+              "value": [
+                [
+                  2
+                ],
+                [
+                  3,
+                  4
+                ],
+                [
+                  6,
+                  5,
+                  7
+                ],
+                [
+                  4,
+                  1,
+                  8,
+                  3
+                ]
+              ],
+              "shape": "array_of_arrays",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "triangle",
+              "value": [
+                [
+                  -10
+                ]
+              ],
+              "shape": "array_of_arrays",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "121": {
+      "questionId": 121,
+      "title": "Best Time to Buy and Sell Stock",
+      "titleSlug": "best-time-to-buy-and-sell-stock",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "prices",
+              "value": [
+                7,
+                1,
+                5,
+                3,
+                6,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "prices",
+              "value": [
+                7,
+                6,
+                4,
+                3,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "122": {
+      "questionId": 122,
+      "title": "Best Time to Buy and Sell Stock II",
+      "titleSlug": "best-time-to-buy-and-sell-stock-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "prices",
+              "value": [
+                7,
+                1,
+                5,
+                3,
+                6,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "prices",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "prices",
+              "value": [
+                7,
+                6,
+                4,
+                3,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "123": {
+      "questionId": 123,
+      "title": "Best Time to Buy and Sell Stock III",
+      "titleSlug": "best-time-to-buy-and-sell-stock-iii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "prices",
+              "value": [
+                3,
+                3,
+                5,
+                0,
+                0,
+                3,
+                1,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "prices",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "prices",
+              "value": [
+                7,
+                6,
+                4,
+                3,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "124": {
+      "questionId": 124,
+      "title": "Binary Tree Maximum Path Sum",
+      "titleSlug": "binary-tree-maximum-path-sum",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                -10,
+                9,
+                20,
+                null,
+                null,
+                15,
+                7
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "125": {
+      "questionId": 125,
+      "title": "Valid Palindrome",
+      "titleSlug": "valid-palindrome",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "A man, a plan, a canal: Panama",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "race a car",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": " ",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "126": {
+      "questionId": 126,
+      "title": "Word Ladder II",
+      "titleSlug": "word-ladder-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "beginWord",
+              "value": "hit",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "endWord",
+              "value": "cog",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "wordList",
+              "value": [
+                "hot",
+                "dot",
+                "dog",
+                "lot",
+                "log",
+                "cog"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "beginWord",
+              "value": "hit",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "endWord",
+              "value": "cog",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "wordList",
+              "value": [
+                "hot",
+                "dot",
+                "dog",
+                "lot",
+                "log"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "127": {
+      "questionId": 127,
+      "title": "Word Ladder",
+      "titleSlug": "word-ladder",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "beginWord",
+              "value": "hit",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "endWord",
+              "value": "cog",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "wordList",
+              "value": [
+                "hot",
+                "dot",
+                "dog",
+                "lot",
+                "log",
+                "cog"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "beginWord",
+              "value": "hit",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "endWord",
+              "value": "cog",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "wordList",
+              "value": [
+                "hot",
+                "dot",
+                "dog",
+                "lot",
+                "log"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "128": {
+      "questionId": 128,
+      "title": "Longest Consecutive Sequence",
+      "titleSlug": "longest-consecutive-sequence",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                100,
+                4,
+                200,
+                1,
+                3,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0,
+                3,
+                7,
+                2,
+                5,
+                8,
+                4,
+                6,
+                0,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                0,
+                1,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "129": {
+      "questionId": 129,
+      "title": "Sum Root to Leaf Numbers",
+      "titleSlug": "sum-root-to-leaf-numbers",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                4,
+                9,
+                0,
+                5,
+                1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "130": {
+      "questionId": 130,
+      "title": "Surrounded Regions",
+      "titleSlug": "surrounded-regions",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "board",
+              "value": [
+                [
+                  "X",
+                  "X",
+                  "X",
+                  "X"
+                ],
+                [
+                  "X",
+                  "O",
+                  "O",
+                  "X"
+                ],
+                [
+                  "X",
+                  "X",
+                  "O",
+                  "X"
+                ],
+                [
+                  "X",
+                  "O",
+                  "X",
+                  "X"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "board",
+              "value": [
+                [
+                  "X"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "131": {
+      "questionId": 131,
+      "title": "Palindrome Partitioning",
+      "titleSlug": "palindrome-partitioning",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "aab",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "a",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "132": {
+      "questionId": 132,
+      "title": "Palindrome Partitioning II",
+      "titleSlug": "palindrome-partitioning-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "aab",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "a",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "ab",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
     "133": {
       "questionId": 133,
       "title": "Clone Graph",
@@ -4421,6 +6768,631 @@
               "value": [],
               "shape": "graph_adjacency_list",
               "nodeStructure": "graph"
+            }
+          ]
+        }
+      ]
+    },
+    "134": {
+      "questionId": 134,
+      "title": "Gas Station",
+      "titleSlug": "gas-station",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "gas",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "cost",
+              "value": [
+                3,
+                4,
+                5,
+                1,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "gas",
+              "value": [
+                2,
+                3,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "cost",
+              "value": [
+                3,
+                4,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "135": {
+      "questionId": 135,
+      "title": "Candy",
+      "titleSlug": "candy",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "ratings",
+              "value": [
+                1,
+                0,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "ratings",
+              "value": [
+                1,
+                2,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "136": {
+      "questionId": 136,
+      "title": "Single Number",
+      "titleSlug": "single-number",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                2,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                4,
+                1,
+                2,
+                1,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "137": {
+      "questionId": 137,
+      "title": "Single Number II",
+      "titleSlug": "single-number-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                2,
+                3,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                0,
+                1,
+                0,
+                1,
+                0,
+                1,
+                99
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "139": {
+      "questionId": 139,
+      "title": "Word Break",
+      "titleSlug": "word-break",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "leetcode",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "wordDict",
+              "value": [
+                "leet",
+                "code"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "applepenapple",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "wordDict",
+              "value": [
+                "apple",
+                "pen"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "catsandog",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "wordDict",
+              "value": [
+                "cats",
+                "dog",
+                "sand",
+                "and",
+                "cat"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "140": {
+      "questionId": 140,
+      "title": "Word Break II",
+      "titleSlug": "word-break-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "catsanddog",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "wordDict",
+              "value": [
+                "cat",
+                "cats",
+                "and",
+                "sand",
+                "dog"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "pineapplepenapple",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "wordDict",
+              "value": [
+                "apple",
+                "pen",
+                "applepen",
+                "pine",
+                "pineapple"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "catsandog",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "wordDict",
+              "value": [
+                "cats",
+                "dog",
+                "sand",
+                "and",
+                "cat"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "141": {
+      "questionId": 141,
+      "title": "Linked List Cycle",
+      "titleSlug": "linked-list-cycle",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                3,
+                2,
+                0,
+                -4
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "pos",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "pos",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "pos",
+              "value": -1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "142": {
+      "questionId": 142,
+      "title": "Linked List Cycle II",
+      "titleSlug": "linked-list-cycle-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                3,
+                2,
+                0,
+                -4
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "pos",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "pos",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "pos",
+              "value": -1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "143": {
+      "questionId": 143,
+      "title": "Reorder List",
+      "titleSlug": "reorder-list",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3,
+                4
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        }
+      ]
+    },
+    "144": {
+      "questionId": 144,
+      "title": "Binary Tree Preorder Traversal",
+      "titleSlug": "binary-tree-preorder-traversal",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                null,
+                2,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                null,
+                8,
+                null,
+                null,
+                6,
+                7,
+                9
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        }
+      ]
+    },
+    "145": {
+      "questionId": 145,
+      "title": "Binary Tree Postorder Traversal",
+      "titleSlug": "binary-tree-postorder-traversal",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                null,
+                2,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                null,
+                8,
+                null,
+                null,
+                6,
+                7,
+                9
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
             }
           ]
         }
@@ -4490,6 +7462,2040 @@
               ],
               "shape": "array_of_arrays",
               "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "147": {
+      "questionId": 147,
+      "title": "Insertion Sort List",
+      "titleSlug": "insertion-sort-list",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                4,
+                2,
+                1,
+                3
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                -1,
+                5,
+                3,
+                4,
+                0
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        }
+      ]
+    },
+    "148": {
+      "questionId": 148,
+      "title": "Sort List",
+      "titleSlug": "sort-list",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                4,
+                2,
+                1,
+                3
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                -1,
+                5,
+                3,
+                4,
+                0
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            }
+          ]
+        }
+      ]
+    },
+    "149": {
+      "questionId": 149,
+      "title": "Max Points on a Line",
+      "titleSlug": "max-points-on-a-line",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "points",
+              "value": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  2
+                ],
+                [
+                  3,
+                  3
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "points",
+              "value": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  3,
+                  2
+                ],
+                [
+                  5,
+                  3
+                ],
+                [
+                  4,
+                  1
+                ],
+                [
+                  2,
+                  3
+                ],
+                [
+                  1,
+                  4
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "150": {
+      "questionId": 150,
+      "title": "Evaluate Reverse Polish Notation",
+      "titleSlug": "evaluate-reverse-polish-notation",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "tokens",
+              "value": [
+                "2",
+                "1",
+                "+",
+                "3",
+                "*"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "tokens",
+              "value": [
+                "4",
+                "13",
+                "5",
+                "/",
+                "+"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "tokens",
+              "value": [
+                "10",
+                "6",
+                "9",
+                "3",
+                "+",
+                "-11",
+                "*",
+                "/",
+                "*",
+                "17",
+                "+",
+                "5",
+                "+"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "151": {
+      "questionId": 151,
+      "title": "Reverse Words in a String",
+      "titleSlug": "reverse-words-in-a-string",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "the sky is blue",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "  hello world  ",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "a good   example",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "152": {
+      "questionId": 152,
+      "title": "Maximum Product Subarray",
+      "titleSlug": "maximum-product-subarray",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                3,
+                -2,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                -2,
+                0,
+                -1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "153": {
+      "questionId": 153,
+      "title": "Find Minimum in Rotated Sorted Array",
+      "titleSlug": "find-minimum-in-rotated-sorted-array",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                3,
+                4,
+                5,
+                1,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                4,
+                5,
+                6,
+                7,
+                0,
+                1,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                11,
+                13,
+                15,
+                17
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "154": {
+      "questionId": 154,
+      "title": "Find Minimum in Rotated Sorted Array II",
+      "titleSlug": "find-minimum-in-rotated-sorted-array-ii",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                3,
+                5
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                2,
+                2,
+                0,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "155": {
+      "questionId": 155,
+      "title": "Min Stack",
+      "titleSlug": "min-stack",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "methods",
+              "value": [
+                "MinStack",
+                "push",
+                "push",
+                "push",
+                "getMin",
+                "pop",
+                "top",
+                "getMin"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            },
+            {
+              "name": "params",
+              "value": [
+                [],
+                [
+                  -2
+                ],
+                [
+                  0
+                ],
+                [
+                  -3
+                ],
+                [],
+                [],
+                [],
+                []
+              ],
+              "shape": "array_of_arrays",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "160": {
+      "questionId": 160,
+      "title": "Intersection of Two Linked Lists",
+      "titleSlug": "intersection-of-two-linked-lists",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "intersectVal",
+              "value": 8,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "listA",
+              "value": [
+                4,
+                1,
+                8,
+                4,
+                5
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "listB",
+              "value": [
+                5,
+                6,
+                1,
+                8,
+                4,
+                5
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "skipA",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "skipB",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "intersectVal",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "listA",
+              "value": [
+                1,
+                9,
+                1,
+                2,
+                4
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "listB",
+              "value": [
+                3,
+                2,
+                4
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "skipA",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "skipB",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "intersectVal",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "listA",
+              "value": [
+                2,
+                6,
+                4
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "listB",
+              "value": [
+                1,
+                5
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "skipA",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "skipB",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "162": {
+      "questionId": 162,
+      "title": "Find Peak Element",
+      "titleSlug": "find-peak-element",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                2,
+                3,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                2,
+                1,
+                3,
+                5,
+                6,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "164": {
+      "questionId": 164,
+      "title": "Maximum Gap",
+      "titleSlug": "maximum-gap",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                3,
+                6,
+                9,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                10
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "165": {
+      "questionId": 165,
+      "title": "Compare Version Numbers",
+      "titleSlug": "compare-version-numbers",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "version1",
+              "value": "1.2",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "version2",
+              "value": "1.10",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "version1",
+              "value": "1.01",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "version2",
+              "value": "1.001",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "version1",
+              "value": "1.0",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "version2",
+              "value": "1.0.0.0",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "166": {
+      "questionId": 166,
+      "title": "Fraction to Recurring Decimal",
+      "titleSlug": "fraction-to-recurring-decimal",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "numerator",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "denominator",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "numerator",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "denominator",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "numerator",
+              "value": 4,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "denominator",
+              "value": 333,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "167": {
+      "questionId": 167,
+      "title": "Two Sum II - Input Array Is Sorted",
+      "titleSlug": "two-sum-ii-input-array-is-sorted",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "numbers",
+              "value": [
+                2,
+                7,
+                11,
+                15
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 9,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "numbers",
+              "value": [
+                2,
+                3,
+                4
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": 6,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "numbers",
+              "value": [
+                -1,
+                0
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "target",
+              "value": -1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "168": {
+      "questionId": 168,
+      "title": "Excel Sheet Column Title",
+      "titleSlug": "excel-sheet-column-title",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "columnNumber",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "columnNumber",
+              "value": 28,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "columnNumber",
+              "value": 701,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "169": {
+      "questionId": 169,
+      "title": "Majority Element",
+      "titleSlug": "majority-element",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                3,
+                2,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                2,
+                1,
+                1,
+                1,
+                2,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "171": {
+      "questionId": 171,
+      "title": "Excel Sheet Column Number",
+      "titleSlug": "excel-sheet-column-number",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "columnTitle",
+              "value": "A",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "columnTitle",
+              "value": "AB",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "columnTitle",
+              "value": "ZY",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "172": {
+      "questionId": 172,
+      "title": "Factorial Trailing Zeroes",
+      "titleSlug": "factorial-trailing-zeroes",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 5,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "173": {
+      "questionId": 173,
+      "title": "Binary Search Tree Iterator",
+      "titleSlug": "binary-search-tree-iterator",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "commands",
+              "value": [
+                "BSTIterator",
+                "next",
+                "next",
+                "hasNext",
+                "next",
+                "hasNext",
+                "next",
+                "hasNext",
+                "next",
+                "hasNext"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            },
+            {
+              "name": "args",
+              "value": [
+                [
+                  7,
+                  3,
+                  15,
+                  null,
+                  null,
+                  9,
+                  20
+                ],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                [],
+                []
+              ],
+              "shape": "array_of_arrays",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "174": {
+      "questionId": 174,
+      "title": "Dungeon Game",
+      "titleSlug": "dungeon-game",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "dungeon",
+              "value": [
+                [
+                  -2,
+                  -3,
+                  3
+                ],
+                [
+                  -5,
+                  -10,
+                  1
+                ],
+                [
+                  10,
+                  30,
+                  -5
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "dungeon",
+              "value": [
+                [
+                  0
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "175": {
+      "questionId": 175,
+      "title": "Combine Two Tables",
+      "titleSlug": "combine-two-tables",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Person",
+              "value": [
+                [
+                  1,
+                  "Wang",
+                  "Allen"
+                ],
+                [
+                  2,
+                  "Alice",
+                  "Bob"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "Address",
+              "value": [
+                [
+                  1,
+                  2,
+                  "New York City",
+                  "New York"
+                ],
+                [
+                  2,
+                  3,
+                  "Leetcode",
+                  "California"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "176": {
+      "questionId": 176,
+      "title": "Second Highest Salary",
+      "titleSlug": "second-highest-salary",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Employee",
+              "value": [
+                [
+                  1,
+                  100
+                ],
+                [
+                  2,
+                  200
+                ],
+                [
+                  3,
+                  300
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "Employee",
+              "value": [
+                [
+                  1,
+                  100
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "177": {
+      "questionId": 177,
+      "title": "Nth Highest Salary",
+      "titleSlug": "nth-highest-salary",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Employee",
+              "value": [
+                [
+                  1,
+                  100
+                ],
+                [
+                  2,
+                  200
+                ],
+                [
+                  3,
+                  300
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "n",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "Employee",
+              "value": [
+                [
+                  1,
+                  100
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "n",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "178": {
+      "questionId": 178,
+      "title": "Rank Scores",
+      "titleSlug": "rank-scores",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Scores",
+              "value": [
+                [
+                  1,
+                  3.5
+                ],
+                [
+                  2,
+                  3.65
+                ],
+                [
+                  3,
+                  4
+                ],
+                [
+                  4,
+                  3.85
+                ],
+                [
+                  5,
+                  4
+                ],
+                [
+                  6,
+                  3.65
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "179": {
+      "questionId": 179,
+      "title": "Largest Number",
+      "titleSlug": "largest-number",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                10,
+                2
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                3,
+                30,
+                34,
+                5,
+                9
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "180": {
+      "questionId": 180,
+      "title": "Consecutive Numbers",
+      "titleSlug": "consecutive-numbers",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Logs",
+              "value": [
+                [
+                  1,
+                  1
+                ],
+                [
+                  2,
+                  1
+                ],
+                [
+                  3,
+                  1
+                ],
+                [
+                  4,
+                  2
+                ],
+                [
+                  5,
+                  1
+                ],
+                [
+                  6,
+                  2
+                ],
+                [
+                  7,
+                  2
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "181": {
+      "questionId": 181,
+      "title": "Employees Earning More Than Their Managers",
+      "titleSlug": "employees-earning-more-than-their-managers",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Employee",
+              "value": [
+                [
+                  1,
+                  "Joe",
+                  70000,
+                  3
+                ],
+                [
+                  2,
+                  "Henry",
+                  80000,
+                  4
+                ],
+                [
+                  3,
+                  "Sam",
+                  60000,
+                  null
+                ],
+                [
+                  4,
+                  "Max",
+                  90000,
+                  null
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "182": {
+      "questionId": 182,
+      "title": "Duplicate Emails",
+      "titleSlug": "duplicate-emails",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Person",
+              "value": [
+                [
+                  1,
+                  "a@b.com"
+                ],
+                [
+                  2,
+                  "c@d.com"
+                ],
+                [
+                  3,
+                  "a@b.com"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "183": {
+      "questionId": 183,
+      "title": "Customers Who Never Order",
+      "titleSlug": "customers-who-never-order",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Customers",
+              "value": [
+                [
+                  1,
+                  "Joe"
+                ],
+                [
+                  2,
+                  "Henry"
+                ],
+                [
+                  3,
+                  "Sam"
+                ],
+                [
+                  4,
+                  "Max"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "Orders",
+              "value": [
+                [
+                  1,
+                  3
+                ],
+                [
+                  2,
+                  1
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "184": {
+      "questionId": 184,
+      "title": "Department Highest Salary",
+      "titleSlug": "department-highest-salary",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Employee",
+              "value": [
+                [
+                  1,
+                  "Joe",
+                  70000,
+                  1
+                ],
+                [
+                  2,
+                  "Jim",
+                  90000,
+                  1
+                ],
+                [
+                  3,
+                  "Henry",
+                  80000,
+                  2
+                ],
+                [
+                  4,
+                  "Sam",
+                  60000,
+                  2
+                ],
+                [
+                  5,
+                  "Max",
+                  90000,
+                  1
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "Department",
+              "value": [
+                [
+                  1,
+                  "IT"
+                ],
+                [
+                  2,
+                  "Sales"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "185": {
+      "questionId": 185,
+      "title": "Department Top Three Salaries",
+      "titleSlug": "department-top-three-salaries",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Employee",
+              "value": [
+                [
+                  1,
+                  "Joe",
+                  85000,
+                  1
+                ],
+                [
+                  2,
+                  "Henry",
+                  80000,
+                  2
+                ],
+                [
+                  3,
+                  "Sam",
+                  60000,
+                  2
+                ],
+                [
+                  4,
+                  "Max",
+                  90000,
+                  1
+                ],
+                [
+                  5,
+                  "Janet",
+                  69000,
+                  1
+                ],
+                [
+                  6,
+                  "Randy",
+                  85000,
+                  1
+                ],
+                [
+                  7,
+                  "Will",
+                  70000,
+                  1
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            },
+            {
+              "name": "Department",
+              "value": [
+                [
+                  1,
+                  "IT"
+                ],
+                [
+                  2,
+                  "Sales"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "187": {
+      "questionId": 187,
+      "title": "Repeated DNA Sequences",
+      "titleSlug": "repeated-dna-sequences",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "AAAAACCCCCAAAAACCCCCCAAAAAGGGTTT",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "AAAAAAAAAAAAA",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "188": {
+      "questionId": 188,
+      "title": "Best Time to Buy and Sell Stock IV",
+      "titleSlug": "best-time-to-buy-and-sell-stock-iv",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "k",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "prices",
+              "value": [
+                2,
+                4,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "k",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "prices",
+              "value": [
+                3,
+                2,
+                6,
+                5,
+                0,
+                3
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "189": {
+      "questionId": 189,
+      "title": "Rotate Array",
+      "titleSlug": "rotate-array",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "k",
+              "value": 3,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                -1,
+                -100,
+                3,
+                99
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            },
+            {
+              "name": "k",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "190": {
+      "questionId": 190,
+      "title": "Reverse Bits",
+      "titleSlug": "reverse-bits",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 43261596,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 2147483644,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "191": {
+      "questionId": 191,
+      "title": "Number of 1 Bits",
+      "titleSlug": "number-of-1-bits",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 11,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 128,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 2147483645,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "192": {
+      "questionId": 192,
+      "title": "Word Frequency",
+      "titleSlug": "word-frequency",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "words.txt",
+              "value": "the day is sunny the the\nthe sunny is is",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "193": {
+      "questionId": 193,
+      "title": "Valid Phone Numbers",
+      "titleSlug": "valid-phone-numbers",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "file.txt",
+              "value": "987-123-4567\n123 456 7890\n(123) 456-7890",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "194": {
+      "questionId": 194,
+      "title": "Transpose File",
+      "titleSlug": "transpose-file",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "file.txt",
+              "value": "name age\nalice 21\nryan 30",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "195": {
+      "questionId": 195,
+      "title": "Tenth Line",
+      "titleSlug": "tenth-line",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "file",
+              "value": "Line 1\nLine 2\nLine 3\nLine 4\nLine 5\nLine 6\nLine 7\nLine 8\nLine 9\nLine 10",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "196": {
+      "questionId": 196,
+      "title": "Delete Duplicate Emails",
+      "titleSlug": "delete-duplicate-emails",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Person",
+              "value": [
+                [
+                  1,
+                  "john@example.com"
+                ],
+                [
+                  2,
+                  "bob@example.com"
+                ],
+                [
+                  3,
+                  "john@example.com"
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "197": {
+      "questionId": 197,
+      "title": "Rising Temperature",
+      "titleSlug": "rising-temperature",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "Weather",
+              "value": [
+                [
+                  1,
+                  "2015-01-01",
+                  10
+                ],
+                [
+                  2,
+                  "2015-01-02",
+                  25
+                ],
+                [
+                  3,
+                  "2015-01-03",
+                  20
+                ],
+                [
+                  4,
+                  "2015-01-04",
+                  30
+                ]
+              ],
+              "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "198": {
+      "questionId": 198,
+      "title": "House Robber",
+      "titleSlug": "house-robber",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                1,
+                2,
+                3,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "nums",
+              "value": [
+                2,
+                7,
+                9,
+                3,
+                1
+              ],
+              "shape": "array",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "199": {
+      "questionId": 199,
+      "title": "Binary Tree Right Side View",
+      "titleSlug": "binary-tree-right-side-view",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3,
+                null,
+                5,
+                null,
+                4
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                2,
+                3,
+                4,
+                null,
+                null,
+                null,
+                5
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [
+                1,
+                null,
+                3
+              ],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "root",
+              "value": [],
+              "shape": "binary_tree",
+              "nodeStructure": "binary-tree"
             }
           ]
         }
@@ -4574,6 +9580,248 @@
                 ]
               ],
               "shape": "matrix",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "201": {
+      "questionId": 201,
+      "title": "Bitwise AND of Numbers Range",
+      "titleSlug": "bitwise-and-of-numbers-range",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "left",
+              "value": 5,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "right",
+              "value": 7,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "left",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "right",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "left",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            },
+            {
+              "name": "right",
+              "value": 2147483647,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "202": {
+      "questionId": 202,
+      "title": "Happy Number",
+      "titleSlug": "happy-number",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 19,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 2,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "203": {
+      "questionId": 203,
+      "title": "Remove Linked List Elements",
+      "titleSlug": "remove-linked-list-elements",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                1,
+                2,
+                6,
+                3,
+                4,
+                5,
+                6
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "val",
+              "value": 6,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "val",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "head",
+              "value": [
+                7,
+                7,
+                7,
+                7
+              ],
+              "shape": "linked_list",
+              "nodeStructure": "linked-list"
+            },
+            {
+              "name": "val",
+              "value": 7,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "204": {
+      "questionId": 204,
+      "title": "Count Primes",
+      "titleSlug": "count-primes",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 10,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 0,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "n",
+              "value": 1,
+              "shape": "scalar",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "205": {
+      "questionId": 205,
+      "title": "Isomorphic Strings",
+      "titleSlug": "isomorphic-strings",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "egg",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "t",
+              "value": "add",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "foo",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "t",
+              "value": "bar",
+              "shape": "string",
+              "nodeStructure": null
+            }
+          ]
+        },
+        {
+          "inputs": [
+            {
+              "name": "s",
+              "value": "paper",
+              "shape": "string",
+              "nodeStructure": null
+            },
+            {
+              "name": "t",
+              "value": "title",
+              "shape": "string",
               "nodeStructure": null
             }
           ]
@@ -4673,6 +9921,57 @@
                 ]
               ],
               "shape": "graph_edge_list",
+              "nodeStructure": null
+            }
+          ]
+        }
+      ]
+    },
+    "208": {
+      "questionId": 208,
+      "title": "Implement Trie (Prefix Tree)",
+      "titleSlug": "implement-trie-prefix-tree",
+      "testCases": [
+        {
+          "inputs": [
+            {
+              "name": "commands",
+              "value": [
+                "Trie",
+                "insert",
+                "search",
+                "search",
+                "startsWith",
+                "insert",
+                "search"
+              ],
+              "shape": "array_of_strings",
+              "nodeStructure": null
+            },
+            {
+              "name": "arguments",
+              "value": [
+                [],
+                [
+                  "apple"
+                ],
+                [
+                  "apple"
+                ],
+                [
+                  "app"
+                ],
+                [
+                  "app"
+                ],
+                [
+                  "app"
+                ],
+                [
+                  "app"
+                ]
+              ],
+              "shape": "array_of_arrays",
               "nodeStructure": null
             }
           ]
