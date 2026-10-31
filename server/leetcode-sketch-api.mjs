@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -10,31 +10,28 @@ const leetcodeSketchDatasetPath = path.join(
   'leetcode-sketch-problems-v1.json',
 )
 
-let leetcodeSketchDatasetPromise
+let cachedDataset = null
+let cachedMtime = 0
 
-const loadLeetCodeSketchDataset = () => {
-  if (!leetcodeSketchDatasetPromise) {
-    leetcodeSketchDatasetPromise = readFile(leetcodeSketchDatasetPath, 'utf8')
-      .then((contents) => JSON.parse(contents))
-      .then((dataset) => {
-        if (
-          !dataset ||
-          dataset.dataset !== 'leetcode-sketch' ||
-          (dataset.schemaVersion !== 1 && dataset.schemaVersion !== 2) ||
-          !dataset.problems ||
-          typeof dataset.problems !== 'object' ||
-          Array.isArray(dataset.problems)
-        ) {
-          throw new Error('LeetCode Sketch dataset has an unsupported format')
-        }
-        return dataset
-      })
-      .catch((error) => {
-        leetcodeSketchDatasetPromise = undefined
-        throw error
-      })
+const loadLeetCodeSketchDataset = async () => {
+  const fileStat = await stat(leetcodeSketchDatasetPath)
+  if (!cachedDataset || fileStat.mtimeMs > cachedMtime) {
+    const contents = await readFile(leetcodeSketchDatasetPath, 'utf8')
+    const dataset = JSON.parse(contents)
+    if (
+      !dataset ||
+      dataset.dataset !== 'leetcode-sketch' ||
+      (dataset.schemaVersion !== 1 && dataset.schemaVersion !== 2) ||
+      !dataset.problems ||
+      typeof dataset.problems !== 'object' ||
+      Array.isArray(dataset.problems)
+    ) {
+      throw new Error('LeetCode Sketch dataset has an unsupported format')
+    }
+    cachedDataset = dataset
+    cachedMtime = fileStat.mtimeMs
   }
-  return leetcodeSketchDatasetPromise
+  return cachedDataset
 }
 
 const sendJson = (response, status, body) => {
